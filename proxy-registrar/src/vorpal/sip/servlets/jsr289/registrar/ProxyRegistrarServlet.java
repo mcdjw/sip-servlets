@@ -1,4 +1,5 @@
-// COPYRIGHT VORPAL.ORG, 2014 
+// COPYRIGHT: VORPAL.ORG, 2014
+// AUTHOR:    JEFF@MCDONALD.NET
 
 package vorpal.sip.servlets.jsr289.registrar;
 
