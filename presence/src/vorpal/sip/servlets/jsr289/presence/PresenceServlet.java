@@ -1,5 +1,7 @@
-// COPYRIGHT: VORPAL.ORG, 2014
-// AUTHOR:    JEFF@MCDONALD.NET
+/* 
+ * COPYRIGHT: VORPAL.ORG, 2014
+ * AUTHOR:    JEFF@MCDONALD.NET
+ */
 
 package vorpal.sip.servlets.jsr289.presence;
 
@@ -17,6 +19,7 @@ import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.annotation.SipApplicationKey;
 
+@SuppressWarnings("serial")
 public class PresenceServlet extends SipServlet {
 
 	@SipApplicationKey
@@ -34,35 +37,33 @@ public class PresenceServlet extends SipServlet {
 
 	public static String generateKey(Address address) {
 		SipURI uri = (SipURI) address.getURI();
-		String _key = uri.getUser().toString().toLowerCase() + "@" + uri.getHost().toString().toLowerCase();
-		return _key;
+		String key = uri.getUser().toLowerCase() + "@" + uri.getHost().toLowerCase();
+		return key;
 	}
 
 	@Override
-	protected void doSubscribe(SipServletRequest arg0) throws ServletException, IOException {
-		System.out.println("\ndoSubscribe... ");
+	protected void doSubscribe(SipServletRequest req) throws ServletException, IOException {
 
 		// Send Ok response back
-		SipServletResponse response = arg0.createResponse(202);
-		response.addHeader("Expires", arg0.getHeader("Expires"));
+		SipServletResponse response = req.createResponse(202);
+		response.addHeader("Expires", req.getHeader("Expires"));
 		response.send();
 
-		SipApplicationSession app = arg0.getApplicationSession();
+		SipApplicationSession app = req.getApplicationSession();
 		app.setInvalidateWhenReady(false);
-		app.setExpires(arg0.getExpires());
+		app.setExpires(req.getExpires());
 
 		// Add self to list of subscribers
 		HashMap<String, String> subscribers; // URI, SessionId
-		subscribers = (HashMap<String, String>) app.getAttribute(arg0.getHeader("Event") + ".subscribers");
+		subscribers = (HashMap<String, String>) app.getAttribute(req.getHeader("Event") + ".subscribers");
 		subscribers = (subscribers != null) ? subscribers : new HashMap<String, String>();
-		subscribers.put(arg0.getFrom().getURI().toString(), arg0.getSession().getId());
-		app.setAttribute(arg0.getHeader("Event") + ".subscribers", subscribers);
+		subscribers.put(req.getFrom().getURI().toString(), req.getSession().getId());
+		app.setAttribute(req.getHeader("Event") + ".subscribers", subscribers);
 
 		// Send 'notify' if status known
-		SipServletRequest status = (SipServletRequest) app.getAttribute(arg0.getHeader("Event") + ".status");
+		SipServletRequest status = (SipServletRequest) app.getAttribute(req.getHeader("Event") + ".status");
 		if (null != status) {
-			System.out.println("\tsending notification...");
-			SipServletRequest notify = arg0.getSession().createRequest("NOTIFY");
+			SipServletRequest notify = req.getSession().createRequest("NOTIFY");
 			notify.setContent(status.getContent(), status.getContentType());
 			notify.setHeader("Event", status.getHeader("Event"));
 			notify.setHeader("Subscription-State", "active;expires=" + status.getExpires());
@@ -71,22 +72,18 @@ public class PresenceServlet extends SipServlet {
 	}
 
 	@Override
-	protected void doPublish(SipServletRequest arg0) throws ServletException, IOException {
-		System.out.println("\ndoPublish... " + arg0.getRequestURI());
-		System.out.println("\tAppSession: " + arg0.getApplicationSession().getId());
-		System.out.println("\tEvent: " + arg0.getHeader("Event").toString());
+	protected void doPublish(SipServletRequest req) throws ServletException, IOException {
 
 		// send OK response back
-		arg0.createResponse(200).send();
+		req.createResponse(200).send();
 
-		SipApplicationSession app = arg0.getApplicationSession();
-		app.setAttribute(arg0.getHeader("Event") + ".status", arg0);
+		SipApplicationSession app = req.getApplicationSession();
+		app.setAttribute(req.getHeader("Event") + ".status", req);
 
 		// send notifications to all subscribers
 		HashMap<String, String> subscribers; // URI, SessionId
-		subscribers = (HashMap<String, String>) app.getAttribute(arg0.getHeader("Event") + ".subscribers");
+		subscribers = (HashMap<String, String>) app.getAttribute(req.getHeader("Event") + ".subscribers");
 		if (null != subscribers) {
-			System.out.println("\tsubscribers found: " + subscribers.size());
 			String subscriber;
 			String session_id;
 			SipSession session;
@@ -96,20 +93,16 @@ public class PresenceServlet extends SipServlet {
 				session_id = entry.getValue();
 				session = app.getSipSession(session_id);
 
-				System.out.println("\t\t" + subscriber + ", " + session_id);
-
 				if (session != null && session.isValid()) {
 					SipServletRequest notify = session.createRequest("NOTIFY");
-					notify.setContent(arg0.getContent(), arg0.getContentType());
-					notify.setHeader("Event", arg0.getHeader("Event"));
-					notify.setHeader("Subscription-State", "active;expires=" + arg0.getExpires());
+					notify.setContent(req.getContent(), req.getContentType());
+					notify.setHeader("Event", req.getHeader("Event"));
+					notify.setHeader("Subscription-State", "active;expires=" + req.getExpires());
 
-					System.out.println("\tsending notify to " + notify.getTo());
 					notify.send();
 				} else {
-					System.out.println("\tremoving invalid session");
 					subscribers.remove(subscriber);
-					app.setAttribute(arg0.getHeader("Event") + ".subscribers", subscribers);
+					app.setAttribute(req.getHeader("Event") + ".subscribers", subscribers);
 				}
 
 			}

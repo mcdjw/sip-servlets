@@ -12,5 +12,9 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry kind="lib" path="/Users/jeff/weblogic/occas510/wlserver_10.3/sip/server/lib/sipservlet.jar"/>
+	<classpathentry kind="lib" path="/Users/jeff/weblogic/occas510/wlserver_10.3/sip/server/lib/wlss.jar"/>
+	<classpathentry kind="lib" path="/Users/jeff/weblogic/occas510/wlserver_10.3/sip/server/lib/wlssapi.jar"/>
+	<classpathentry kind="lib" path="/Users/jeff/weblogic/occas510/wlserver_10.3/server/lib/wseeclient.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

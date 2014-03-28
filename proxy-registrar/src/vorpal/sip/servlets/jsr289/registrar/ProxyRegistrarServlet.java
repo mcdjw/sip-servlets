@@ -1,5 +1,7 @@
-// COPYRIGHT: VORPAL.ORG, 2014
-// AUTHOR:    JEFF@MCDONALD.NET
+/* 
+ * COPYRIGHT: VORPAL.ORG, 2014
+ * AUTHOR:    JEFF@MCDONALD.NET
+ */
 
 package vorpal.sip.servlets.jsr289.registrar;
 
@@ -9,6 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
@@ -20,6 +23,7 @@ import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 import javax.servlet.sip.annotation.SipApplicationKey;
 
@@ -41,8 +45,13 @@ public class ProxyRegistrarServlet extends SipServlet {
 
 	@SipApplicationKey
 	public static String sessionKey(SipServletRequest req) {
-		// Create an application key based on 'To' header.
-		return req.getTo().getURI().toString().toLowerCase();
+		return generateKey(req.getTo());
+	}
+
+	public static String generateKey(Address address) {
+		SipURI uri = (SipURI) address.getURI();
+		String key = uri.getUser().toLowerCase() + "@" + uri.getHost().toLowerCase();
+		return key;
 	}
 
 	@Override
@@ -59,7 +68,6 @@ public class ProxyRegistrarServlet extends SipServlet {
 
 		SipServletResponse resp = req.createResponse(200);
 		SipApplicationSession appSession = req.getApplicationSession();
-		// int min_expires = 3600;
 
 		ListIterator<Address> contactsIterator = req.getAddressHeaders("Contact");
 
@@ -103,10 +111,6 @@ public class ProxyRegistrarServlet extends SipServlet {
 					resp.addAddressHeader("Contact", entry.getKey(), false);
 					resp.setExpires(expires);
 				} else {
-
-					// This is a problem
-					// Address contactWithExpiration =
-					// sipFactory.createAddress(entry.getKey().getURI());
 					Address contactWithExpiration = sipFactory.createAddress(entry.getKey().toString());
 					contactWithExpiration.setExpires(expires);
 					resp.addAddressHeader("Contact", contactWithExpiration, false);
@@ -124,13 +128,13 @@ public class ProxyRegistrarServlet extends SipServlet {
 			}
 		}
 
-		System.out.println();
-		System.out.println(req.getMethod() + " " + req.getTo());
-		ListIterator<Address> i = resp.getAddressHeaders("Contact");
-		while (i.hasNext()) {
-			System.out.println("Contact: " + i.next().toString());
+		if (logger.getLevel().equals(Level.FINE)) {
+			logger.fine(req.getMethod() + " " + req.getTo());
+			ListIterator<Address> i = resp.getAddressHeaders("Contact");
+			while (i.hasNext()) {
+				logger.fine("Contact: " + i.next().toString());
+			}
 		}
-		System.out.println();
 
 		resp.send();
 	}
