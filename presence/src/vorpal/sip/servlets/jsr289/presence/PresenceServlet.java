@@ -6,8 +6,11 @@
 package vorpal.sip.servlets.jsr289.presence;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
@@ -19,8 +22,16 @@ import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.annotation.SipApplicationKey;
 
+import weblogic.kernel.KernelLogManager;
+
 @SuppressWarnings("serial")
 public class PresenceServlet extends SipServlet {
+
+	static Logger logger;
+	{
+		logger = Logger.getLogger(PresenceServlet.class.getName());
+		logger.setParent(KernelLogManager.getLogger());
+	}
 
 	@SipApplicationKey
 	public static String sessionKey(SipServletRequest req) {
@@ -60,6 +71,10 @@ public class PresenceServlet extends SipServlet {
 		subscribers.put(req.getFrom().getURI().toString(), req.getSession().getId());
 		app.setAttribute(req.getHeader("Event") + ".subscribers", subscribers);
 
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("SUBSCRIBE, "+req.getTo()+", Event: " + req.getHeader("Event") + ", Subscribers: " + Arrays.toString(subscribers.keySet().toArray()));
+		}
+
 		// Send 'notify' if status known
 		SipServletRequest status = (SipServletRequest) app.getAttribute(req.getHeader("Event") + ".status");
 		if (null != status) {
@@ -84,9 +99,14 @@ public class PresenceServlet extends SipServlet {
 		HashMap<String, String> subscribers; // URI, SessionId
 		subscribers = (HashMap<String, String>) app.getAttribute(req.getHeader("Event") + ".subscribers");
 		if (null != subscribers) {
+
 			String subscriber;
 			String session_id;
 			SipSession session;
+
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("PUBLISH "+req.getFrom()+", Event: " + req.getHeader("Event") + ", Subscribers: " + Arrays.toString(subscribers.keySet().toArray()));
+			}
 
 			for (Entry<String, String> entry : subscribers.entrySet()) {
 				subscriber = entry.getKey();
@@ -105,6 +125,10 @@ public class PresenceServlet extends SipServlet {
 					app.setAttribute(req.getHeader("Event") + ".subscribers", subscribers);
 				}
 
+			}
+		} else {
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("PUBLISH "+req.getFrom()+", Event: " + req.getHeader("Event") + ", Subscribers: none");
 			}
 		}
 

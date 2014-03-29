@@ -128,7 +128,7 @@ public class ProxyRegistrarServlet extends SipServlet {
 			}
 		}
 
-		if (logger.getLevel().equals(Level.FINE)) {
+		if (logger.isLoggable(Level.FINE)) {
 			logger.fine(req.getMethod() + " " + req.getTo());
 			ListIterator<Address> i = resp.getAddressHeaders("Contact");
 			while (i.hasNext()) {

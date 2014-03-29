@@ -106,7 +106,7 @@ public class AppRouter implements SipApplicationRouter {
 		}
 
 		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Call-ID: " + request.getCallId() + ", Transition: [" + ts_key + ": " + ts_value + "]");
+			logger.fine("FSMAR: [" + ts_key + ": " + ts_value + "]");
 		}
 
 		return nextApp;
