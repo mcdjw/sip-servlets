@@ -6,6 +6,7 @@
 package vorpal.sip.servlets.jsr289.registrar;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -140,25 +141,31 @@ public class ProxyRegistrarServlet extends SipServlet {
 	}
 
 	protected void doMethod(SipServletRequest request) throws ServletException, IOException {
-		SipApplicationSession appSession = request.getApplicationSession();
+		if (request.isInitial()) {
 
-		HashMap<Address, Long> contacts = (HashMap<Address, Long>) appSession.getAttribute(CONTACTS_MAP);
-		if (null == contacts) {
-			Proxy proxy = request.getProxy();
-			proxy.proxyTo(request.getRequestURI());
-		} else {
-
+			SipApplicationSession appSession = request.getApplicationSession();
 			LinkedList<URI> aors = new LinkedList<URI>();
 
-			for (Entry<Address, Long> entry : contacts.entrySet()) {
-				aors.add(entry.getKey().getURI());
+			HashMap<Address, Long> contacts = (HashMap<Address, Long>) appSession.getAttribute(CONTACTS_MAP);
+			if (null == contacts) {
+				aors.add(request.getTo().getURI());
+			} else {
+				for (Entry<Address, Long> entry : contacts.entrySet()) {
+					aors.add(entry.getKey().getURI());
+				}
+			}
+
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("Proxying " + request.getMethod() + " to " + Arrays.toString(aors.toArray()));
 			}
 
 			Proxy proxy = request.getProxy();
+			proxy.setRecordRoute(true);
+			proxy.setSupervised(true);
 			proxy.createProxyBranches(aors);
 			proxy.startProxy();
-		}
 
+		}
 	}
 
 }
