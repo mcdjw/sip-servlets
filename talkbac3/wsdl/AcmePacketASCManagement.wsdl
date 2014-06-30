@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+   Copyright (c) 2011-  Acme Packet Inc.
+   All Rights Reserved.
+
+   The contents of this file may not be disclosed to third parties,
+   copied, or duplicated in any form, in whole or in part, without
+   the prior written permission of Acme Packet Inc.
+
+      File: AcmePacketASCManagement.wsdl
+    Author: Acme Packet Inc.
+   Summary: Acme Packet ASC Management Web Service Definition
+      Date: 2011
+
+-->
+<definitions name="AcmePacketASCManagement" 
+             targetNamespace="http://www.acmepacket.com/asc/ws/mgmt" 
+             xmlns:tns="http://www.acmepacket.com/asc/ws/mgmt" 
+             xmlns="http://schemas.xmlsoap.org/wsdl/" 
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+
+    <documentation>
+        The Web Service Definition Language (WSDL) representation for management
+        services provided by the Acme Packet Net-Net Application Session
+        Controller platform. The services presented are the core management
+        interfaces. This includes configuration, monitoring and control. There
+        is also an external / remote service defined here as well, EventProcessingService,
+        that an external system would implement in order to be notified of events
+        that are occuring in the ASC.
+    </documentation>
+             
+    <types>
+        
+        <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" 
+                    targetNamespace="http://www.acmepacket.com/asc/ws/mgmt" 
+                    elementFormDefault="qualified">
+                    
+            <!-- Include the data types -->
+            <xsd:include schemaLocation="AcmePacketASCManagement.xsd" />
+        
+        </xsd:schema>
+        
+    </types>
+    
+    <!--*********************************************************************-->
+    <!--**                                                                 **-->
+    <!--**    Management Service                                           **-->
+    <!--**                                                                 **-->
+    <!--*********************************************************************-->
+    
+    <!-- Define the various Web Service messages -->
+
+    <message name="getConfig">
+        <part name="parameters" element="tns:getConfig"/>
+    </message>
+
+    <message name="getConfigResponse">
+        <part name="result" element="tns:getConfigResponse"/>
+    </message>
+
+    <message name="setConfig">
+        <part name="parameters" element="tns:setConfig"/>
+    </message>
+
+    <message name="setConfigResponse">
+        <part name="result" element="tns:setConfigResponse"/>
+    </message>
+
+    <message name="getStatus">
+        <part name="parameters" element="tns:getStatus"/>
+    </message>
+
+    <message name="getStatusResponse">
+        <part name="result" element="tns:getStatusResponse"/>
+    </message>
+
+    <message name="queryStatus">
+        <part name="parameters" element="tns:queryStatus"/>
+    </message>
+
+    <message name="queryStatusResponse">
+        <part name="result" element="tns:queryStatusResponse"/>
+    </message>
+
+    <message name="doAction">
+        <part name="parameters" element="tns:doAction"/>
+    </message>
+
+    <message name="doActionResponse">
+        <part name="result" element="tns:doActionResponse"/>
+    </message>
+
+    <message name="doActionEx">
+        <part name="parameters" element="tns:doActionEx"/>
+    </message>
+
+    <message name="doActionExResponse">
+        <part name="result" element="tns:doActionExResponse"/>
+    </message>
+
+    <message name="getAuthorization">
+        <part name="parameters" element="tns:getAuthorization"/>
+    </message>
+
+    <message name="getAuthorizationResponse">
+        <part name="result" element="tns:getAuthorizationResponse"/>
+    </message>
+
+    <message name="uploadFile">
+        <part name="parameters" element="tns:uploadFile"/>
+    </message>
+
+    <message name="uploadFileResponse">
+        <part name="result" element="tns:uploadFileResponse"/>
+    </message>
+
+    <message name="downloadFile">
+        <part name="parameters" element="tns:downloadFile"/>
+    </message>
+
+    <message name="downloadFileResponse">
+        <part name="result" element="tns:downloadFileResponse"/>
+    </message>
+
+    <message name="fault">
+        <part name="Fault" element="tns:Fault"/>
+    </message>
+    
+    <!-- Define the various Web Service operations -->
+
+    <portType name="ManagementPortType">
+        
+        <documentation>
+            This interface provides access to the Net-Net Application Session Controller management functionality.
+        </documentation>
+
+        <operation name="getConfig">
+            <documentation>
+                This operation provides access to all or some of the active
+                configuration from the Net-Net Application Session Controller platform.
+            </documentation>
+            <input message="tns:getConfig">
+                <documentation>Specifies the configuration objects to retrieve</documentation>
+            </input>
+            <output message="tns:getConfigResponse">
+                <documentation>The requested configuration</documentation>
+            </output>
+            <fault name="fault" message="tns:fault"/>
+        </operation>
+        
+        <operation name="setConfig">
+            <documentation>
+                This operation allows the active configuration on the Net-Net Application Session Controller
+                platform to be altered.
+            </documentation>
+            <input message="tns:setConfig">
+                <documentation>This is the configuration to activate</documentation>
+            </input>
+            <output message="tns:setConfigResponse">
+                <documentation>This is the result of modifying the active configuration</documentation>
+            </output>
+            <fault name="fault" message="tns:fault"/>
+        </operation>
+        
+        <operation name="getStatus">
+            <documentation>
+                This operation retrieves one or more collections of active
+                status from the Net-Net Application Session Controller platform.
+            </documentation>
+            <input message="tns:getStatus">
+                <documentation>This is a list of the status objects to retrieve</documentation>
+            </input>
+            <output message="tns:getStatusResponse">
+                <documentation>This is the resultant status objects</documentation>
+            </output>
+            <fault name="fault" message="tns:fault"/>
+        </operation>
+
+        <operation name="queryStatus">
+            <documentation>
+                This operation queries one or more collections of active
+                status from the Net-Net Application Session Controller platform.
+            </documentation>
+            <input message="tns:queryStatus">
+                <documentation>This is a list of the status objects to query</documentation>
+            </input>
+            <output message="tns:queryStatusResponse">
+                <documentation>This is the resultant status objects</documentation>
+            </output>
+            <fault name="fault" message="tns:fault"/>
+        </operation>
+        
+        <operation name="doAction">
+            <documentation>
+                This operation will invoke an action on the Net-Net Application Session Controller platforms.
+                Actions are defined commands that the Net-Net Application Session Controller can execute.
+            </documentation>
+            <input message="tns:doAction">
+                <documentation>This is the action to invoke</documentation>
+            </input>
+            <output message="tns:doActionResponse">
+                <documentation>This is the result of the action being invoked</documentation>
+            </output>
+            <fault name="fault" message="tns:fault"/>
+        </operation>
+        
+        <operation name="doActionEx">
+            <documentation>
+                This operation will invoke an action on the Net-Net Application Session Controller platforms.
+                Actions are defined commands that the Net-Net Application Session Controller can execute.
+                This means of invoking action can return extended data.
+            </documentation>
+            <input message="tns:doActionEx">
+                <documentation>This is the action to invoke</documentation>
+            </input>
+            <output message="tns:doActionExResponse">
+                <documentation>This is the result of the action being invoked</documentation>
+            </output>
+            <fault name="fault" message="tns:fault"/>
+        </operation>
+        
+        <operation name="getAuthorization">
+            <documentation>
+                This operation will return the authorization information for the
+                user that has logged into the session that is making this request.
+            </documentation>
+            <input message="tns:getAuthorization">
+                <documentation>This is the request</documentation>
+            </input>
+            <output message="tns:getAuthorizationResponse">
+                <documentation>This is the authorization for the logged in user</documentation>
+            </output>
+            <fault name="fault" message="tns:fault"/>
+        </operation>
+        
+        <operation name="uploadFile">
+            <documentation>
+                This operation will upload a file to the ASC
+            </documentation>
+            <input message="tns:uploadFile">
+                <documentation>This is the request to upload a file</documentation>
+            </input>
+            <output message="tns:uploadFileResponse">
+                <documentation>This is the result of the request to upload a file</documentation>
+            </output>
+            <fault name="fault" message="tns:fault"/>
+        </operation>
+        
+        <operation name="downloadFile">
+            <documentation>
+                This operation will download a file to the ASC
+            </documentation>
+            <input message="tns:downloadFile">
+                <documentation>This is the request to download a file</documentation>
+            </input>
+            <output message="tns:downloadFileResponse">
+                <documentation>This is the result of the request to download a file</documentation>
+            </output>
+            <fault name="fault" message="tns:fault"/>
+        </operation>
+        
+    </portType>
+    
+    <binding name="ManagementBinding" type="tns:ManagementPortType">
+        
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+                      
+        <operation name="getConfig">
+            <soap:operation soapAction="getConfig"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        
+        <operation name="setConfig">
+            <soap:operation soapAction="setConfig"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        
+        <operation name="getStatus">
+            <soap:operation soapAction="getStatus"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        
+        <operation name="queryStatus">
+            <soap:operation soapAction="queryStatus"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        
+        <operation name="doAction">
+            <soap:operation soapAction="doAction"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        
+        <operation name="doActionEx">
+            <soap:operation soapAction="doActionEx"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        
+        <operation name="getAuthorization">
+            <soap:operation soapAction="getAuthorization"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        
+        <operation name="uploadFile">
+            <soap:operation soapAction="uploadFile"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        
+        <operation name="downloadFile">
+            <soap:operation soapAction="downloadFile"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        
+    </binding>
+    
+    <service name="ManagementService">
+        <port name="ManagementPort" binding="tns:ManagementBinding">
+            <soap:address location="http://localhost:8080/covws/callouts"/>
+        </port>
+    </service>
+    
+    <!--*********************************************************************-->
+    <!--**                                                                 **-->
+    <!--**    Event Processing Service                                     **-->
+    <!--**                                                                 **-->
+    <!--*********************************************************************-->
+
+    
+    <message name="processEvent">
+        <part name="parameters" element="tns:processEvent"/>
+    </message>
+
+    <portType name="EventProcessingPortType">
+        
+        <documentation>
+            This interface defines the methods required by an external service to
+            support Net-Net Application Session Controller event processing
+            support.
+        </documentation>
+        
+        <operation name="processEvent">
+            <documentation>
+                This operation is implemented by third parties.  This is a call out to allow a third party to process
+                events generated by the Net-Net Application Session Controller.
+            </documentation>
+            <input message="tns:processEvent">
+                <documentation>This is the event for a call</documentation>
+            </input>
+        </operation>
+        
+    </portType>
+    
+    <binding name="EventProcessingBinding" type="tns:EventProcessingPortType">
+        
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        
+        <operation name="processEvent">
+            <soap:operation soapAction="processEvent"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+        </operation>
+        
+    </binding>
+    
+    <service name="EventProcessingService">
+        <port name="EventProcessingPort" binding="tns:EventProcessingBinding">
+            <soap:address location="http://localhost:8080/covws/EventProcessing"/>
+        </port>
+    </service>
+    
+</definitions>

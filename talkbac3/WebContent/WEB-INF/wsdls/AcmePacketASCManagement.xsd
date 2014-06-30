@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://www.acmepacket.com/asc/ws/mgmt"
+    xmlns:common="http://www.acmepacket.com/asc/ws/common"
+    xmlns:tns="http://www.acmepacket.com/asc/ws/mgmt" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:annotation>
+        <xsd:documentation>             This XML schema defines the SOAP
+            Body elements for the web service.         </xsd:documentation>
+    </xsd:annotation>
+    <!-- Include the data types -->
+    <xsd:import namespace="http://www.acmepacket.com/asc/ws/common" schemaLocation="cxc_simplified.xsd"/>
+    <!--*********************************************************************-->
+    <!--**                                                                 **-->
+    <!--**    Management Structures                                        **-->
+    <!--**                                                                 **-->
+    <!--*********************************************************************-->
+    <!-- Define the getConfig method -->
+    <xsd:element name="getConfig" type="tns:getConfigType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent to the Net-Net OS-E
+                from a remote system to get the specified configuration.
+                If no                 classes are specified, the entire
+                configuartion will be returned.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="getConfigResponse" type="tns:getConfigResponseType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent from the Net-Net OS-E
+                to a remote system in response to a configuration get
+                request.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="getConfigType">
+        <xsd:sequence>
+            <xsd:element form="unqualified" maxOccurs="unbounded"
+                minOccurs="0" name="config" type="common:configClassesType"/>
+            <xsd:element form="unqualified" maxOccurs="unbounded"
+                minOccurs="0" name="path" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="getConfigResponseType">
+        <xsd:sequence>
+            <xsd:element form="unqualified" maxOccurs="unbounded"
+                name="config" type="common:configClassesType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- Define the setConfig method -->
+    <xsd:element name="setConfig" type="tns:setConfigType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent to the Net-Net OS-E
+                from a remote system to set the specified configuration.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="setConfigResponse" type="tns:setConfigResponseType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent from the Net-Net OS-E
+                to a remote system in response to a configuration set
+                request.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="setConfigType">
+        <xsd:sequence>
+            <xsd:element form="unqualified" name="config" type="common:configClassesType"/>
+        </xsd:sequence>
+        <xsd:attribute name="mode" type="tns:setConfigMode" use="required"/>
+    </xsd:complexType>
+    <xsd:simpleType name="setConfigMode">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="merge"/>
+            <xsd:enumeration value="replace-full"/>
+            <xsd:enumeration value="replace-partial"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="setConfigResponseType">
+        <xsd:sequence>
+            <xsd:element form="qualified" name="Code" type="tns:Result"/>
+            <xsd:element form="qualified" name="Text" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- Define the getStatus method -->
+    <xsd:element name="getStatus" type="tns:getStatusType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent to the Net-Net OS-E
+                from a remote system to get the specified status.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="getStatusResponse" type="tns:getStatusResponseType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent from the Net-Net OS-E
+                to a remote system in response to a status request.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="getStatusType">
+        <xsd:sequence>
+            <xsd:element form="unqualified" maxOccurs="unbounded"
+                name="status" type="common:statusClassesType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="getStatusResponseType">
+        <xsd:sequence>
+            <xsd:element form="unqualified" maxOccurs="unbounded"
+                name="status" type="common:statusClassesType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- Define the queryStatus method -->
+    <xsd:element name="queryStatus" type="tns:queryStatusType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent to the Net-Net OS-E
+                from a remote system to query the specified status.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="queryStatusResponse" type="tns:queryStatusResponseType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent from the Net-Net OS-E
+                to a remote system in response to a status request
+                query.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="queryStatusType">
+        <xsd:sequence>
+            <xsd:element form="unqualified" maxOccurs="unbounded"
+                name="status" type="common:statusClassesType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="queryStatusResponseType">
+        <xsd:sequence>
+            <xsd:element form="unqualified" maxOccurs="unbounded"
+                name="status" type="common:statusClassesType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- Define the doActionEx method -->
+    <xsd:element name="doActionEx" type="tns:doActionType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent to the Net-Net OS-E
+                from a remote system to execute a specified action.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="doActionExResponse" type="common:ActionResultsType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent from the Net-Net OS-E
+                to a remote system in response to an enhanced action
+                request.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <!-- Define the doAction method -->
+    <xsd:element name="doAction" type="tns:doActionType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent to the Net-Net OS-E
+                from a remote system to execute a specified action.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="doActionResponse" type="tns:doActionResponseType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent from the Net-Net OS-E
+                to a remote system in response to an action request.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="doActionType">
+        <xsd:sequence>
+            <xsd:element form="unqualified" name="action" type="common:actionClassesType"/>
+        </xsd:sequence>
+        <xsd:attribute name="timeout" type="xsd:int" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>the optional timeout (in
+                    milliseconds) to use for invoking the action</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    <xsd:complexType name="doActionResponseType">
+        <xsd:sequence maxOccurs="1" minOccurs="1">
+            <xsd:element form="qualified" name="Code" type="tns:Result"/>
+            <xsd:element form="qualified" name="Text" type="xsd:string"/>
+            <xsd:element form="qualified" name="message" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- Define the getAuthorization method -->
+    <xsd:complexType name="getAuthorizationType"/>
+    <xsd:complexType name="getAuthorizationResponseType">
+        <xsd:sequence maxOccurs="1" minOccurs="1">
+            <xsd:element form="unqualified" name="authorization" type="common:AuthorizedUserType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="getAuthorization" type="tns:getAuthorizationType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent to the Net-Net OS-E
+                from a remote system to request the logged in users
+                authorization             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="getAuthorizationResponse" type="tns:getAuthorizationResponseType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent from the Net-Net OS-E
+                to a remote system in response to a request for the
+                users authorization             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <!-- Define the Web Service call out responses -->
+    <xsd:element name="Fault">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="faultInfo" type="xsd:string"/>
+                <xsd:element name="message" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:simpleType name="Result">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="success"/>
+            <xsd:enumeration value="error"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- Define the uploadFile method -->
+    <xsd:element name="uploadFile" type="tns:uploadFileType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent to the Net-Net OS-E
+                from a remote system to request to upload a file.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="uploadFileResponse" type="tns:uploadFileResponseType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent from the Net-Net OS-E
+                to a remote system in response to a request to upload a
+                file.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="uploadFileType">
+        <xsd:sequence>
+            <xsd:element form="qualified" maxOccurs="1" minOccurs="1"
+                name="content" type="xsd:base64Binary">
+                <xsd:annotation>
+                    <xsd:documentation>the actual file contents to store</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="file" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation>the location of the file on the ASC
+                    to write the contents to</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute default="false" name="overwrite"
+            type="xsd:boolean" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>a boolean indicating whether to
+                    overrite existing files or not</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    <xsd:complexType name="uploadFileResponseType">
+        <xsd:attribute name="success" type="xsd:boolean" use="required">
+            <xsd:annotation>
+                <xsd:documentation>a flag indicating whether the upload
+                    succeded or not</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    <!-- Define the downloadFile method -->
+    <xsd:element name="downloadFile" type="tns:downloadFileType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent to the Net-Net OS-E
+                from a remote system to request to download a file.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="downloadFileResponse" type="tns:downloadFileResponseType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent from the Net-Net OS-E
+                to a remote system in response to a request to download
+                a file.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="downloadFileType">
+        <xsd:attribute name="file" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation>the location of the file on the ASC
+                    to read the contents from</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    <xsd:complexType name="downloadFileResponseType">
+        <xsd:sequence>
+            <xsd:element form="unqualified" maxOccurs="1" minOccurs="0"
+                name="content" type="xsd:base64Binary">
+                <xsd:annotation>
+                    <xsd:documentation>the actual file contents that
+                        were read</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!--*********************************************************************-->
+    <!--**                                                                 **-->
+    <!--**    Process Event Structures                                     **-->
+    <!--**                                                                 **-->
+    <!--*********************************************************************-->
+    <!-- Define the processEvent call out -->
+    <xsd:element name="processEvent" type="tns:processEventType">
+        <xsd:annotation>
+            <xsd:documentation>                 This object represents
+                the SOAP body that is sent to a remote
+                system such that the Net-Net OS-E can notify a system
+                about an event.             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="processEventType">
+        <xsd:sequence maxOccurs="unbounded" minOccurs="1">
+            <xsd:element form="qualified" name="event" type="common:trapClassesType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

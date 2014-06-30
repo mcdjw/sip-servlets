@@ -1,0 +1,345 @@
+<?xml version='1.0' encoding='utf-8'?>
+<WL5G3N0:definitions name="AcmePacketASCManagement" targetNamespace="http://www.acmepacket.com/asc/ws/mgmt" xmlns="" xmlns:WL5G3N0="http://schemas.xmlsoap.org/wsdl/" xmlns:WL5G3N1="http://www.acmepacket.com/asc/ws/mgmt" xmlns:WL5G3N2="http://schemas.xmlsoap.org/wsdl/soap/">
+  <WL5G3N0:documentation>
+        The Web Service Definition Language (WSDL) representation for management
+        services provided by the Acme Packet Net-Net Application Session
+        Controller platform. The services presented are the core management
+        interfaces. This includes configuration, monitoring and control. There
+        is also an external / remote service defined here as well, EventProcessingService,
+        that an external system would implement in order to be notified of events
+        that are occuring in the ASC.
+    </WL5G3N0:documentation>
+  <WL5G3N0:types>
+    <xsd:schema elementFormDefault="qualified" targetNamespace="http://www.acmepacket.com/asc/ws/mgmt" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://www.acmepacket.com/asc/ws/mgmt" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <!-- Include the data types -->
+      <xsd:include schemaLocation="AcmePacketASCManagement.xsd"/>
+    </xsd:schema>
+  </WL5G3N0:types>
+  <WL5G3N0:message name="getConfig">
+    <WL5G3N0:part element="WL5G3N1:getConfig" name="parameters"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="getConfigResponse">
+    <WL5G3N0:part element="WL5G3N1:getConfigResponse" name="result"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="setConfig">
+    <WL5G3N0:part element="WL5G3N1:setConfig" name="parameters"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="setConfigResponse">
+    <WL5G3N0:part element="WL5G3N1:setConfigResponse" name="result"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="getStatus">
+    <WL5G3N0:part element="WL5G3N1:getStatus" name="parameters"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="getStatusResponse">
+    <WL5G3N0:part element="WL5G3N1:getStatusResponse" name="result"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="queryStatus">
+    <WL5G3N0:part element="WL5G3N1:queryStatus" name="parameters"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="queryStatusResponse">
+    <WL5G3N0:part element="WL5G3N1:queryStatusResponse" name="result"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="doAction">
+    <WL5G3N0:part element="WL5G3N1:doAction" name="parameters"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="doActionResponse">
+    <WL5G3N0:part element="WL5G3N1:doActionResponse" name="result"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="doActionEx">
+    <WL5G3N0:part element="WL5G3N1:doActionEx" name="parameters"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="doActionExResponse">
+    <WL5G3N0:part element="WL5G3N1:doActionExResponse" name="result"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="getAuthorization">
+    <WL5G3N0:part element="WL5G3N1:getAuthorization" name="parameters"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="getAuthorizationResponse">
+    <WL5G3N0:part element="WL5G3N1:getAuthorizationResponse" name="result"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="uploadFile">
+    <WL5G3N0:part element="WL5G3N1:uploadFile" name="parameters"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="uploadFileResponse">
+    <WL5G3N0:part element="WL5G3N1:uploadFileResponse" name="result"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="downloadFile">
+    <WL5G3N0:part element="WL5G3N1:downloadFile" name="parameters"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="downloadFileResponse">
+    <WL5G3N0:part element="WL5G3N1:downloadFileResponse" name="result"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="fault">
+    <WL5G3N0:part element="WL5G3N1:Fault" name="Fault"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="processEvent">
+    <WL5G3N0:part element="WL5G3N1:processEvent" name="parameters"/>
+  </WL5G3N0:message>
+  <WL5G3N0:portType name="ManagementPortType">
+    <WL5G3N0:documentation>
+            This interface provides access to the Net-Net Application Session Controller management functionality.
+        </WL5G3N0:documentation>
+    <WL5G3N0:operation name="getConfig">
+      <WL5G3N0:documentation>
+                This operation provides access to all or some of the active
+                configuration from the Net-Net Application Session Controller platform.
+            </WL5G3N0:documentation>
+      <WL5G3N0:input message="WL5G3N1:getConfig">
+        <WL5G3N0:documentation>Specifies the configuration objects to retrieve</WL5G3N0:documentation>
+      </WL5G3N0:input>
+      <WL5G3N0:output message="WL5G3N1:getConfigResponse">
+        <WL5G3N0:documentation>The requested configuration</WL5G3N0:documentation>
+      </WL5G3N0:output>
+      <WL5G3N0:fault message="WL5G3N1:fault" name="fault"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="setConfig">
+      <WL5G3N0:documentation>
+                This operation allows the active configuration on the Net-Net Application Session Controller
+                platform to be altered.
+            </WL5G3N0:documentation>
+      <WL5G3N0:input message="WL5G3N1:setConfig">
+        <WL5G3N0:documentation>This is the configuration to activate</WL5G3N0:documentation>
+      </WL5G3N0:input>
+      <WL5G3N0:output message="WL5G3N1:setConfigResponse">
+        <WL5G3N0:documentation>This is the result of modifying the active configuration</WL5G3N0:documentation>
+      </WL5G3N0:output>
+      <WL5G3N0:fault message="WL5G3N1:fault" name="fault"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getStatus">
+      <WL5G3N0:documentation>
+                This operation retrieves one or more collections of active
+                status from the Net-Net Application Session Controller platform.
+            </WL5G3N0:documentation>
+      <WL5G3N0:input message="WL5G3N1:getStatus">
+        <WL5G3N0:documentation>This is a list of the status objects to retrieve</WL5G3N0:documentation>
+      </WL5G3N0:input>
+      <WL5G3N0:output message="WL5G3N1:getStatusResponse">
+        <WL5G3N0:documentation>This is the resultant status objects</WL5G3N0:documentation>
+      </WL5G3N0:output>
+      <WL5G3N0:fault message="WL5G3N1:fault" name="fault"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="queryStatus">
+      <WL5G3N0:documentation>
+                This operation queries one or more collections of active
+                status from the Net-Net Application Session Controller platform.
+            </WL5G3N0:documentation>
+      <WL5G3N0:input message="WL5G3N1:queryStatus">
+        <WL5G3N0:documentation>This is a list of the status objects to query</WL5G3N0:documentation>
+      </WL5G3N0:input>
+      <WL5G3N0:output message="WL5G3N1:queryStatusResponse">
+        <WL5G3N0:documentation>This is the resultant status objects</WL5G3N0:documentation>
+      </WL5G3N0:output>
+      <WL5G3N0:fault message="WL5G3N1:fault" name="fault"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="doAction">
+      <WL5G3N0:documentation>
+                This operation will invoke an action on the Net-Net Application Session Controller platforms.
+                Actions are defined commands that the Net-Net Application Session Controller can execute.
+            </WL5G3N0:documentation>
+      <WL5G3N0:input message="WL5G3N1:doAction">
+        <WL5G3N0:documentation>This is the action to invoke</WL5G3N0:documentation>
+      </WL5G3N0:input>
+      <WL5G3N0:output message="WL5G3N1:doActionResponse">
+        <WL5G3N0:documentation>This is the result of the action being invoked</WL5G3N0:documentation>
+      </WL5G3N0:output>
+      <WL5G3N0:fault message="WL5G3N1:fault" name="fault"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="doActionEx">
+      <WL5G3N0:documentation>
+                This operation will invoke an action on the Net-Net Application Session Controller platforms.
+                Actions are defined commands that the Net-Net Application Session Controller can execute.
+                This means of invoking action can return extended data.
+            </WL5G3N0:documentation>
+      <WL5G3N0:input message="WL5G3N1:doActionEx">
+        <WL5G3N0:documentation>This is the action to invoke</WL5G3N0:documentation>
+      </WL5G3N0:input>
+      <WL5G3N0:output message="WL5G3N1:doActionExResponse">
+        <WL5G3N0:documentation>This is the result of the action being invoked</WL5G3N0:documentation>
+      </WL5G3N0:output>
+      <WL5G3N0:fault message="WL5G3N1:fault" name="fault"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getAuthorization">
+      <WL5G3N0:documentation>
+                This operation will return the authorization information for the
+                user that has logged into the session that is making this request.
+            </WL5G3N0:documentation>
+      <WL5G3N0:input message="WL5G3N1:getAuthorization">
+        <WL5G3N0:documentation>This is the request</WL5G3N0:documentation>
+      </WL5G3N0:input>
+      <WL5G3N0:output message="WL5G3N1:getAuthorizationResponse">
+        <WL5G3N0:documentation>This is the authorization for the logged in user</WL5G3N0:documentation>
+      </WL5G3N0:output>
+      <WL5G3N0:fault message="WL5G3N1:fault" name="fault"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="uploadFile">
+      <WL5G3N0:documentation>
+                This operation will upload a file to the ASC
+            </WL5G3N0:documentation>
+      <WL5G3N0:input message="WL5G3N1:uploadFile">
+        <WL5G3N0:documentation>This is the request to upload a file</WL5G3N0:documentation>
+      </WL5G3N0:input>
+      <WL5G3N0:output message="WL5G3N1:uploadFileResponse">
+        <WL5G3N0:documentation>This is the result of the request to upload a file</WL5G3N0:documentation>
+      </WL5G3N0:output>
+      <WL5G3N0:fault message="WL5G3N1:fault" name="fault"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="downloadFile">
+      <WL5G3N0:documentation>
+                This operation will download a file to the ASC
+            </WL5G3N0:documentation>
+      <WL5G3N0:input message="WL5G3N1:downloadFile">
+        <WL5G3N0:documentation>This is the request to download a file</WL5G3N0:documentation>
+      </WL5G3N0:input>
+      <WL5G3N0:output message="WL5G3N1:downloadFileResponse">
+        <WL5G3N0:documentation>This is the result of the request to download a file</WL5G3N0:documentation>
+      </WL5G3N0:output>
+      <WL5G3N0:fault message="WL5G3N1:fault" name="fault"/>
+    </WL5G3N0:operation>
+  </WL5G3N0:portType>
+  <WL5G3N0:portType name="EventProcessingPortType">
+    <WL5G3N0:documentation>
+            This interface defines the methods required by an external service to
+            support Net-Net Application Session Controller event processing
+            support.
+        </WL5G3N0:documentation>
+    <WL5G3N0:operation name="processEvent">
+      <WL5G3N0:documentation>
+                This operation is implemented by third parties.  This is a call out to allow a third party to process
+                events generated by the Net-Net Application Session Controller.
+            </WL5G3N0:documentation>
+      <WL5G3N0:input message="WL5G3N1:processEvent">
+        <WL5G3N0:documentation>This is the event for a call</WL5G3N0:documentation>
+      </WL5G3N0:input>
+    </WL5G3N0:operation>
+  </WL5G3N0:portType>
+  <WL5G3N0:binding name="ManagementBinding" type="WL5G3N1:ManagementPortType">
+    <WL5G3N2:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <WL5G3N0:operation name="getConfig">
+      <WL5G3N2:operation soapAction="getConfig"/>
+      <WL5G3N0:input>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="fault">
+        <WL5G3N2:fault name="fault" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="setConfig">
+      <WL5G3N2:operation soapAction="setConfig"/>
+      <WL5G3N0:input>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="fault">
+        <WL5G3N2:fault name="fault" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getStatus">
+      <WL5G3N2:operation soapAction="getStatus"/>
+      <WL5G3N0:input>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="fault">
+        <WL5G3N2:fault name="fault" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="queryStatus">
+      <WL5G3N2:operation soapAction="queryStatus"/>
+      <WL5G3N0:input>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="fault">
+        <WL5G3N2:fault name="fault" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="doAction">
+      <WL5G3N2:operation soapAction="doAction"/>
+      <WL5G3N0:input>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="fault">
+        <WL5G3N2:fault name="fault" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="doActionEx">
+      <WL5G3N2:operation soapAction="doActionEx"/>
+      <WL5G3N0:input>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="fault">
+        <WL5G3N2:fault name="fault" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getAuthorization">
+      <WL5G3N2:operation soapAction="getAuthorization"/>
+      <WL5G3N0:input>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="fault">
+        <WL5G3N2:fault name="fault" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="uploadFile">
+      <WL5G3N2:operation soapAction="uploadFile"/>
+      <WL5G3N0:input>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="fault">
+        <WL5G3N2:fault name="fault" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="downloadFile">
+      <WL5G3N2:operation soapAction="downloadFile"/>
+      <WL5G3N0:input>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="fault">
+        <WL5G3N2:fault name="fault" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+  </WL5G3N0:binding>
+  <WL5G3N0:binding name="EventProcessingBinding" type="WL5G3N1:EventProcessingPortType">
+    <WL5G3N2:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <WL5G3N0:operation name="processEvent">
+      <WL5G3N2:operation soapAction="processEvent"/>
+      <WL5G3N0:input>
+        <WL5G3N2:body use="literal"/>
+      </WL5G3N0:input>
+    </WL5G3N0:operation>
+  </WL5G3N0:binding>
+  <WL5G3N0:service name="ManagementService">
+    <WL5G3N0:port binding="WL5G3N1:ManagementBinding" name="ManagementPort">
+      <WL5G3N2:address location="http://localhost:8080/covws/callouts"/>
+    </WL5G3N0:port>
+  </WL5G3N0:service>
+  <WL5G3N0:service name="EventProcessingService">
+    <WL5G3N0:port binding="WL5G3N1:EventProcessingBinding" name="EventProcessingPort">
+      <WL5G3N2:address location="http://localhost:8080/covws/EventProcessing"/>
+    </WL5G3N0:port>
+  </WL5G3N0:service>
+</WL5G3N0:definitions>

@@ -1,0 +1,39 @@
+1. clean code				done
+
+2. rename directories			done
+
+3. delete unnecessary libraries		done
+
+4. register & unregister error scenarios
+
+5. make call error scenarios		done
+
+6. handle call events			done
+
+7. handle call state			done
+
+8. invalidate app session		done
+
+9. app session timeout listener		done
+
+10. imeplement authentication
+
+11. MBean parameters			done
+
+12. ASC relogin				done
+
+13. change login			done
+
+14. check app router code
+
+15. clean register code
+
+16. call event log			done
+	
+17. call disconnect			done
+
+18. send digits
+
+19. Cdr					done
+
+20. error scneario at wsc script

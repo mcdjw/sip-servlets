@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<properties>
+	<property>
+		<name>asc-address</name>
+		<value>192.168.1.203</value>
+		<!--value>192.168.56.5</value-->
+	</property>
+	<property>
+		<name>asc-port</name>
+		<value>8080</value>
+	</property>
+	<property>
+		<name>asc-username</name>
+		<!--value>oracle</value-->
+		<value>talkbac</value>
+	</property>
+	<property>
+		<name>asc-password</name>
+		<!--value>oracle</value-->
+		<value>oracle</value>
+	</property>
+	<property>
+		<name>max-call-duration-min</name>
+		<value>60</value>
+	</property>
+</properties>

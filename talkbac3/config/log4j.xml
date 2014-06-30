@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+ <appender name="call-events"
+              class="uk.org.simonsite.log4j.appender.TimeAndSizeRollingAppender">
+              <param name="File" value="custom_logs/call-events.log" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %m %n" />
+		</layout>
+              <param name="CompressionAlgorithm" value="ZIP" />
+              <logTaskExecutorService class="uk.org.simonsite.log4j.appender.NamedLoggingTaskExecutorService">
+                     <param name="Name" value="executor-1" />
+              </logTaskExecutorService>
+	      <param name="Threshold" value="DEBUG"/> 
+		<param name="DatePattern" value=".yyyy-MM-dd"/>
+		<param name="MaxFileSize" value="10MB"/>
+		  <param name="MaxRollFileCount" value="100"/>
+		  <param name="ScavengeInterval" value="30000"/>
+		  <param name="BufferedIO" value="false"/>
+       </appender>
+  
+   <appender name="cdr"
+              class="uk.org.simonsite.log4j.appender.TimeAndSizeRollingAppender">
+              <param name="File" value="custom_logs/cdr.log" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%m %n" />
+		</layout>
+              <param name="CompressionAlgorithm" value="ZIP" />
+              <logTaskExecutorService class="uk.org.simonsite.log4j.appender.NamedLoggingTaskExecutorService">
+                     <param name="Name" value="executor-1" />
+              </logTaskExecutorService>
+	      <param name="Threshold" value="DEBUG"/> 
+		<param name="DatePattern" value=".yyyy-MM-dd"/>
+		<param name="MaxFileSize" value="10MB"/>
+		  <param name="MaxRollFileCount" value="100"/>
+		  <param name="ScavengeInterval" value="30000"/>
+		  <param name="BufferedIO" value="false"/>
+       </appender>
+
+<appender name="server-log"
+              class="uk.org.simonsite.log4j.appender.TimeAndSizeRollingAppender">
+              <param name="File" value="custom_logs/talkbac-server.log" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%C - %p : %m %n" />
+		</layout>
+              <param name="CompressionAlgorithm" value="ZIP" />
+              <logTaskExecutorService class="uk.org.simonsite.log4j.appender.NamedLoggingTaskExecutorService">
+                     <param name="Name" value="executor-1" />
+              </logTaskExecutorService>
+	      <param name="Threshold" value="DEBUG"/> 
+		<param name="DatePattern" value=".yyyy-MM-dd"/>
+		<param name="MaxFileSize" value="10MB"/>
+		  <param name="MaxRollFileCount" value="100"/>
+		  <param name="ScavengeInterval" value="30000"/>
+		  <param name="BufferedIO" value="false"/>
+       </appender>
+
+<logger name="EventLogger" additivity="false">
+   <level value="info" />
+   <appender-ref ref="call-events" />
+</logger>
+<logger name="CDRLogger" additivity="false">
+   <level value="info" />
+   <appender-ref ref="cdr" />
+</logger>
+
+<logger name="com.oracle.custom.asc.callout">
+  <level value="debug"/> 
+     <appender-ref ref="server-log" />
+</logger>
+
+<logger name="com.oracle.custom.sip">
+  <level value="debug"/> 
+       <appender-ref ref="server-log" />
+</logger>
+
+
+</log4j:configuration>

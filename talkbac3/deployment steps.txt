@@ -1,0 +1,15 @@
+Deploymenet steps:
+
+1. Copy lib/AcmePacketASCManagement_wsdl.jar, asc_rest.xsd, log4j-1.2.15, log4j-rolling-appender-20131024-2017 jars to domain lib folder
+
+2. Copy config/log4j.xml to domain/lib folder
+
+3. copy config/talkbac.xml to domain/config/custom folder
+
+4. Edit setDomain.sh and add below to line no 70
+
+LOG4J_CONFIG_FILE=${DOMAIN_HOME}/lib/log4j.xml
+export LOG4J_CONFIG_FILE
+JAVA_OPTIONS="${JAVA_OPTIONS} -Dlog4j.Configuration=file:${LOG4J_CONFIG_FILE} -Dwlss.maddr.enable=true"
+
+
