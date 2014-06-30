@@ -57,13 +57,22 @@ public class ProxyRegistrarServlet extends SipServlet {
 
 	@Override
 	protected void doRequest(SipServletRequest req) throws ServletException, IOException {
-		if (0 == req.getMethod().compareToIgnoreCase("REGISTER")) {
-			doRegister(req);
-		} else {
-			doMethod(req);
+		logger.fine("ProxyRegistrarServlet Request: " + req.getMethod());
+		if (req.isInitial()) {
+			if (0 == req.getMethod().compareToIgnoreCase("REGISTER")) {
+				doRegister(req);
+			} else {
+				doMethod(req);
+			}
 		}
 	}
 
+	@Override
+	protected void doResponse(SipServletResponse resp) throws ServletException, IOException {
+		logger.fine("ProxyRegistrarServlet Response: " + resp.getMethod()+" "+resp.getStatus()+" "+resp.getReasonPhrase());
+	}
+
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void doRegister(SipServletRequest req) throws ServletException, IOException {
 
@@ -140,6 +149,7 @@ public class ProxyRegistrarServlet extends SipServlet {
 		resp.send();
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void doMethod(SipServletRequest request) throws ServletException, IOException {
 		if (request.isInitial()) {
 
@@ -164,6 +174,7 @@ public class ProxyRegistrarServlet extends SipServlet {
 			proxy.setSupervised(true);
 			proxy.createProxyBranches(aors);
 			proxy.startProxy();
+
 
 		}
 	}
