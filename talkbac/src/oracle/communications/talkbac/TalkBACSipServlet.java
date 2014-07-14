@@ -108,8 +108,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		logger.fine(rootNode.toString());
 
 		String origin, destination, endpoint;
+		String callControl = rootNode.path("call_control").asText();
 
-		switch (rootNode.path("call_control").asText().hashCode()) {
+		switch (callControl.hashCode()) {
 		case 3045982: // call
 			// connect(requestId, rootNode.path("origin").asText(),
 			// rootNode.path("destination").asText());
@@ -125,6 +126,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			connectRequest.getSession().setAttribute(REQUEST_ID, requestId);
 
 			break;
+		case 2035990113: // terminate
 		case 530405532: // disconnect
 			disconnect(requestId);
 			break;
@@ -157,7 +159,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			break;
 
 		default:
-			logger.severe("Unknown call control command: " + rootNode.path("call_control").asText());
+			logger.severe("Unknown call control command: " + callControl+ " "+callControl.hashCode());
 		}
 
 	}
