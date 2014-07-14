@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sip-app xmlns="http://www.jcp.org/xml/ns/sipservlet" xmlns:javaee="http://java.sun.com/xml/ns/javaee" xmlns:xml="http://www.w3.org/XML/1998/namespace"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.jcp.org/xml/ns/sipservlet http://www.jcp.org/xml/ns/sipservlet/sip-app_1_1.xsd ">
+	<app-name>talkbac</app-name>
+	<distributable />
+
+	<servlet>
+		<javaee:servlet-name>talkbac</javaee:servlet-name>
+		<javaee:servlet-class>oracle.communications.talkbac.TalkBACSipServlet</javaee:servlet-class>
+		<javaee:load-on-startup>1</javaee:load-on-startup>
+	</servlet>
+
+	<servlet-selection>
+		<servlet-mapping>
+			<servlet-name>talkbac</servlet-name>
+			<pattern>
+				<equal>
+					<var>request.method</var>
+					<value>MESSAGE</value>
+				</equal>
+			</pattern>
+		</servlet-mapping>
+		<servlet-mapping>
+			<servlet-name>talkbac</servlet-name>
+			<pattern>
+				<equal>
+					<var>request.method</var>
+					<value>REGISTER</value>
+				</equal>
+			</pattern>
+		</servlet-mapping>
+	</servlet-selection>
+
+</sip-app>
