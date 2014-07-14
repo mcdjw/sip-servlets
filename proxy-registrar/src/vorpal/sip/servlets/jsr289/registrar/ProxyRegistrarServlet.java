@@ -57,7 +57,6 @@ public class ProxyRegistrarServlet extends SipServlet {
 
 	@Override
 	protected void doRequest(SipServletRequest req) throws ServletException, IOException {
-		logger.fine("ProxyRegistrarServlet Request: " + req.getMethod());
 		if (req.isInitial()) {
 			if (0 == req.getMethod().compareToIgnoreCase("REGISTER")) {
 				doRegister(req);
@@ -65,11 +64,6 @@ public class ProxyRegistrarServlet extends SipServlet {
 				doMethod(req);
 			}
 		}
-	}
-
-	@Override
-	protected void doResponse(SipServletResponse resp) throws ServletException, IOException {
-		logger.fine("ProxyRegistrarServlet Response: " + resp.getMethod()+" "+resp.getStatus()+" "+resp.getReasonPhrase());
 	}
 
 	@SuppressWarnings("unchecked")
