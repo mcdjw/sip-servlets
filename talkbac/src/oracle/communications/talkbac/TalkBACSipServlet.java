@@ -20,9 +20,6 @@ import javax.servlet.sip.URI;
 import javax.servlet.sip.annotation.SipApplicationKey;
 import javax.servlet.sip.annotation.SipListener;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-
 import weblogic.kernel.KernelLogManager;
 
 @SipListener
