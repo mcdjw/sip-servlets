@@ -5,22 +5,27 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.naming.InitialContext;
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
+import javax.servlet.sip.SipServletContextEvent;
+import javax.servlet.sip.SipServletListener;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
-import javax.servlet.sip.SipURI;
-import javax.servlet.sip.SipSession.State;
-import javax.servlet.sip.annotation.SipApplicationKey;
 import javax.servlet.sip.SipSessionsUtil;
+import javax.servlet.sip.SipURI;
+import javax.servlet.sip.annotation.SipListener;
 
 import weblogic.kernel.KernelLogManager;
 
-public class ThirdPartyCallControlServlet extends SipServlet {
+@SipListener
+public class ThirdPartyCallControlServlet extends SipServlet implements SipServletListener {
 	private final static String FROM_ADDRESS = "FROM_ADDRESS";
 	private final static String TO_ADDRESS = "TO_ADDRESS";
 	private final static String STATE = "STATE";
@@ -29,6 +34,9 @@ public class ThirdPartyCallControlServlet extends SipServlet {
 	private final static String FROM_SESSION_ID = "FROM_SESSION_ID";
 	private final static String ORIGINAL_REQUEST = "ORIGINAL_REQUEST";
 	private final static String SIP = SipApplicationSession.Protocol.SIP.toString();
+
+	private String publicAddress;
+	private int publicPort;
 
 	private enum ApplicationState {
 		STATE01, STATE02, STATE03, STATE04, STATE05, STATE06
@@ -47,12 +55,40 @@ public class ThirdPartyCallControlServlet extends SipServlet {
 	public static SipSessionsUtil util;
 
 	@Override
+	public void servletInitialized(SipServletContextEvent arg0) {
+		try {
+			InitialContext ctx = new InitialContext();
+			MBeanServer server = (MBeanServer) ctx.lookup("java:comp/env/jmx/domainRuntime");
+			ObjectName service = new ObjectName("com.bea:Name=sip,Type=NetworkAccessPoint,Server=AdminServer");
+			publicAddress = (String) server.getAttribute(service, "PublicAddress");
+			publicPort = (Integer) server.getAttribute(service, "PublicPort");
+			ctx.close();
+
+			logger.info("ThirdPartyCallControlServlet initialized...");
+			logger.info("Public Address: " + publicAddress);
+			logger.info("Public Port: " + publicPort);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
 	protected void doInvite(SipServletRequest request) throws ServletException, IOException {
 		if (request.getMethod().equals("INVITE")) {
 			if (request.isInitial()) {
 
+				
+				//For security reasons
+				SipURI sipUri = (SipURI) request.getTo().getURI();
+				String toUser = sipUri.getUser();
+				Address modifiedTo = factory.createAddress("sip:"+toUser+"@"+this.publicAddress+":"+this.publicPort);
+
+				
+				
 				SipApplicationSession appSession = request.getApplicationSession();
-				SipServletRequest fromRequest = factory.createRequest(appSession, "INVITE", request.getTo(), request.getFrom());
+//				SipServletRequest fromRequest = factory.createRequest(appSession, "INVITE", request.getTo(), request.getFrom());
+				SipServletRequest fromRequest = factory.createRequest(appSession, "INVITE", modifiedTo, request.getFrom());
 
 				appSession.setAttribute(FROM_ADDRESS, request.getFrom());
 				appSession.setAttribute(TO_ADDRESS, request.getTo());
@@ -90,7 +126,14 @@ public class ThirdPartyCallControlServlet extends SipServlet {
 				Address from = (Address) appSession.getAttribute(FROM_ADDRESS);
 				Address to = (Address) appSession.getAttribute(TO_ADDRESS);
 
-				SipServletRequest toRequest = factory.createRequest(appSession, "INVITE", from, to);
+				//For security reasons
+				SipURI sipUri = (SipURI) from.getURI();
+				String fromUser = sipUri.getUser();
+				Address modifiedFrom = factory.createAddress("sip:"+fromUser+"@"+this.publicAddress+":"+this.publicPort);
+				
+				
+//				SipServletRequest toRequest = factory.createRequest(appSession, "INVITE", from, to);
+				SipServletRequest toRequest = factory.createRequest(appSession, "INVITE", modifiedFrom, to);
 
 				appSession.setAttribute(TO_SESSION_ID, toRequest.getSession().getId());
 				toRequest.getSession().setAttribute(STATE, ApplicationState.STATE02);
