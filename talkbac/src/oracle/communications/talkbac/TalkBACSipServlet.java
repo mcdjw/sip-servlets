@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.naming.InitialContext;
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
@@ -33,6 +36,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		logger.setParent(KernelLogManager.getLogger());
 	}
 
+	private final static String CALL_CONTROL = "CALL_CONTROL";
 	private final static String REQUEST_ID = "REQUEST_ID";
 	private final static String FROM_URI = "FROM_URI";
 	private final static String TO_URI = "TO_URI";
@@ -69,6 +73,83 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
 		logger.info(event.getSipServlet().getServletName() + " initialized.");
+
+		// try {
+
+		// bad
+		// InitialContext ctx = new InitialContext();
+		// MBeanServer server = (MBeanServer)
+		// ctx.lookup("java:comp/env/jmx/domainRuntime");
+		// ObjectName service = new
+		// ObjectName("com.bea:Name=RuntimeService,Type=weblogic.management.mbeanservers.runtime.RuntimeServiceMBean");
+		// String serverName = (String) server.getAttribute(service,
+		// "ServerName");
+		//
+		// System.out.println(serverName);
+
+		// good
+		// InitialContext ctx = new InitialContext();
+		// MBeanServer server = (MBeanServer)
+		// ctx.lookup("java:comp/env/jmx/domainRuntime");
+		// ObjectName service = new
+		// ObjectName("com.bea:Name=sip,Type=NetworkAccessPoint,Server=AdminServer");
+		// String publicAddress = (String) server.getAttribute(service,
+		// "PublicAddress");
+		// int publicPort = (Integer) server.getAttribute(service,
+		// "PublicPort");
+		// System.out.println(publicAddress);
+		// System.out.println(publicPort);
+
+		// ObjectName[] serverRT = (ObjectName[]) server.getAttribute(service,
+		// "PublicAddress");
+		//
+		// for(ObjectName object : serverRT){
+		// System.out.println( object.getCanonicalKeyPropertyListString() );
+		// }
+
+		// for(ObjectName objectName : serverRT){
+		// ObjectName[] networkAccessPoints = (ObjectName[])
+		// server.getAttribute(objectName, "NetworkAccessPoints");
+		// for(ObjectName protocol : networkAccessPoints){
+		// String publicAddress = (String) server.getAttribute(protocol,
+		// "PublicAddress");
+		// System.out.println("PublicAddress: "+publicAddress);
+		// }
+		//
+		//
+		// }
+
+		// InitialContext ctx = new InitialContext();
+		// MBeanServer server = (MBeanServer)
+		// ctx.lookup("java:comp/env/jmx/domainRuntime");
+		// ObjectName service = new ObjectName(
+		// "com.bea:Name=DomainRuntimeService,Type=weblogic.management.mbeanservers.domainruntime.DomainRuntimeServiceMBean");
+		// ObjectName[] serverRT = (ObjectName[]) server.getAttribute(service,
+		// "ServerRuntimes");
+		// for (int i = 0; i < serverRT.length; i++) {
+		//
+		// String name = (String) server.getAttribute(serverRT[i], "Name");
+		// String listenAddress = (String) server.getAttribute(serverRT[i],
+		// "ListenAddress");
+		// Integer listenPort = (Integer) server.getAttribute(serverRT[i],
+		// "ListenPort");
+		// System.out.println("Server Name : " + name + "\t Address: " +
+		// listenAddress + "\t Port: " + listenPort);
+		//
+		// if (serverName.equals(name)) {
+		// System.out.println(" Server Host and port are " + listenAddress +
+		// "   " + listenPort);
+		// // return listenAddress+"   "+listenPort;
+		// }
+		// }
+
+		// ctx.close();
+		// // Make sure close the context
+		//
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// }
+
 	}
 
 	// @Override
@@ -94,72 +175,100 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	@Override
 	protected void doMessage(SipServletRequest request) throws ServletException, IOException {
+		String requestId = null;
+		String callControl = null;
+		SipApplicationSession appSession;
 
 		logger.fine("doMessage...");
 		logger.fine(request.getContent().toString());
 
 		request.createResponse(200).send();
 
-		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
-		String requestId = rootNode.path("request_id").asText();
+		try {
 
-		logger.fine("Invoking " + rootNode.path("call_control").asText());
-		logger.fine(rootNode.toString());
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
+			requestId = rootNode.path("request_id").asText();
 
-		String origin, destination, endpoint;
-		String callControl = rootNode.path("call_control").asText();
+			String origin, destination, endpoint;
+			callControl = rootNode.path("call_control").asText();
 
-		switch (callControl.hashCode()) {
-		case 3045982: // call
-			// connect(requestId, rootNode.path("origin").asText(),
-			// rootNode.path("destination").asText());
+			switch (callControl.hashCode()) {
+			case 3045982: // call
+				// connect(requestId, rootNode.path("origin").asText(),
+				// rootNode.path("destination").asText());
 
-			origin = rootNode.path("origin").asText();
-			destination = rootNode.path("destination").asText();
-			SipApplicationSession appSession = util.getApplicationSessionByKey(requestId, true);
-			SipServletRequest connectRequest = factory.createRequest(appSession, "INVITE", origin, destination);
-			connectRequest.send();
-			appSession.setAttribute(TPCC_SESSION_ID, connectRequest.getSession().getId());
-			appSession.setAttribute(FROM_URI, request.getFrom().getURI());
-			appSession.setAttribute(TO_URI, request.getTo().getURI());
-			connectRequest.getSession().setAttribute(REQUEST_ID, requestId);
+				origin = rootNode.path("origin").asText();
+				destination = rootNode.path("destination").asText();
+				appSession = util.getApplicationSessionByKey(requestId, true);
+				SipServletRequest connectRequest = factory.createRequest(appSession, "INVITE", origin, destination);
+				
+				appSession.setAttribute(TPCC_SESSION_ID, connectRequest.getSession().getId());
+				appSession.setAttribute(FROM_URI, request.getFrom().getURI());
+				appSession.setAttribute(TO_URI, request.getTo().getURI());
+				
+				connectRequest.getSession().setAttribute(REQUEST_ID, requestId);
+				connectRequest.getSession().setAttribute(CALL_CONTROL, callControl);
+				
+				connectRequest.send();
 
-			break;
-		case 2035990113: // terminate
-		case 530405532: // disconnect
-			disconnect(requestId);
-			break;
-		case 1280882667: // transfer
-			transfer(requestId, rootNode.path("endpoint").asText());
-			break;
-		case 3208383: // hold
-			hold(requestId);
-			break;
-		case -310034372: // retrieve
-			retrieve(requestId);
-			break;
-		case 3083120: // dial
-			dial(requestId, rootNode.path("digits").asText());
-			break;
-		case 3363353: // mute
-			mute(requestId);
-			break;
-		case -295947265: // un_mute
-			unmute(requestId);
-			break;
-		case -776144932: // redirect
-			redirect(requestId, rootNode.path("endpoint").asText());
-			break;
-		case -1423461112: // accept
-			accept(requestId, rootNode.path("endpoint").asText());
-			break;
-		case -934710369: // reject
-			reject(requestId, rootNode.path("endpoint").asText());
-			break;
+				break;
+			case 2035990113: // terminate
+			case 530405532: // disconnect
 
-		default:
-			logger.severe("Unknown call control command: " + callControl+ " "+callControl.hashCode());
+				appSession = util.getApplicationSessionByKey(requestId, false);
+				SipSession sipSession = appSession.getSipSession((String) appSession.getAttribute(TPCC_SESSION_ID));
+				SipServletRequest disconnectRequest = sipSession.createRequest("BYE");
+
+				logger.fine("Setting call_control: " + callControl);
+
+				sipSession.setAttribute(CALL_CONTROL, callControl);
+				sipSession.setAttribute(REQUEST_ID, requestId);
+
+				disconnectRequest.send();
+
+				break;
+			case 1280882667: // transfer
+				transfer(requestId, rootNode.path("endpoint").asText());
+				break;
+			case 3208383: // hold
+				hold(requestId);
+				break;
+			case -310034372: // retrieve
+				retrieve(requestId);
+				break;
+			case 3083120: // dial
+				dial(requestId, rootNode.path("digits").asText());
+				break;
+			case 3363353: // mute
+				mute(requestId);
+				break;
+			case -295947265: // un_mute
+				unmute(requestId);
+				break;
+			case -776144932: // redirect
+				redirect(requestId, rootNode.path("endpoint").asText());
+				break;
+			case -1423461112: // accept
+				accept(requestId, rootNode.path("endpoint").asText());
+				break;
+			case -934710369: // reject
+				reject(requestId, rootNode.path("endpoint").asText());
+				break;
+
+			default:
+				logger.severe("Unknown call control command: " + callControl + " " + callControl.hashCode());
+			}
+
+		} catch (Exception e) {
+
+			String content = "" + "{\"event\": \"" + callControl + "\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + 500 + ",\n"
+					+ "\"reason\": " + e.getClass().getSimpleName() + "}";
+
+			SipServletRequest message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", request.getTo(), request.getFrom());
+			message.setContent(content, "text/plain");
+			message.send();
+
 		}
 
 	}
@@ -169,13 +278,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		SipServletRequest connectRequest = factory.createRequest(appSession, "INVITE", origin, destination);
 		connectRequest.send();
 		appSession.setAttribute(TPCC_SESSION_ID, connectRequest.getSession().getId());
-	}
-
-	protected void disconnect(String requestId) throws ServletException, IOException {
-		SipApplicationSession appSession = util.getApplicationSessionByKey(requestId, false);
-		SipSession sipSession = appSession.getSipSession((String) appSession.getAttribute(TPCC_SESSION_ID));
-		SipServletRequest disconnectRequest = sipSession.createRequest("BYE");
-		disconnectRequest.send();
 	}
 
 	protected void transfer(String requestId, String endpoint) throws ServletException, IOException {
@@ -219,24 +321,127 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	@Override
 	protected void doResponse(SipServletResponse response) throws ServletException, IOException {
+		SipApplicationSession appSession = response.getApplicationSession();
+		String callControl = (String) response.getSession().getAttribute(CALL_CONTROL);
+		String requestId = (String) response.getSession().getAttribute(REQUEST_ID);
+		URI fromUri = (URI) appSession.getAttribute(FROM_URI);
+		URI toUri = (URI) appSession.getAttribute(TO_URI);
 
-		if (response.getMethod().equals("INVITE")) {
-			if (response.getStatus() >= 200 && response.getStatus() < 300) {
-				response.createAck().send();
+		String content;
+		SipServletRequest message;
+
+		logger.fine(requestId + " " + callControl + " " + response.getMethod() + " " + response.getStatus() + " "
+				+ response.getReasonPhrase());
+
+		if (callControl != null) {
+			logger.fine(callControl+" "+callControl.hashCode());
+			switch (callControl.hashCode()) {
+			case 3045982: // call
+				if (response.getMethod().equals("INVITE") && response.getStatus() >= 200) {
+					response.createAck().send();
+				}
+
+				content = "" + "{\"event\": \"call_connected\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
+						+ "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+
+				break;
+			case 2035990113: // terminate
+			case 530405532: // disconnect
+
+				content = "" + "{\"event\": \"call_terminated\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus()
+						+ ",\n" + "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+
+				break;
+			case 1280882667: // transfer
+				content = "" + "{\"event\": \"call_transferred\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus()
+						+ ",\n" + "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+				break;
+			case 3208383: // hold
+				content = "" + "{\"event\": \"call_held\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
+						+ "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+
+				break;
+			case -310034372: // retrieve
+				content = "" + "{\"event\": \"call_retrieved\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
+						+ "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+
+				break;
+			case 3083120: // dial
+				content = "" + "{\"event\": \"digit_dialed\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
+						+ "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+
+				break;
+			case 3363353: // mute
+				content = "" + "{\"event\": \"call_muted\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
+						+ "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+
+				break;
+			case -295947265: // un_mute
+				content = "" + "{\"event\": \"call_unmuted\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
+						+ "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+
+				break;
+			case -776144932: // redirect
+				content = "" + "{\"event\": \"call_redirected\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus()
+						+ ",\n" + "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+
+				break;
+			case -1423461112: // accept
+				content = "" + "{\"event\": \"call_accepted\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
+						+ "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+
+				break;
+			case -934710369: // reject
+				content = "" + "{\"event\": \"call_rejected\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
+						+ "\"reason\": " + response.getReasonPhrase() + "}";
+
+				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+				message.setContent(content, "text/plain");
+				message.send();
+
+				break;
+
 			}
-
-			SipApplicationSession appSession = response.getApplicationSession();
-
-			URI fromUri = (URI) appSession.getAttribute(FROM_URI);
-			URI toUri = (URI) appSession.getAttribute(TO_URI);
-			String requestId = (String) response.getSession().getAttribute(REQUEST_ID);
-
-			String content = "" + "{\"event\": \"call_connected\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus()
-					+ ",\n" + "\"reason\": " + response.getReasonPhrase() + "}";
-
-			SipServletRequest message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
-			message.setContent(content, "text/plain");
-			message.send();
 
 		}
 

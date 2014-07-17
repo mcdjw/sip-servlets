@@ -5,11 +5,7 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import javax.naming.InitialContext;
 import javax.servlet.ServletException;
-import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
@@ -17,31 +13,16 @@ import javax.servlet.sip.SipServletContextEvent;
 import javax.servlet.sip.SipServletListener;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipSessionsUtil;
-import javax.servlet.sip.SipURI;
 import javax.servlet.sip.annotation.SipListener;
 
 import weblogic.kernel.KernelLogManager;
 
 @SipListener
 public class ThirdPartyCallControlServlet extends SipServlet implements SipServletListener {
-	private final static String FROM_ADDRESS = "FROM_ADDRESS";
-	private final static String TO_ADDRESS = "TO_ADDRESS";
-	private final static String STATE = "STATE";
-	private final static String FROM_RESPONSE = "FROM_RESPONSE";
-	private final static String TO_SESSION_ID = "TO_SESSION_ID";
-	private final static String FROM_SESSION_ID = "FROM_SESSION_ID";
-	private final static String ORIGINAL_REQUEST = "ORIGINAL_REQUEST";
-	private final static String SIP = SipApplicationSession.Protocol.SIP.toString();
-
-	private String publicAddress;
-	private int publicPort;
-
-	private enum ApplicationState {
-		STATE01, STATE02, STATE03, STATE04, STATE05, STATE06
-	}
-
+	final static String INITIATOR = "INITIATOR";
+	final static String ORIGIN_SESSION_ID = "ORIGIN_SESSION_ID";	
+	final static String DESTINATION_SESSION_ID = "DESTINATION_SESSION_ID";
 	static Logger logger;
 	{
 		logger = Logger.getLogger(ThirdPartyCallControlServlet.class.getName());
@@ -55,202 +36,63 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 	public static SipSessionsUtil util;
 
 	@Override
-	public void servletInitialized(SipServletContextEvent arg0) {
+	public void servletInitialized(SipServletContextEvent event) {
+	}
+
+	@Override
+	protected void doRequest(SipServletRequest request) throws ServletException, IOException {
 		try {
-			InitialContext ctx = new InitialContext();
-			MBeanServer server = (MBeanServer) ctx.lookup("java:comp/env/jmx/domainRuntime");
-			ObjectName service = new ObjectName("com.bea:Name=sip,Type=NetworkAccessPoint,Server=AdminServer");
-			publicAddress = (String) server.getAttribute(service, "PublicAddress");
-			publicPort = (Integer) server.getAttribute(service, "PublicPort");
-			ctx.close();
 
-			logger.info("ThirdPartyCallControlServlet initialized...");
-			logger.info("Public Address: " + publicAddress);
-			logger.info("Public Port: " + publicPort);
+			CallStateHandler handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
+			if (handler == null) {
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	protected void doInvite(SipServletRequest request) throws ServletException, IOException {
-		if (request.getMethod().equals("INVITE")) {
-			if (request.isInitial()) {
-
+				if(request.getMethod().equals("INVITE")){
 				
-				//For security reasons
-				SipURI sipUri = (SipURI) request.getTo().getURI();
-				String toUser = sipUri.getUser();
-				Address modifiedTo = factory.createAddress("sip:"+toUser+"@"+this.publicAddress+":"+this.publicPort);
-
-				
-				
-				SipApplicationSession appSession = request.getApplicationSession();
-//				SipServletRequest fromRequest = factory.createRequest(appSession, "INVITE", request.getTo(), request.getFrom());
-				SipServletRequest fromRequest = factory.createRequest(appSession, "INVITE", modifiedTo, request.getFrom());
-
-				appSession.setAttribute(FROM_ADDRESS, request.getFrom());
-				appSession.setAttribute(TO_ADDRESS, request.getTo());
-				appSession.setAttribute(ORIGINAL_REQUEST, request);
-				appSession.setAttribute(FROM_SESSION_ID, fromRequest.getSession().getId());
-
-				fromRequest.getSession().setAttribute(STATE, ApplicationState.STATE01);
-
-				fromRequest.send();
-			} else {
-				// Check for transfer
-				//
-
-			}
-		}
-	}
-
-	@Override
-	protected void doProvisionalResponse(SipServletResponse response) throws ServletException, IOException {
-		doSuccessResponse(response);
-	}
-
-	@Override
-	protected void doSuccessResponse(SipServletResponse response) throws ServletException, IOException {
-		SipApplicationSession appSession = response.getApplicationSession();
-		ApplicationState state = (ApplicationState) response.getSession().getAttribute(STATE);
-
-		logger.fine("ThirdPartyCallControlServlet Response " + response.getMethod() + " " + response.getStatus() + " " + state.toString());
-
-		switch (state) {
-		case STATE01:
-			appSession.setAttribute(FROM_RESPONSE, response);
-			if (response.getStatus() == 200) {
-
-				Address from = (Address) appSession.getAttribute(FROM_ADDRESS);
-				Address to = (Address) appSession.getAttribute(TO_ADDRESS);
-
-				//For security reasons
-				SipURI sipUri = (SipURI) from.getURI();
-				String fromUser = sipUri.getUser();
-				Address modifiedFrom = factory.createAddress("sip:"+fromUser+"@"+this.publicAddress+":"+this.publicPort);
-				
-				
-//				SipServletRequest toRequest = factory.createRequest(appSession, "INVITE", from, to);
-				SipServletRequest toRequest = factory.createRequest(appSession, "INVITE", modifiedFrom, to);
-
-				appSession.setAttribute(TO_SESSION_ID, toRequest.getSession().getId());
-				toRequest.getSession().setAttribute(STATE, ApplicationState.STATE02);
-
-				toRequest.setContent(response.getContent(), response.getContentType());
-				toRequest.send();
-			} else {
-				SipServletRequest originalRequest = (SipServletRequest) appSession.getAttribute(ORIGINAL_REQUEST);
-				originalRequest.createResponse(response.getStatus()).send();
-			}
-
-			break;
-		case STATE02:
-			if (response.getStatus() == 200) {
-
-				response.createAck().send();
-
-				SipServletResponse fromResponse = (SipServletResponse) appSession.getAttribute(FROM_RESPONSE);
-				SipServletRequest fromAck = fromResponse.createAck();
-				fromAck.setContent(response.getContent(), response.getContentType());
-				fromAck.send();
-
-				SipServletRequest originalRequest = (SipServletRequest) appSession.getAttribute(ORIGINAL_REQUEST);
-				originalRequest.createResponse(200).send();
-
-				// //Async Notification of Call Completion
-				// logger.fine("Sending INFO message");
-				// String content = ""+
-				// "{\"event\": \"call_connected\",\n"+
-				// "\"request_id\": \"123XYZ\",\n"+
-				// "\"status\": 200,\n"+
-				// "\"reason\": OK}";
-				// SipServletRequest info =
-				// originalRequest.getSession().createRequest("INFO");
-				// info.setContent(content, "text/plain");
-				// info.send();
-
-			} else {
-				SipServletRequest originalRequest = (SipServletRequest) appSession.getAttribute(ORIGINAL_REQUEST);
-				originalRequest.createResponse(response.getStatus(), response.getReasonPhrase()).send();
-
-			}
-
-			break;
-		case STATE03:
-
-			break;
-		case STATE04:
-			break;
-		case STATE05:
-			break;
-		case STATE06:
-			break;
-		default:
-			break;
-
-		}
-
-	}
-
-	@SuppressWarnings("incomplete-switch")
-	protected void disconnect(SipApplicationSession appSession, SipSession sipSession) throws ServletException, IOException {
-
-		Iterator<?> sessions = appSession.getSessions(SIP);
-		while (sessions.hasNext()) {
-			SipSession ss = (SipSession) sessions.next();
-
-			logger.fine("SipSession: " + ss.getId() + " " + ss.getState().toString());
-
-			if (ss.getId() != sipSession.getId()) {
-				switch (ss.getState()) {
-				case CONFIRMED:
-					ss.createRequest("BYE").send();
-					ss.setAttribute(STATE, ApplicationState.STATE04);
-					break;
-				case INITIAL:
-				case EARLY:
-					ss.createRequest("CANCEL").send();
-					ss.setAttribute(STATE, ApplicationState.STATE04);
-					break;
+				if (request.isInitial()) {
+					CallFlow1 callflow = new CallFlow1();
+					callflow.initiator = request;
+					callflow.makeCall(request.getFrom(), request.getTo());
+				}else{
+					Reinvite reinvite = new Reinvite();
+					reinvite.processEvent(request, null);
 				}
+					
+					
+				} else if (request.getMethod().equals("BYE")) {
+					TerminateCall tc = new TerminateCall();
+					tc.invoke(request);
+				}
+
+			} else {
+				if (request.getMethod().equals("BYE")) {
+
+				}
+
+				logger.fine(handler.getClass() + " " + request.getMethod() + " " + " State: " + handler.state);
+				handler.processEvent(request, null);
+
 			}
+		} catch (Exception e) {
+			throw new ServletException(e);
 		}
 
 	}
 
 	@Override
-	protected void doBye(SipServletRequest request) throws ServletException, IOException {
-		request.createResponse(200).send();
-		disconnect(request.getApplicationSession(), request.getSession());
-	}
+	protected void doResponse(SipServletResponse response) throws ServletException, IOException {
+		SipServletRequest initiatorRequest = (SipServletRequest) response.getSession().getAttribute(INITIATOR);
+		CallStateHandler handler = (CallStateHandler) response.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 
-	@Override
-	protected void doCancel(SipServletRequest request) throws ServletException, IOException {
-		request.createResponse(200).send();
-		disconnect(request.getApplicationSession(), request.getSession());
-	}
+		try {
+			logger.fine(handler.getClass() + " " + response.getMethod() + " " + response.getReasonPhrase() + " State: " + handler.state);
 
-	@Override
-	protected void doErrorResponse(SipServletResponse response) throws ServletException, IOException {
-		logger.info("ERROR RESPONSE: " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase());
+			if (handler != null) {
+				handler.processEvent(null, response);
+			}
+		} catch (Exception e) {
+			throw new ServletException(e);
+		}
 
-		SipServletRequest originalRequest = (SipServletRequest) response.getApplicationSession().getAttribute(ORIGINAL_REQUEST);
-		SipServletResponse originalResponse = originalRequest.createResponse(response.getStatus(), response.getReasonPhrase());
-		originalResponse.send();
-
-		disconnect(response.getApplicationSession(), response.getSession());
-	}
-
-	@Override
-	protected void doInfo(SipServletRequest request) throws ServletException, IOException {
-		request.createResponse(200).send();
-		SipApplicationSession appSession = request.getApplicationSession();
-		SipSession toSession = appSession.getSipSession((String) appSession.getAttribute(TO_SESSION_ID));
-		SipServletRequest infoRequest = toSession.createRequest("INFO");
-		infoRequest.setContent(request.getContent(), request.getContentType());
-		infoRequest.send();
 	}
 
 }
