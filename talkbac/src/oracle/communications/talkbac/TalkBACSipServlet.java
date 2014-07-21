@@ -9,6 +9,7 @@ import javax.management.ObjectName;
 import javax.naming.InitialContext;
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
@@ -43,6 +44,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	private final static String TPCC_SESSION_ID = "TPCC_SESSION_ID";
 	private final static String DTMF_RELAY = "application/dtmf-relay";
 
+	
+	
 	@Resource
 	public static SipFactory factory;
 
@@ -74,104 +77,12 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	public void servletInitialized(SipServletContextEvent event) {
 		logger.info(event.getSipServlet().getServletName() + " initialized.");
 
-		// try {
 
-		// bad
-		// InitialContext ctx = new InitialContext();
-		// MBeanServer server = (MBeanServer)
-		// ctx.lookup("java:comp/env/jmx/domainRuntime");
-		// ObjectName service = new
-		// ObjectName("com.bea:Name=RuntimeService,Type=weblogic.management.mbeanservers.runtime.RuntimeServiceMBean");
-		// String serverName = (String) server.getAttribute(service,
-		// "ServerName");
-		//
-		// System.out.println(serverName);
 
-		// good
-		// InitialContext ctx = new InitialContext();
-		// MBeanServer server = (MBeanServer)
-		// ctx.lookup("java:comp/env/jmx/domainRuntime");
-		// ObjectName service = new
-		// ObjectName("com.bea:Name=sip,Type=NetworkAccessPoint,Server=AdminServer");
-		// String publicAddress = (String) server.getAttribute(service,
-		// "PublicAddress");
-		// int publicPort = (Integer) server.getAttribute(service,
-		// "PublicPort");
-		// System.out.println(publicAddress);
-		// System.out.println(publicPort);
 
-		// ObjectName[] serverRT = (ObjectName[]) server.getAttribute(service,
-		// "PublicAddress");
-		//
-		// for(ObjectName object : serverRT){
-		// System.out.println( object.getCanonicalKeyPropertyListString() );
-		// }
-
-		// for(ObjectName objectName : serverRT){
-		// ObjectName[] networkAccessPoints = (ObjectName[])
-		// server.getAttribute(objectName, "NetworkAccessPoints");
-		// for(ObjectName protocol : networkAccessPoints){
-		// String publicAddress = (String) server.getAttribute(protocol,
-		// "PublicAddress");
-		// System.out.println("PublicAddress: "+publicAddress);
-		// }
-		//
-		//
-		// }
-
-		// InitialContext ctx = new InitialContext();
-		// MBeanServer server = (MBeanServer)
-		// ctx.lookup("java:comp/env/jmx/domainRuntime");
-		// ObjectName service = new ObjectName(
-		// "com.bea:Name=DomainRuntimeService,Type=weblogic.management.mbeanservers.domainruntime.DomainRuntimeServiceMBean");
-		// ObjectName[] serverRT = (ObjectName[]) server.getAttribute(service,
-		// "ServerRuntimes");
-		// for (int i = 0; i < serverRT.length; i++) {
-		//
-		// String name = (String) server.getAttribute(serverRT[i], "Name");
-		// String listenAddress = (String) server.getAttribute(serverRT[i],
-		// "ListenAddress");
-		// Integer listenPort = (Integer) server.getAttribute(serverRT[i],
-		// "ListenPort");
-		// System.out.println("Server Name : " + name + "\t Address: " +
-		// listenAddress + "\t Port: " + listenPort);
-		//
-		// if (serverName.equals(name)) {
-		// System.out.println(" Server Host and port are " + listenAddress +
-		// "   " + listenPort);
-		// // return listenAddress+"   "+listenPort;
-		// }
-		// }
-
-		// ctx.close();
-		// // Make sure close the context
-		//
-		// } catch (Exception e) {
-		// e.printStackTrace();
-		// }
 
 	}
 
-	// @Override
-	// protected void doInfo(SipServletRequest request) throws ServletException,
-	// IOException {
-	// logger.fine("TalkBACSipServlet.doInfo...");
-	// logger.fine(request.toString());
-	//
-	//
-	// request.createResponse(200);
-	//
-	// SipApplicationSession appSession = request.getApplicationSession();
-	//
-	// URI fromUri = (URI) appSession.getAttribute(FROM_URI);
-	// URI toUri = (URI) appSession.getAttribute(TO_URI);
-	//
-	// SipServletRequest message =
-	// factory.createRequest(factory.createApplicationSession(), "MESSAGE",
-	// toUri, fromUri);
-	// message.setContent(request.getContent(), request.getContentType());
-	// message.send();
-	// }
 
 	@Override
 	protected void doMessage(SipServletRequest request) throws ServletException, IOException {
@@ -179,9 +90,13 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		String callControl = null;
 		SipApplicationSession appSession;
 
-		logger.fine("doMessage...");
-		logger.fine(request.getContent().toString());
 
+		System.out.println("TalkBACSipServlet.doMessage");
+		System.out.println(request);
+		System.out.println("-------------------------");
+		
+		
+		
 		request.createResponse(200).send();
 
 		try {
@@ -215,16 +130,18 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				break;
 			case 2035990113: // terminate
 			case 530405532: // disconnect
-
+				System.out.println("terminate...");
 				appSession = util.getApplicationSessionByKey(requestId, false);
+				System.out.println("appSession: "+appSession.getId());
 				SipSession sipSession = appSession.getSipSession((String) appSession.getAttribute(TPCC_SESSION_ID));
+				System.out.println("sipSession: "+sipSession.getId());
 				SipServletRequest disconnectRequest = sipSession.createRequest("BYE");
-
+				
 				logger.fine("Setting call_control: " + callControl);
 
 				sipSession.setAttribute(CALL_CONTROL, callControl);
 				sipSession.setAttribute(REQUEST_ID, requestId);
-
+				System.out.println("Sending BYE");
 				disconnectRequest.send();
 
 				break;
@@ -333,6 +250,12 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		logger.fine(requestId + " " + callControl + " " + response.getMethod() + " " + response.getStatus() + " "
 				+ response.getReasonPhrase());
 
+		System.out.println("TalkBACSipServlet RESPONSE "+response.getMethod()+" "+response.getStatus()+" "+response.getReasonPhrase());
+		System.out.println(response);
+		System.out.println("-------------------------");
+		
+		
+		
 		if (callControl != null) {
 			logger.fine(callControl+" "+callControl.hashCode());
 			switch (callControl.hashCode()) {

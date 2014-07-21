@@ -36,15 +36,6 @@ public class CallFlow1 extends CallStateHandler {
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
 
-	public void makeCall(Address origin, Address destination) throws Exception {
-		this.origin = origin;
-		this.destination = destination;
-
-		state = 1;
-
-		processEvent(null, null);
-
-	}
 
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
@@ -55,9 +46,21 @@ public class CallFlow1 extends CallStateHandler {
 		switch (state) {
 
 		case 1:
-			appSession = ThirdPartyCallControlServlet.factory.createApplicationSession();
-			destinationRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", origin, destination);
+			this.origin = request.getFrom();
+			this.destination = request.getTo();
+			this.initiator = request;
+			
+			
+			appSession = request.getApplicationSession();
+			
+			destinationRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", origin, destination);			
 			originRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", destination, origin);
+
+			if(ThirdPartyCallControlServlet.outboundProxy!=null){
+				destinationRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
+				originRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
+			}
+			
 			originRequest.send();
 
 			state = 2;
@@ -90,6 +93,8 @@ public class CallFlow1 extends CallStateHandler {
 		case 4:
 		case 5:
 		case 6: // Response from destination
+			SipServletResponse initResponse = initiator.createResponse(response.getStatus(), response.getReasonPhrase());
+			
 			if (status == 200) {
 				SipServletRequest destinationAck = response.createAck();
 				destinationAck.send();
@@ -98,16 +103,18 @@ public class CallFlow1 extends CallStateHandler {
 				originAck.setContent(response.getContent(), response.getContentType());
 				originAck.send();
 
-				state = 0;
 				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 
+				state = 7;
+				initResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 			}
 
-			if (initiator != null) {
-				System.out.println("Sending... "+response.getStatus());
-				initiator.createResponse(response.getStatus(), response.getReasonPhrase()).send();
-			}
+			initResponse.send();
+			break;
+			
+		case 7: //ACK from initiator
+			request.getSession().removeAttribute(CALL_STATE_HANDLER);
 			break;
 
 		}

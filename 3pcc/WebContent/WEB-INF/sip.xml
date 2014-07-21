@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sip-app xmlns="http://www.jcp.org/xml/ns/sipservlet"
-	xmlns:javaee="http://java.sun.com/xml/ns/javaee" xmlns:xml="http://www.w3.org/XML/1998/namespace"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.jcp.org/xml/ns/sipservlet http://www.jcp.org/xml/ns/sipservlet/sip-app_1_1.xsd ">
+<sip-app xmlns="http://www.jcp.org/xml/ns/sipservlet" xmlns:javaee="http://java.sun.com/xml/ns/javaee" xmlns:xml="http://www.w3.org/XML/1998/namespace"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.jcp.org/xml/ns/sipservlet http://www.jcp.org/xml/ns/sipservlet/sip-app_1_1.xsd ">
 	<app-name>3pcc</app-name>
 	<distributable />
 
@@ -23,5 +21,12 @@
 			</pattern>
 		</servlet-mapping>
 	</servlet-selection>
+
+	<!-- 
+	<context-param>
+		<param-name>OUTBOUND_PROXY</param-name>
+		<param-value>sip:127.0.0.1</param-value>
+	</context-param>
+	 -->
 
 </sip-app>

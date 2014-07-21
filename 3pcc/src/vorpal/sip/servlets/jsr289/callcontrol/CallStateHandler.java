@@ -9,7 +9,7 @@ import javax.servlet.sip.SipServletResponse;
 public abstract class CallStateHandler implements Serializable{
 	final static String CALL_STATE_HANDLER = "CALL_STATE_HANDLER";
 	final static String PEER_SESSION_ID = "PEER_SESSION_ID";
-	int state=0;
+	int state=1;
 	SipServletRequest initiator=null;
 
 	public abstract void processEvent(SipServletRequest request, SipServletResponse response) throws Exception;

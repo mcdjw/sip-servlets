@@ -6,6 +6,8 @@ import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletException;
+import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
@@ -20,8 +22,11 @@ import weblogic.kernel.KernelLogManager;
 
 @SipListener
 public class ThirdPartyCallControlServlet extends SipServlet implements SipServletListener {
+	public static Address outboundProxy=null;
+
+	
 	final static String INITIATOR = "INITIATOR";
-	final static String ORIGIN_SESSION_ID = "ORIGIN_SESSION_ID";	
+	final static String ORIGIN_SESSION_ID = "ORIGIN_SESSION_ID";
 	final static String DESTINATION_SESSION_ID = "DESTINATION_SESSION_ID";
 	static Logger logger;
 	{
@@ -37,6 +42,14 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
+		String proxy = (String) event.getServletContext().getAttribute("OUTBOUND_PROXY");
+		if(proxy!=null){
+			try {
+				this.outboundProxy = factory.createAddress(proxy);
+			} catch (ServletParseException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
@@ -44,34 +57,28 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 		try {
 
 			CallStateHandler handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
+
 			if (handler == null) {
 
-				if(request.getMethod().equals("INVITE")){
-				
-				if (request.isInitial()) {
-					CallFlow1 callflow = new CallFlow1();
-					callflow.initiator = request;
-					callflow.makeCall(request.getFrom(), request.getTo());
-				}else{
-					Reinvite reinvite = new Reinvite();
-					reinvite.processEvent(request, null);
-				}
-					
-					
+				if (request.getMethod().equals("INVITE")) {
+					if (request.isInitial()) {
+						handler = new CallFlow1();
+					} else {
+						handler = new Reinvite();
+					}
 				} else if (request.getMethod().equals("BYE")) {
-					TerminateCall tc = new TerminateCall();
-					tc.invoke(request);
+					handler = new TerminateCall();
 				}
-
-			} else {
-				if (request.getMethod().equals("BYE")) {
-
-				}
-
-				logger.fine(handler.getClass() + " " + request.getMethod() + " " + " State: " + handler.state);
-				handler.processEvent(request, null);
 
 			}
+
+			if (handler == null) {
+				handler = new NotImplemented();
+			}
+
+			System.out.println("ThirdPartyCallControlServlet " + request.getMethod() + " " + handler.getClass().getSimpleName() + " " + handler.state);
+			handler.processEvent(request, null);
+
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
@@ -83,10 +90,11 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 		SipServletRequest initiatorRequest = (SipServletRequest) response.getSession().getAttribute(INITIATOR);
 		CallStateHandler handler = (CallStateHandler) response.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 
-		try {
-			logger.fine(handler.getClass() + " " + response.getMethod() + " " + response.getReasonPhrase() + " State: " + handler.state);
+		System.out.println("ThirdPartyCallControlServlet RESPONSE: " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase());
 
+		try {
 			if (handler != null) {
+				logger.fine(handler.getClass() + " " + response.getMethod() + " " + response.getReasonPhrase() + " State: " + handler.state);
 				handler.processEvent(null, response);
 			}
 		} catch (Exception e) {

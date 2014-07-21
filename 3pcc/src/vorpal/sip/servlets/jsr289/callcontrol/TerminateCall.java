@@ -10,26 +10,25 @@ import javax.servlet.sip.SipSession;
 
 import weblogic.kernel.KernelLogManager;
 
-public class TerminateCall extends CallStateHandler{
+public class TerminateCall extends CallStateHandler {
 	static Logger logger;
 	{
 		logger = Logger.getLogger(TerminateCall.class.getName());
 		logger.setParent(KernelLogManager.getLogger());
 	}
-	
-	public void invoke(SipServletRequest request) throws Exception{
-		logger.fine("---TERMINATING CALL---");
-		
+
+	@Override
+	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
+		request.createResponse(200).send();
+
 		SipApplicationSession appSession = request.getApplicationSession();
 		SipSession sipSession = request.getSession();
 
-		request.createResponse(200).send();
-		
 		Iterator<?> sessions = appSession.getSessions("SIP");
 		while (sessions.hasNext()) {
 			SipSession ss = (SipSession) sessions.next();
-			
-			logger.info(ss.getId() + " "+ss.getState().toString());
+
+			logger.info(ss.getId() + " " + ss.getState().toString());
 
 			if (ss.getId() != sipSession.getId()) {
 				switch (ss.getState()) {
@@ -45,13 +44,7 @@ public class TerminateCall extends CallStateHandler{
 				}
 			}
 		}
-		
-	}
 
-	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
-		// TODO Auto-generated method stub
-		
 	}
 
 }
