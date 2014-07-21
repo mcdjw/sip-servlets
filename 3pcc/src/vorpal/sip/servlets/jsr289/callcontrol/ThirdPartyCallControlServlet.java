@@ -1,14 +1,12 @@
 package vorpal.sip.servlets.jsr289.callcontrol;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletParseException;
-import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletContextEvent;
@@ -16,6 +14,7 @@ import javax.servlet.sip.SipServletListener;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSessionsUtil;
+import javax.servlet.sip.SipURI;
 import javax.servlet.sip.annotation.SipListener;
 
 import weblogic.kernel.KernelLogManager;
@@ -49,7 +48,7 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 		if(proxy!=null){
 			try {
 				this.outboundProxy = factory.createAddress(proxy);
-				
+				((SipURI)this.outboundProxy.getURI()).setLrParam(true);				
 			} catch (ServletParseException e) {
 				e.printStackTrace();
 			}
