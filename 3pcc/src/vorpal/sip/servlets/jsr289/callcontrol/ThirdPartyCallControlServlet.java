@@ -42,7 +42,8 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
-		String proxy = (String) event.getServletContext().getAttribute("OUTBOUND_PROXY");
+		String proxy = event.getServletContext().getInitParameter("OUTBOUND_PROXY");
+		
 		if(proxy!=null){
 			try {
 				this.outboundProxy = factory.createAddress(proxy);
