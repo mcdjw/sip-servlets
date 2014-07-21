@@ -44,9 +44,12 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 	public void servletInitialized(SipServletContextEvent event) {
 		String proxy = event.getServletContext().getInitParameter("OUTBOUND_PROXY");
 		
+		logger.info("Setting Outbound Proxy: "+proxy);
+
 		if(proxy!=null){
 			try {
 				this.outboundProxy = factory.createAddress(proxy);
+				
 			} catch (ServletParseException e) {
 				e.printStackTrace();
 			}
