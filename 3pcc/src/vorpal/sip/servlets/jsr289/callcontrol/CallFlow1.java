@@ -82,6 +82,9 @@ public class CallFlow1 extends CallStateHandler {
 				state = 4;
 				originResponse = response;
 				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
+				
+				initiator.createResponse(183).send();
+								
 			} else {
 				if (initiator != null) {
 					System.out.println("Sending... "+response.getStatus());
