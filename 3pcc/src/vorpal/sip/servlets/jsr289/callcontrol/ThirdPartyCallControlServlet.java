@@ -1,4 +1,3 @@
-
 package vorpal.sip.servlets.jsr289.callcontrol;
 
 import java.io.IOException;
@@ -22,9 +21,8 @@ import weblogic.kernel.KernelLogManager;
 
 @SipListener
 public class ThirdPartyCallControlServlet extends SipServlet implements SipServletListener {
-	public static Address outboundProxy=null;
+	public static Address outboundProxy = null;
 
-	
 	final static String INITIATOR = "INITIATOR";
 	final static String ORIGIN_SESSION_ID = "ORIGIN_SESSION_ID";
 	final static String DESTINATION_SESSION_ID = "DESTINATION_SESSION_ID";
@@ -43,13 +41,13 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
 		String proxy = event.getServletContext().getInitParameter("OUTBOUND_PROXY");
-		
-		logger.info("Setting Outbound Proxy: "+proxy);
 
-		if(proxy!=null){
+		logger.info("Setting Outbound Proxy: " + proxy);
+
+		if (proxy != null) {
 			try {
 				this.outboundProxy = factory.createAddress(proxy);
-				((SipURI)this.outboundProxy.getURI()).setLrParam(true);				
+				((SipURI) this.outboundProxy.getURI()).setLrParam(true);
 			} catch (ServletParseException e) {
 				e.printStackTrace();
 			}
@@ -59,14 +57,33 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 	@Override
 	protected void doRequest(SipServletRequest request) throws ServletException, IOException {
 		try {
-
+			
 			CallStateHandler handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 
 			if (handler == null) {
 
 				if (request.getMethod().equals("INVITE")) {
 					if (request.isInitial()) {
-						handler = new CallFlow1();
+						int callflow = 1;
+						String callflowHeader = request.getHeader("Callflow");
+						if (callflowHeader != null) {
+							callflow = Integer.parseInt(callflowHeader);
+						}
+						switch (callflow) {
+						case 2:
+							handler = new CallFlow2();
+							break;
+						case 3:
+							handler = new CallFlow3();
+							break;
+						case 4:
+							handler = new CallFlow4();
+							break;
+						case 1:
+						default:
+							handler = new CallFlow1();
+							break;
+						}
 					} else {
 						handler = new Reinvite();
 					}
@@ -80,7 +97,7 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 				handler = new NotImplemented();
 			}
 
-			System.out.println("ThirdPartyCallControlServlet " + request.getMethod() + " " + handler.getClass().getSimpleName() + " " + handler.state);
+			System.out.println("ThirdPartyCallControlServlet  REQUEST: " + request.getMethod() + " " + handler.getClass().getSimpleName() + " " + handler.state);
 			handler.processEvent(request, null);
 
 		} catch (Exception e) {

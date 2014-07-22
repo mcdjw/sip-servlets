@@ -47,12 +47,8 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import javax.naming.InitialContext;
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
-import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
@@ -136,10 +132,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		String callControl = null;
 		SipApplicationSession appSession;
 
-		System.out.println("TalkBACSipServlet.doMessage");
-		System.out.println(request);
-		System.out.println("-------------------------");
-
 		request.createResponse(200).send();
 
 		try {
@@ -172,6 +164,11 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				connectRequest.getSession().setAttribute(REQUEST_ID, requestId);
 				connectRequest.getSession().setAttribute(CALL_CONTROL, callControl);
 
+				String callflow = rootNode.path("callflow").asText();
+				if (callflow != null) {
+					connectRequest.setHeader("Callflow", callflow);
+				}
+
 				connectRequest.send();
 
 				msg = new TalkBACMessage(connectRequest, "call_created");
@@ -180,18 +177,12 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				break;
 			case 2035990113: // terminate
 			case 530405532: // disconnect
-				System.out.println("terminate...");
 				appSession = util.getApplicationSessionByKey(requestId, false);
-				System.out.println("appSession: " + appSession.getId());
 				SipSession sipSession = appSession.getSipSession((String) appSession.getAttribute(TPCC_SESSION_ID));
-				System.out.println("sipSession: " + sipSession.getId());
 				SipServletRequest disconnectRequest = sipSession.createRequest("BYE");
-
-				logger.fine("Setting call_control: " + callControl);
 
 				sipSession.setAttribute(CALL_CONTROL, callControl);
 				sipSession.setAttribute(REQUEST_ID, requestId);
-				System.out.println("Sending BYE");
 				disconnectRequest.send();
 
 				break;
@@ -300,10 +291,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 		logger.fine(requestId + " " + callControl + " " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase());
 
-		System.out.println("TalkBACSipServlet RESPONSE " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase());
-		System.out.println(response);
-		System.out.println("-------------------------");
-
 		if (callControl != null) {
 			logger.fine(callControl + " " + callControl.hashCode());
 			switch (callControl.hashCode()) {
@@ -322,9 +309,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 					msg.send();
 					break;
 				default:
-					if(status>200){
+					if (status > 200) {
 						msg = new TalkBACMessage(response, "call_failed");
-						msg.send();						
+						msg.send();
 					}
 				}
 
@@ -337,13 +324,12 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				break;
 			case 1280882667: // transfer
-				switch(response.getStatus()){
+				switch (response.getStatus()) {
 				case 200:
 					msg = new TalkBACMessage(response, "call_transferred");
 					break;
 				}
-				
-				
+
 				content = "" + "{\"event\": \"call_transferred\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus()
 						+ ",\n" + "\"reason\": " + response.getReasonPhrase() + "}";
 
