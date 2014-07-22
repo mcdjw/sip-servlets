@@ -95,10 +95,6 @@ public class CallFlow1 extends CallStateHandler {
 			if (status == 200) {
 				destinationRequest.setContent(response.getContent(), response.getContentType());
 				destinationRequest.send();
-				
-				logger.fine("-SENDING------------------------------------------------------------------------");
-				logger.fine(originRequest.toString());
-				
 
 				state = 4;
 				originResponse = response;
@@ -119,7 +115,7 @@ public class CallFlow1 extends CallStateHandler {
 		case 6: // Response from destination
 			SipServletResponse initResponse = initiator.createResponse(response.getStatus(), response.getReasonPhrase());
 			
-			if (status == 200) {
+			if (status >= 200 && status < 300) {
 				SipServletRequest destinationAck = response.createAck();
 				destinationAck.send();
 
@@ -129,6 +125,16 @@ public class CallFlow1 extends CallStateHandler {
 
 				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
+
+				state = 7;
+				initResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
+			}
+			
+			if(status >= 300){
+				originResponse.getSession().createRequest("BYE").send();
+
+				response.getSession().removeAttribute(CALL_STATE_HANDLER);
+				originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
 
 				state = 7;
 				initResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);

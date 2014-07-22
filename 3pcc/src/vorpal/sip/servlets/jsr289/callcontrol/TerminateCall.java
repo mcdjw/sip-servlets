@@ -19,32 +19,34 @@ public class TerminateCall extends CallStateHandler {
 
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
-		request.createResponse(200).send();
 
-		SipApplicationSession appSession = request.getApplicationSession();
-		SipSession sipSession = request.getSession();
+		if (request != null) { //BYE REQUEST
+			request.createResponse(200).send();
 
-		Iterator<?> sessions = appSession.getSessions("SIP");
-		while (sessions.hasNext()) {
-			SipSession ss = (SipSession) sessions.next();
+			SipApplicationSession appSession = request.getApplicationSession();
+			SipSession sipSession = request.getSession();
 
-			logger.info(ss.getId() + " " + ss.getState().toString());
+			Iterator<?> sessions = appSession.getSessions("SIP");
+			while (sessions.hasNext()) {
+				SipSession ss = (SipSession) sessions.next();
 
-			if (ss.getId() != sipSession.getId()) {
-				switch (ss.getState()) {
-				case CONFIRMED:
-					ss.createRequest("BYE").send();
-					ss.setAttribute(CALL_STATE_HANDLER, this);
-					break;
-				case INITIAL:
-				case EARLY:
-					ss.createRequest("CANCEL").send();
-					ss.setAttribute(CALL_STATE_HANDLER, this);
-					break;
+				logger.info(ss.getId() + " " + ss.getState().toString());
+
+				if (ss.getId() != sipSession.getId()) {
+					switch (ss.getState()) {
+					case CONFIRMED:
+						ss.createRequest("BYE").send();
+						ss.setAttribute(CALL_STATE_HANDLER, this);
+						break;
+					case INITIAL:
+					case EARLY:
+						ss.createRequest("CANCEL").send();
+						ss.setAttribute(CALL_STATE_HANDLER, this);
+						break;
+					}
 				}
 			}
 		}
-
 	}
 
 }

@@ -4,6 +4,12 @@
 	<app-name>3pcc</app-name>
 	<distributable />
 
+	<!--context-param>
+		<javaee:param-name>OUTBOUND_PROXY</javaee:param-name>
+		<javaee:param-value>sip:127.0.0.1</javaee:param-value>
+	</context-param-->
+
+
 	<servlet>
 		<javaee:servlet-name>3pcc</javaee:servlet-name>
 		<javaee:servlet-class>vorpal.sip.servlets.jsr289.callcontrol.ThirdPartyCallControlServlet</javaee:servlet-class>
@@ -22,11 +28,7 @@
 		</servlet-mapping>
 	</servlet-selection>
 
-	<!-- 
-	<context-param>
-		<param-name>OUTBOUND_PROXY</param-name>
-		<param-value>sip:127.0.0.1</param-value>
-	</context-param>
-	 -->
+
+
 
 </sip-app>

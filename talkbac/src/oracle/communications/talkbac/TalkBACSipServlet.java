@@ -1,3 +1,46 @@
+/*
+ *
+ * WSC                             Controller               3pcc
+ *  | MESSAGE "call"                   |                      |
+ *  |--------------------------------->|                      |
+ *  | 200 OK                           |                      |
+ *  |<---------------------------------|                      |
+ *  | MESSAGE "call_created"           |                      |
+ *  |<---------------------------------|                      |
+ *  | 200 OK                           |                      |
+ *  |--------------------------------->|                      |
+ *  |                                  | INVITE               |
+ *  |                                  |--------------------->|
+ *  |                                  | 180 Ringing          |
+ *  |                                  |<---------------------|
+ *  |                                  | 183 Session Progress |
+ *  |                                  |<---------------------|
+ *  | MESSAGE "source_connected"       |                      |
+ *  |<---------------------------------|                      |
+ *  | 200 OK                           |                      |
+ *  |--------------------------------->|                      |
+ *  |                                  | 200 OK               |
+ *  |                                  |<---------------------|
+ *  | MESSAGE "destination_connected"  |                      |
+ *  |<---------------------------------|                      |
+ *  | 200 OK                           |                      |
+ *  |--------------------------------->|                      |
+ *  |                                  | ACK                  |
+ *  |                                  |--------------------->|
+ *  | MESSAGE "call_connected"         |                      |
+ *  |<---------------------------------|                      |
+ *  | 200 OK                           |                      |
+ *  |--------------------------------->|                      |
+ *  |                                  | BYE                  |
+ *  |                                  |<---------------------|
+ *  | MESSAGE "call_completed"         |                      |
+ *  |<---------------------------------|                      |
+ *  | 200 OK                           |                      |
+ *  |--------------------------------->|                      |
+ *  |                                  |                      |
+ *
+ */
+
 package oracle.communications.talkbac;
 
 import java.io.IOException;
@@ -37,15 +80,15 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		logger.setParent(KernelLogManager.getLogger());
 	}
 
-	private final static String CALL_CONTROL = "CALL_CONTROL";
-	private final static String REQUEST_ID = "REQUEST_ID";
+	public final static String CALL_CONTROL = "CALL_CONTROL";
+	public final static String REQUEST_ID = "REQUEST_ID";
+	public final static String CLIENT_ADDRESS = "CLIENT_ADDRESS";
+	public final static String APPLICATION_ADDRESS = "APPLICATION_ADDRESS";
 	private final static String FROM_URI = "FROM_URI";
 	private final static String TO_URI = "TO_URI";
 	private final static String TPCC_SESSION_ID = "TPCC_SESSION_ID";
 	private final static String DTMF_RELAY = "application/dtmf-relay";
 
-	
-	
 	@Resource
 	public static SipFactory factory;
 
@@ -76,31 +119,30 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
 		logger.info(event.getSipServlet().getServletName() + " initialized.");
-
-
-
-
-
 	}
 
+	@Override
+	protected void doBye(SipServletRequest request) throws ServletException, IOException {
+		request.createResponse(200).send();
+
+		TalkBACMessage msg = new TalkBACMessage(request, "call_completed");
+		msg.send();
+	}
 
 	@Override
 	protected void doMessage(SipServletRequest request) throws ServletException, IOException {
+		TalkBACMessage msg;
 		String requestId = null;
 		String callControl = null;
 		SipApplicationSession appSession;
 
-
 		System.out.println("TalkBACSipServlet.doMessage");
 		System.out.println(request);
 		System.out.println("-------------------------");
-		
-		
-		
+
 		request.createResponse(200).send();
 
 		try {
-
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
 			requestId = rootNode.path("request_id").asText();
@@ -116,27 +158,35 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				origin = rootNode.path("origin").asText();
 				destination = rootNode.path("destination").asText();
 				appSession = util.getApplicationSessionByKey(requestId, true);
+
+				appSession.setAttribute(REQUEST_ID, requestId);
+				appSession.setAttribute(CLIENT_ADDRESS, request.getFrom());
+				appSession.setAttribute(APPLICATION_ADDRESS, request.getTo());
+
 				SipServletRequest connectRequest = factory.createRequest(appSession, "INVITE", origin, destination);
-				
+
 				appSession.setAttribute(TPCC_SESSION_ID, connectRequest.getSession().getId());
 				appSession.setAttribute(FROM_URI, request.getFrom().getURI());
 				appSession.setAttribute(TO_URI, request.getTo().getURI());
-				
+
 				connectRequest.getSession().setAttribute(REQUEST_ID, requestId);
 				connectRequest.getSession().setAttribute(CALL_CONTROL, callControl);
-				
+
 				connectRequest.send();
+
+				msg = new TalkBACMessage(connectRequest, "call_created");
+				msg.send();
 
 				break;
 			case 2035990113: // terminate
 			case 530405532: // disconnect
 				System.out.println("terminate...");
 				appSession = util.getApplicationSessionByKey(requestId, false);
-				System.out.println("appSession: "+appSession.getId());
+				System.out.println("appSession: " + appSession.getId());
 				SipSession sipSession = appSession.getSipSession((String) appSession.getAttribute(TPCC_SESSION_ID));
-				System.out.println("sipSession: "+sipSession.getId());
+				System.out.println("sipSession: " + sipSession.getId());
 				SipServletRequest disconnectRequest = sipSession.createRequest("BYE");
-				
+
 				logger.fine("Setting call_control: " + callControl);
 
 				sipSession.setAttribute(CALL_CONTROL, callControl);
@@ -179,12 +229,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 		} catch (Exception e) {
 
-			String content = "" + "{\"event\": \"" + callControl + "\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + 500 + ",\n"
-					+ "\"reason\": " + e.getClass().getSimpleName() + "}";
-
-			SipServletRequest message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", request.getTo(), request.getFrom());
-			message.setContent(content, "text/plain");
-			message.send();
+			msg = new TalkBACMessage(request, "exception");
+			msg.setParameter("status", "500");
+			msg.setParameter("reason", e.getClass().getSimpleName());
+			msg.send();
 
 		}
 
@@ -238,6 +286,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	@Override
 	protected void doResponse(SipServletResponse response) throws ServletException, IOException {
+		int status = response.getStatus();
+		TalkBACMessage msg;
+
 		SipApplicationSession appSession = response.getApplicationSession();
 		String callControl = (String) response.getSession().getAttribute(CALL_CONTROL);
 		String requestId = (String) response.getSession().getAttribute(REQUEST_ID);
@@ -247,43 +298,52 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		String content;
 		SipServletRequest message;
 
-		logger.fine(requestId + " " + callControl + " " + response.getMethod() + " " + response.getStatus() + " "
-				+ response.getReasonPhrase());
+		logger.fine(requestId + " " + callControl + " " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase());
 
-		System.out.println("TalkBACSipServlet RESPONSE "+response.getMethod()+" "+response.getStatus()+" "+response.getReasonPhrase());
+		System.out.println("TalkBACSipServlet RESPONSE " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase());
 		System.out.println(response);
 		System.out.println("-------------------------");
-		
-		
-		
+
 		if (callControl != null) {
-			logger.fine(callControl+" "+callControl.hashCode());
+			logger.fine(callControl + " " + callControl.hashCode());
 			switch (callControl.hashCode()) {
 			case 3045982: // call
-				if (response.getMethod().equals("INVITE") && response.getStatus() >= 200) {
+				switch (status) {
+				case 183:
+					msg = new TalkBACMessage(response, "source_connected");
+					msg.send();
+					break;
+				case 200:
+					msg = new TalkBACMessage(response, "destination_connected");
+					msg.send();
+
 					response.createAck().send();
+					msg = new TalkBACMessage(response, "call_connected");
+					msg.send();
+					break;
+				default:
+					if(status>200){
+						msg = new TalkBACMessage(response, "call_failed");
+						msg.send();						
+					}
 				}
-
-				content = "" + "{\"event\": \"call_connected\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
-						+ "\"reason\": " + response.getReasonPhrase() + "}";
-
-				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
-				message.setContent(content, "text/plain");
-				message.send();
 
 				break;
 			case 2035990113: // terminate
 			case 530405532: // disconnect
 
-				content = "" + "{\"event\": \"call_terminated\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus()
-						+ ",\n" + "\"reason\": " + response.getReasonPhrase() + "}";
-
-				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
-				message.setContent(content, "text/plain");
-				message.send();
+				msg = new TalkBACMessage(response, "call_completed");
+				msg.send();
 
 				break;
 			case 1280882667: // transfer
+				switch(response.getStatus()){
+				case 200:
+					msg = new TalkBACMessage(response, "call_transferred");
+					break;
+				}
+				
+				
 				content = "" + "{\"event\": \"call_transferred\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus()
 						+ ",\n" + "\"reason\": " + response.getReasonPhrase() + "}";
 
