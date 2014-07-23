@@ -23,7 +23,10 @@ public class TalkBACMessage {
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectNode = objectMapper.createObjectNode();
 		
-		String requestId = (String) sipSession.getAttribute(TalkBACSipServlet.REQUEST_ID);		
+		String requestId = (String) sipSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
+		if(requestId==null){
+			requestId = (String) appSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
+		}
 		objectNode.put("request_id", requestId);
 		objectNode.put("event", event);
 

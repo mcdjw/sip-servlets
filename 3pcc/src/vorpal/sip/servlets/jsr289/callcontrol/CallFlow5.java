@@ -33,7 +33,7 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-public class CallFlow3 extends CallStateHandler {
+public class CallFlow5 extends CallStateHandler {
 
 	Address origin;
 	Address destination;
@@ -50,6 +50,8 @@ public class CallFlow3 extends CallStateHandler {
 
 		switch (state) {
 		case 1: {
+			// Send to origin
+
 			this.origin = request.getFrom();
 			this.destination = request.getTo();
 
@@ -60,6 +62,7 @@ public class CallFlow3 extends CallStateHandler {
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 
+			originRequest.setContent(blackhole, "application/sdp");
 			originRequest.send();
 
 			state = 2;
@@ -70,11 +73,16 @@ public class CallFlow3 extends CallStateHandler {
 		case 2:
 		case 3:
 		case 4: {
+			// Receive response from origin
+			// Send ack to origin
+			// Send invite to destination
+
 			if (status == 200) {
 				SipServletRequest originAck = response.createAck();
-				//originAck.setContent(blackhole, "application/sdp");
+				// originAck.setContent(blackhole, "application/sdp");
 				originAck.send();
 
+				// destinationRequest.setContent(blackhole, "application/sdp");
 				destinationRequest.send();
 
 				state = 5;
@@ -85,8 +93,14 @@ public class CallFlow3 extends CallStateHandler {
 			break;
 
 		case 5:
-		case 6: {
+		case 6:
+			// receive response from destination
+			// send ack to destination
+			// send invite to origin
+
 			if (status == 200) {
+
+				response.createAck().send();
 
 				originRequest = originRequest.getSession().createRequest("INVITE");
 				originRequest.setContent(response.getContent(), response.getContentType());
@@ -96,24 +110,32 @@ public class CallFlow3 extends CallStateHandler {
 				destinationResponse = response;
 				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 			}
-		}
+
 			break;
 
 		case 7:
 		case 8:
 		case 9: {
-			if (status == 200) {
+			// receive response from origin
+			// send ack to origin
 
-				originResponse = response;
-				SipServletRequest destinationAck = destinationResponse.createAck();
-				destinationAck.setContent(originResponse.getContent(), originResponse.getContentType());
-				destinationAck.send();
+			if (status == 200) { // response from origin
 
-				SipServletRequest originAck = originResponse.createAck();
-				originAck.send();
+				// originResponse = response;
+				response.createAck().send();
 
-				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
-				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
+				// originResponse = response;
+				// SipServletRequest destinationAck =
+				// destinationResponse.createAck();
+				// destinationAck.setContent(originResponse.getContent(),
+				// originResponse.getContentType());
+				// destinationAck.send();
+				//
+				// SipServletRequest originAck = originResponse.createAck();
+				// originAck.send();
+
+				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
+				originRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
 			}
 		}
 			break;
@@ -122,35 +144,34 @@ public class CallFlow3 extends CallStateHandler {
 
 	}
 
+	static final String blackhole = ""
+
+			+ "v=0\n"
+			+ "o=- 3615040858 3615040858 IN IP4 192.168.1.8\n"
+			+ "s=cpc_med\n"
+			+ "c=IN IP4 192.168.1.8\n"
+			+ "t=0 0\n"
+			+ "m=audio 4068 RTP/AVP 111 110 109 9 0 8 101\n"
+			+ "a=sendrecv\n"
+			+ "a=rtpmap:111 OPUS/48000\n"
+			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
+			+ "a=rtpmap:110 SILK/24000\n"
+			+ "a=fmtp:110 useinbandfec=1\n"
+			+ "a=rtpmap:109 SILK/16000\n"
+			+ "a=fmtp:109 useinbandfec=1\n"
+			+ "a=rtpmap:9 G722/8000\n"
+			+ "a=rtpmap:0 PCMU/8000\n"
+			+ "a=rtpmap:8 PCMA/8000\n"
+			+ "a=rtpmap:101 telephone-event/8000\n"
+			+ "a=fmtp:101 0-16\n";
+
+
 	// static final String blackhole = ""
 	// + "v=0\n"
-	// + "o=- 3614531588 3614531588 IN IP4 0.0.0.0\n"
+	// + "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n"
 	// + "s=cpc_med\n"
 	// + "c=IN IP4 0.0.0.0\n"
 	// + "t=0 0\n"
-	// + "a=sendrecv\n"
-	// + "a=rtpmap:111 OPUS/48000\n"
-	// + "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
-	// + "a=rtpmap:110 SILK/24000\n"
-	// + "a=fmtp:110 useinbandfec=1\n"
-	// + "a=rtpmap:109 SILK/16000\n"
-	// + "a=fmtp:109 useinbandfec=1\n"
-	// + "a=rtpmap:9 G722/8000\n"
-	// + "a=rtpmap:0 PCMU/8000\n"
-	// + "a=rtpmap:8 PCMA/8000\n"
-	// + "a=rtpmap:101 telephone-event/8000\n"
-	// + "a=fmtp:101 0-16\n";
-
-	static final String blackhole = "" + "v=0\n" + "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n" + "s=cpc_med\n" + "c=IN IP4 0.0.0.0\n" + "t=0 0\n"
-			+ "m=audio 4002 RTP/AVP 111 110 109 9 0 8 101";
-
-	/*
-	 * v=0 o=- 3614533537 3614533537 IN IP4 192.168.1.8 s=cpc_med c=IN IP4
-	 * 192.168.1.8 t=0 0 m=audio 4002 RTP/AVP 111 110 109 9 0 8 101 a=sendrecv
-	 * a=rtpmap:111 OPUS/48000 a=fmtp:111 maxplaybackrate=32000;useinbandfec=1
-	 * a=rtpmap:110 SILK/24000 a=fmtp:110 useinbandfec=1 a=rtpmap:109 SILK/16000
-	 * a=fmtp:109 useinbandfec=1 a=rtpmap:9 G722/8000 a=rtpmap:0 PCMU/8000
-	 * a=rtpmap:8 PCMA/8000 a=rtpmap:101 telephone-event/8000 a=fmtp:101 0-16
-	 */
+	// + "m=audio 4002 RTP/AVP 111 110 109 9 0 8 101";
 
 }

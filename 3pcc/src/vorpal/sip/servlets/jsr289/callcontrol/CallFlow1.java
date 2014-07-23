@@ -38,7 +38,7 @@ public class CallFlow1 extends CallStateHandler {
 		logger = Logger.getLogger(CallFlow1.class.getName());
 		logger.setParent(KernelLogManager.getLogger());
 	}
-	
+
 	Address origin;
 	Address destination;
 
@@ -46,65 +46,65 @@ public class CallFlow1 extends CallStateHandler {
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
 
-
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
 		SipApplicationSession appSession;
-		
+
 		switch (state) {
 
 		case 1:
 			this.origin = request.getFrom();
 			this.destination = request.getTo();
 			this.initiator = request;
-			
-			
+
 			appSession = request.getApplicationSession();
-			
-			destinationRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", origin, destination);			
+
+			destinationRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 			originRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 
-			if(ThirdPartyCallControlServlet.outboundProxy!=null){
-				logger.fine("pushing route: "+ThirdPartyCallControlServlet.outboundProxy);	
+			if (ThirdPartyCallControlServlet.outboundProxy != null) {
+				logger.fine("pushing route: " + ThirdPartyCallControlServlet.outboundProxy);
 				destinationRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
 
-				logger.fine("pushing route: "+ThirdPartyCallControlServlet.outboundProxy);
+				logger.fine("pushing route: " + ThirdPartyCallControlServlet.outboundProxy);
 				originRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
 			}
-			
+
 			originRequest.send();
-			
+
 			logger.fine("-SENDING------------------------------------------------------------------------");
 			logger.fine(originRequest.toString());
-			
 
 			state = 2;
 			originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
-			
+
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
-			
-			destinationRequest.getSession().setAttribute(ThirdPartyCallControlServlet.DESTINATION_SESSION_ID, destinationRequest.getSession().getId());
-			originRequest.getSession().setAttribute(ThirdPartyCallControlServlet.ORIGIN_SESSION_ID, originRequest.getSession().getId());
-			
+
+			appSession.setAttribute(DESTINATION_SESSION_ID, destinationRequest.getSession().getId());
+			appSession.setAttribute(ORIGIN_SESSION_ID, originRequest.getSession().getId());
+			appSession.setAttribute(INITIATOR_SESSION_ID, initiator.getSession().getId());
+
 			break;
 		case 2:
 		case 3: // Response from origin
 			if (status == 200) {
 				destinationRequest.setContent(response.getContent(), response.getContentType());
 				destinationRequest.send();
+				System.out.println("Setting DESTINATION_SESSION_ID: " + destinationRequest.getApplicationSession().getId()+", "+destinationRequest.getSession().getId());
+				System.out.println("Sending INVITE: " + destinationRequest.getSession().getId());
 
 				state = 4;
 				originResponse = response;
 				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
-				
+
 				initiator.createResponse(183).send();
-								
+
 			} else {
 				if (initiator != null) {
-					System.out.println("Sending... "+response.getStatus());
+					System.out.println("Sending... " + response.getStatus());
 					initiator.createResponse(response.getStatus(), response.getReasonPhrase()).send();
 				}
 			}
@@ -114,7 +114,7 @@ public class CallFlow1 extends CallStateHandler {
 		case 5:
 		case 6: // Response from destination
 			SipServletResponse initResponse = initiator.createResponse(response.getStatus(), response.getReasonPhrase());
-			
+
 			if (status >= 200 && status < 300) {
 				SipServletRequest destinationAck = response.createAck();
 				destinationAck.send();
@@ -129,8 +129,8 @@ public class CallFlow1 extends CallStateHandler {
 				state = 7;
 				initResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 			}
-			
-			if(status >= 300){
+
+			if (status >= 300) {
 				originResponse.getSession().createRequest("BYE").send();
 
 				response.getSession().removeAttribute(CALL_STATE_HANDLER);
@@ -142,8 +142,8 @@ public class CallFlow1 extends CallStateHandler {
 
 			initResponse.send();
 			break;
-			
-		case 7: //ACK from initiator
+
+		case 7: // ACK from initiator
 			request.getSession().removeAttribute(CALL_STATE_HANDLER);
 			break;
 

@@ -22,10 +22,10 @@ import weblogic.kernel.KernelLogManager;
 @SipListener
 public class ThirdPartyCallControlServlet extends SipServlet implements SipServletListener {
 	public static Address outboundProxy = null;
+	private final static String DTMF_RELAY = "application/dtmf-relay";
 
 	final static String INITIATOR = "INITIATOR";
-	final static String ORIGIN_SESSION_ID = "ORIGIN_SESSION_ID";
-	final static String DESTINATION_SESSION_ID = "DESTINATION_SESSION_ID";
+
 	static Logger logger;
 	{
 		logger = Logger.getLogger(ThirdPartyCallControlServlet.class.getName());
@@ -57,8 +57,14 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 	@Override
 	protected void doRequest(SipServletRequest request) throws ServletException, IOException {
 		try {
-			
-			CallStateHandler handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
+			CallStateHandler handler;
+
+			handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
+
+			// Don't care about state, just end the call
+			if (request.getMethod().equals("BYE")) {
+				handler = new TerminateCall();
+			}
 
 			if (handler == null) {
 
@@ -70,6 +76,10 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 							callflow = Integer.parseInt(callflowHeader);
 						}
 						switch (callflow) {
+						default:
+						case 1:
+							handler = new CallFlow1();
+							break;
 						case 2:
 							handler = new CallFlow2();
 							break;
@@ -79,16 +89,18 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 						case 4:
 							handler = new CallFlow4();
 							break;
-						case 1:
-						default:
-							handler = new CallFlow1();
+						case 5:
+							handler = new CallFlow5();
 							break;
 						}
 					} else {
 						handler = new Reinvite();
 					}
-				} else if (request.getMethod().equals("BYE")) {
-					handler = new TerminateCall();
+				} else if (request.getMethod().equals("INFO")) {
+					if (request.getContentType().equals(DTMF_RELAY)) {
+						handler = new DtmfRelay();
+					}
+
 				}
 
 			}
@@ -97,7 +109,8 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 				handler = new NotImplemented();
 			}
 
-			System.out.println("ThirdPartyCallControlServlet  REQUEST: " + request.getMethod() + " " + handler.getClass().getSimpleName() + " " + handler.state);
+			System.out
+					.println("ThirdPartyCallControlServlet  REQUEST: " + request.getMethod() + " " + handler.getClass().getSimpleName() + " " + handler.state);
 			handler.processEvent(request, null);
 
 		} catch (Exception e) {

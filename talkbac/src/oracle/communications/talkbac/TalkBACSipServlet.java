@@ -134,11 +134,24 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 		request.createResponse(200).send();
 
-		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
-			requestId = rootNode.path("request_id").asText();
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
+		requestId = rootNode.path("request_id").asText();
 
+		
+		//In case of Exception, save these values
+		request.getApplicationSession().setAttribute(CLIENT_ADDRESS, request.getFrom());
+		request.getApplicationSession().setAttribute(APPLICATION_ADDRESS, request.getTo());
+		request.getApplicationSession().setAttribute(REQUEST_ID, requestId);
+
+		
+		appSession = util.getApplicationSessionByKey(requestId, true);
+		appSession.setAttribute(CLIENT_ADDRESS, request.getFrom());
+		appSession.setAttribute(APPLICATION_ADDRESS, request.getTo());
+		appSession.setAttribute(REQUEST_ID, requestId);
+					
+		
+		try {
 			String origin, destination, endpoint;
 			callControl = rootNode.path("call_control").asText();
 
@@ -149,11 +162,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				origin = rootNode.path("origin").asText();
 				destination = rootNode.path("destination").asText();
-				appSession = util.getApplicationSessionByKey(requestId, true);
 
-				appSession.setAttribute(REQUEST_ID, requestId);
-				appSession.setAttribute(CLIENT_ADDRESS, request.getFrom());
-				appSession.setAttribute(APPLICATION_ADDRESS, request.getTo());
 
 				SipServletRequest connectRequest = factory.createRequest(appSession, "INVITE", origin, destination);
 
@@ -196,7 +205,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				retrieve(requestId);
 				break;
 			case 3083120: // dial
-				dial(requestId, rootNode.path("digits").asText());
+				
+				//SipApplicationSession appSession = util.getApplicationSessionByKey(requestId, false);
+				sipSession = appSession.getSipSession((String) appSession.getAttribute(TPCC_SESSION_ID));
+				sipSession.setAttribute(CALL_CONTROL, callControl);
+				
+				SipServletRequest digitRequest = sipSession.createRequest("INFO");
+				
+				String content = "Signal=" + rootNode.path("digit").asText() + "\n" + "Duration=160";
+				digitRequest.setContent(content.getBytes(), DTMF_RELAY);
+				digitRequest.send();
+				
 				break;
 			case 3363353: // mute
 				mute(requestId);
@@ -225,6 +244,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			msg.setParameter("reason", e.getClass().getSimpleName());
 			msg.send();
 
+			e.printStackTrace();
+			
 		}
 
 	}
@@ -251,13 +272,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	}
 
 	protected void dial(String requestId, String digit) throws ServletException, IOException {
-		SipApplicationSession appSession = util.getApplicationSessionByKey(requestId, false);
-		SipSession sipSession = appSession.getSipSession((String) appSession.getAttribute(TPCC_SESSION_ID));
-		SipServletRequest digitRequest = sipSession.createRequest("INFO");
 
-		String content = "Signal=" + digit + "\n" + "Duration=160";
-		digitRequest.setContent(content, DTMF_RELAY);
-		digitRequest.send();
 	}
 
 	protected void mute(String requestId) throws ServletException, IOException {
@@ -330,16 +345,34 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 					break;
 				}
 
-				content = "" + "{\"event\": \"call_transferred\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus()
-						+ ",\n" + "\"reason\": " + response.getReasonPhrase() + "}";
+				content = ""
+						+ "{\"event\": \"call_transferred\",\n"
+						+ "\"request_id\": \""
+						+ requestId
+						+ "\",\n"
+						+ "\"status\": "
+						+ response.getStatus()
+						+ ",\n"
+						+ "\"reason\": "
+						+ response.getReasonPhrase()
+						+ "}";
 
 				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
 				message.setContent(content, "text/plain");
 				message.send();
 				break;
 			case 3208383: // hold
-				content = "" + "{\"event\": \"call_held\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
-						+ "\"reason\": " + response.getReasonPhrase() + "}";
+				content = ""
+						+ "{\"event\": \"call_held\",\n"
+						+ "\"request_id\": \""
+						+ requestId
+						+ "\",\n"
+						+ "\"status\": "
+						+ response.getStatus()
+						+ ",\n"
+						+ "\"reason\": "
+						+ response.getReasonPhrase()
+						+ "}";
 
 				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
 				message.setContent(content, "text/plain");
@@ -347,8 +380,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				break;
 			case -310034372: // retrieve
-				content = "" + "{\"event\": \"call_retrieved\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
-						+ "\"reason\": " + response.getReasonPhrase() + "}";
+				content = ""
+						+ "{\"event\": \"call_retrieved\",\n"
+						+ "\"request_id\": \""
+						+ requestId
+						+ "\",\n"
+						+ "\"status\": "
+						+ response.getStatus()
+						+ ",\n"
+						+ "\"reason\": "
+						+ response.getReasonPhrase()
+						+ "}";
 
 				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
 				message.setContent(content, "text/plain");
@@ -356,8 +398,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				break;
 			case 3083120: // dial
-				content = "" + "{\"event\": \"digit_dialed\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
-						+ "\"reason\": " + response.getReasonPhrase() + "}";
+				content = ""
+						+ "{\"event\": \"digit_dialed\",\n"
+						+ "\"request_id\": \""
+						+ requestId
+						+ "\",\n"
+						+ "\"status\": "
+						+ response.getStatus()
+						+ ",\n"
+						+ "\"reason\": "
+						+ response.getReasonPhrase()
+						+ "}";
 
 				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
 				message.setContent(content, "text/plain");
@@ -365,8 +416,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				break;
 			case 3363353: // mute
-				content = "" + "{\"event\": \"call_muted\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
-						+ "\"reason\": " + response.getReasonPhrase() + "}";
+				content = ""
+						+ "{\"event\": \"call_muted\",\n"
+						+ "\"request_id\": \""
+						+ requestId
+						+ "\",\n"
+						+ "\"status\": "
+						+ response.getStatus()
+						+ ",\n"
+						+ "\"reason\": "
+						+ response.getReasonPhrase()
+						+ "}";
 
 				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
 				message.setContent(content, "text/plain");
@@ -374,8 +434,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				break;
 			case -295947265: // un_mute
-				content = "" + "{\"event\": \"call_unmuted\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
-						+ "\"reason\": " + response.getReasonPhrase() + "}";
+				content = ""
+						+ "{\"event\": \"call_unmuted\",\n"
+						+ "\"request_id\": \""
+						+ requestId
+						+ "\",\n"
+						+ "\"status\": "
+						+ response.getStatus()
+						+ ",\n"
+						+ "\"reason\": "
+						+ response.getReasonPhrase()
+						+ "}";
 
 				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
 				message.setContent(content, "text/plain");
@@ -383,8 +452,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				break;
 			case -776144932: // redirect
-				content = "" + "{\"event\": \"call_redirected\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus()
-						+ ",\n" + "\"reason\": " + response.getReasonPhrase() + "}";
+				content = ""
+						+ "{\"event\": \"call_redirected\",\n"
+						+ "\"request_id\": \""
+						+ requestId
+						+ "\",\n"
+						+ "\"status\": "
+						+ response.getStatus()
+						+ ",\n"
+						+ "\"reason\": "
+						+ response.getReasonPhrase()
+						+ "}";
 
 				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
 				message.setContent(content, "text/plain");
@@ -392,8 +470,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				break;
 			case -1423461112: // accept
-				content = "" + "{\"event\": \"call_accepted\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
-						+ "\"reason\": " + response.getReasonPhrase() + "}";
+				content = ""
+						+ "{\"event\": \"call_accepted\",\n"
+						+ "\"request_id\": \""
+						+ requestId
+						+ "\",\n"
+						+ "\"status\": "
+						+ response.getStatus()
+						+ ",\n"
+						+ "\"reason\": "
+						+ response.getReasonPhrase()
+						+ "}";
 
 				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
 				message.setContent(content, "text/plain");
@@ -401,8 +488,16 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				break;
 			case -934710369: // reject
-				content = "" + "{\"event\": \"call_rejected\",\n" + "\"request_id\": \"" + requestId + "\",\n" + "\"status\": " + response.getStatus() + ",\n"
-						+ "\"reason\": " + response.getReasonPhrase() + "}";
+				content = "{\"event\": \"call_rejected\",\n"
+						+ "\"request_id\": \""
+						+ requestId
+						+ "\",\n"
+						+ "\"status\": "
+						+ response.getStatus()
+						+ ",\n"
+						+ "\"reason\": "
+						+ response.getReasonPhrase()
+						+ "}";
 
 				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
 				message.setContent(content, "text/plain");
