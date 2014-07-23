@@ -128,7 +128,8 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 
 		try {
 			if (handler != null) {
-				logger.fine(handler.getClass() + " " + response.getMethod() + " " + response.getReasonPhrase() + " State: " + handler.state);
+				System.out.println(handler.getClass() + " " + response.getMethod() + " "+response.getStatus()+" "+ response.getReasonPhrase() + " State: " + handler.state);
+				logger.fine(handler.getClass() + " " + response.getMethod() + " " + +response.getStatus()+" "+response.getReasonPhrase() + " State: " + handler.state);
 				handler.processEvent(null, response);
 			}
 		} catch (Exception e) {

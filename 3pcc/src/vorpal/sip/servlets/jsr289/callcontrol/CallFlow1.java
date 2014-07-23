@@ -23,22 +23,12 @@
 
 package vorpal.sip.servlets.jsr289.callcontrol;
 
-import java.util.logging.Logger;
-
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-import weblogic.kernel.KernelLogManager;
-
 public class CallFlow1 extends CallStateHandler {
-	static Logger logger;
-	{
-		logger = Logger.getLogger(CallFlow1.class.getName());
-		logger.setParent(KernelLogManager.getLogger());
-	}
-
 	Address origin;
 	Address destination;
 
@@ -65,17 +55,11 @@ public class CallFlow1 extends CallStateHandler {
 			originRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 
 			if (ThirdPartyCallControlServlet.outboundProxy != null) {
-				logger.fine("pushing route: " + ThirdPartyCallControlServlet.outboundProxy);
 				destinationRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
-
-				logger.fine("pushing route: " + ThirdPartyCallControlServlet.outboundProxy);
 				originRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
 			}
 
 			originRequest.send();
-
-			logger.fine("-SENDING------------------------------------------------------------------------");
-			logger.fine(originRequest.toString());
 
 			state = 2;
 			originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
@@ -93,8 +77,6 @@ public class CallFlow1 extends CallStateHandler {
 			if (status == 200) {
 				destinationRequest.setContent(response.getContent(), response.getContentType());
 				destinationRequest.send();
-				System.out.println("Setting DESTINATION_SESSION_ID: " + destinationRequest.getApplicationSession().getId()+", "+destinationRequest.getSession().getId());
-				System.out.println("Sending INVITE: " + destinationRequest.getSession().getId());
 
 				state = 4;
 				originResponse = response;
@@ -103,10 +85,7 @@ public class CallFlow1 extends CallStateHandler {
 				initiator.createResponse(183).send();
 
 			} else {
-				if (initiator != null) {
-					System.out.println("Sending... " + response.getStatus());
-					initiator.createResponse(response.getStatus(), response.getReasonPhrase()).send();
-				}
+				initiator.createResponse(response.getStatus(), response.getReasonPhrase()).send();
 			}
 			break;
 

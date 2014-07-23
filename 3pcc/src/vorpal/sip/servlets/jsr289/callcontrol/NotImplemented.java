@@ -7,7 +7,10 @@ public class NotImplemented extends CallStateHandler {
 
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
-		request.createResponse(501).send();
+		if (request.getMethod().equals("ACK") || request.getMethod().equals("PRACK")) {
+		} else {
+			request.createResponse(501).send();
+		}
 	}
 
 }
