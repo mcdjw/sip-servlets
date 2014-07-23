@@ -84,6 +84,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	private final static String TO_URI = "TO_URI";
 	private final static String TPCC_SESSION_ID = "TPCC_SESSION_ID";
 	private final static String DTMF_RELAY = "application/dtmf-relay";
+	private final static String DIGITS_TO_DIAL = "DIGITS_TO_DIAL";
 
 	@Resource
 	public static SipFactory factory;
@@ -138,19 +139,16 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
 		requestId = rootNode.path("request_id").asText();
 
-		
-		//In case of Exception, save these values
+		// In case of Exception, save these values
 		request.getApplicationSession().setAttribute(CLIENT_ADDRESS, request.getFrom());
 		request.getApplicationSession().setAttribute(APPLICATION_ADDRESS, request.getTo());
 		request.getApplicationSession().setAttribute(REQUEST_ID, requestId);
 
-		
 		appSession = util.getApplicationSessionByKey(requestId, true);
 		appSession.setAttribute(CLIENT_ADDRESS, request.getFrom());
 		appSession.setAttribute(APPLICATION_ADDRESS, request.getTo());
 		appSession.setAttribute(REQUEST_ID, requestId);
-					
-		
+
 		try {
 			String origin, destination, endpoint;
 			callControl = rootNode.path("call_control").asText();
@@ -162,7 +160,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				origin = rootNode.path("origin").asText();
 				destination = rootNode.path("destination").asText();
-
 
 				SipServletRequest connectRequest = factory.createRequest(appSession, "INVITE", origin, destination);
 
@@ -205,17 +202,24 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				retrieve(requestId);
 				break;
 			case 3083120: // dial
-				
-				//SipApplicationSession appSession = util.getApplicationSessionByKey(requestId, false);
+
+				// SipApplicationSession appSession =
+				// util.getApplicationSessionByKey(requestId, false);
 				sipSession = appSession.getSipSession((String) appSession.getAttribute(TPCC_SESSION_ID));
 				sipSession.setAttribute(CALL_CONTROL, callControl);
-				
+
+				String digits = rootNode.path("digits").asText();
+				char digit = digits.charAt(0);
+				if (digits.length() > 1) {
+					digits = digits.substring(1);
+					sipSession.setAttribute(DIGITS_TO_DIAL, digits);
+				}
+
 				SipServletRequest digitRequest = sipSession.createRequest("INFO");
-				
-				String content = "Signal=" + rootNode.path("digit").asText() + "\n" + "Duration=160";
+				String content = "Signal=" + digit + "\n" + "Duration=160";
 				digitRequest.setContent(content.getBytes(), DTMF_RELAY);
 				digitRequest.send();
-				
+
 				break;
 			case 3363353: // mute
 				mute(requestId);
@@ -245,7 +249,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			msg.send();
 
 			e.printStackTrace();
-			
+
 		}
 
 	}
@@ -296,8 +300,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		TalkBACMessage msg;
 
 		SipApplicationSession appSession = response.getApplicationSession();
-		String callControl = (String) response.getSession().getAttribute(CALL_CONTROL);
-		String requestId = (String) response.getSession().getAttribute(REQUEST_ID);
+		SipSession sipSession = response.getSession();
+		String callControl = (String) sipSession.getAttribute(CALL_CONTROL);
+		String requestId = (String) sipSession.getAttribute(REQUEST_ID);
 		URI fromUri = (URI) appSession.getAttribute(FROM_URI);
 		URI toUri = (URI) appSession.getAttribute(TO_URI);
 
@@ -398,21 +403,41 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 				break;
 			case 3083120: // dial
-				content = ""
-						+ "{\"event\": \"digit_dialed\",\n"
-						+ "\"request_id\": \""
-						+ requestId
-						+ "\",\n"
-						+ "\"status\": "
-						+ response.getStatus()
-						+ ",\n"
-						+ "\"reason\": "
-						+ response.getReasonPhrase()
-						+ "}";
 
-				message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
-				message.setContent(content, "text/plain");
-				message.send();
+				String digits = (String) sipSession.getAttribute(DIGITS_TO_DIAL);
+				if (digits != null && digits.length() > 0) {
+
+					char digit = digits.charAt(0);
+					if (digits.length() > 1) {
+						digits = digits.substring(1);
+						sipSession.setAttribute(DIGITS_TO_DIAL, digits);
+					}else{
+						sipSession.removeAttribute(DIGITS_TO_DIAL);
+					}
+
+					SipServletRequest digitRequest = sipSession.createRequest("INFO");
+					content = "Signal=" + digit + "\n" + "Duration=160";
+					digitRequest.setContent(content.getBytes(), DTMF_RELAY);
+					digitRequest.send();
+
+				} else {
+
+					content = ""
+							+ "{\"event\": \"digits_dialed\",\n"
+							+ "\"request_id\": \""
+							+ requestId
+							+ "\",\n"
+							+ "\"status\": "
+							+ response.getStatus()
+							+ ",\n"
+							+ "\"reason\": "
+							+ response.getReasonPhrase()
+							+ "}";
+
+					message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+					message.setContent(content, "text/plain");
+					message.send();
+				}
 
 				break;
 			case 3363353: // mute
