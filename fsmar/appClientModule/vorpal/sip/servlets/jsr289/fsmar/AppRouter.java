@@ -6,6 +6,7 @@
 package vorpal.sip.servlets.jsr289.fsmar;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -44,16 +45,13 @@ public class AppRouter implements SipApplicationRouter {
 
 	@Override
 	public void applicationDeployed(List<String> apps) {
-
-		// LogManager.getLogManager().
-
-		System.out.println("KernelLogManager Name: " + logger.getName());
-
+		logger.info("Application(s) Deployed:" + Arrays.toString(apps.toArray()));
 		deployed.addAll(apps);
 	}
 
 	@Override
 	public void applicationUndeployed(List<String> apps) {
+		logger.info("Application(s) Undeployed:" + Arrays.toString(apps.toArray()));
 		deployed.removeAll(apps);
 	}
 
@@ -79,6 +77,9 @@ public class AppRouter implements SipApplicationRouter {
 			previous = sasi.getApplicationName();
 		}
 
+		logger.fine("previous: "+previous+", request: "+request.getMethod()+", Transition Set: "+Arrays.toString( transitionSet.keySet().toArray() ) );
+		
+		
 		String ts_key = null;
 		String ts_value = null;
 
@@ -106,7 +107,7 @@ public class AppRouter implements SipApplicationRouter {
 		}
 
 		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("FSMAR: [" + ts_key + ": " + ts_value + "]");
+			logger.fine("Matching Transition Set: [" + ts_key + ": " + ts_value + "]");
 		}
 
 		return nextApp;
