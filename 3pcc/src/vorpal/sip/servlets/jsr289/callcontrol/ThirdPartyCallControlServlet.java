@@ -23,6 +23,7 @@ import weblogic.kernel.KernelLogManager;
 public class ThirdPartyCallControlServlet extends SipServlet implements SipServletListener {
 	public static Address outboundProxy = null;
 	private final static String DTMF_RELAY = "application/dtmf-relay";
+	public static String strOutboundProxy=null;
 
 	final static String INITIATOR = "INITIATOR";
 
@@ -40,13 +41,13 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
-		String proxy = event.getServletContext().getInitParameter("OUTBOUND_PROXY");
+		strOutboundProxy = event.getServletContext().getInitParameter("OUTBOUND_PROXY");
 
-		logger.info("Setting Outbound Proxy: " + proxy);
+		logger.info("Setting Outbound Proxy: " + strOutboundProxy);
 
-		if (proxy != null) {
+		if (strOutboundProxy != null) {
 			try {
-				this.outboundProxy = factory.createAddress(proxy);
+				this.outboundProxy = factory.createAddress("sip:"+strOutboundProxy);
 				((SipURI) this.outboundProxy.getURI()).setLrParam(true);
 			} catch (ServletParseException e) {
 				e.printStackTrace();

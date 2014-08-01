@@ -27,6 +27,7 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
 
 public class CallFlow1 extends CallStateHandler {
 	Address origin;
@@ -52,12 +53,33 @@ public class CallFlow1 extends CallStateHandler {
 			appSession = request.getApplicationSession();
 
 			destinationRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", origin, destination);
-			originRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", destination, origin);
+			// jwm-cisco?
+//			destinationRequest.setHeader("Allow-Events", "telephone-event");
+//			destinationRequest.setHeader("Allow", "INVITE, ACK, CANCEL, BYE, REFER, NOTIFY, PRACK");
+//			destinationRequest.setHeader("Min-SE", "180");
+//			destinationRequest.setExpires(14400);
+//			destinationRequest.setHeader("Session-Expires", "14400;refresher=uas");
+//			destinationRequest.pushRoute(ThirdPartyCallControlServlet.factory.createAddress("sip:"
+//					+ ((SipURI) destination.getURI()).getUser()
+//					+ "@"
+//					+ ThirdPartyCallControlServlet.strOutboundProxy));
 
-			if (ThirdPartyCallControlServlet.outboundProxy != null) {
-				destinationRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
-				originRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
-			}
+			originRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", destination, origin);
+			// jwm-cisco
+//			originRequest.setHeader("Allow-Events", "telephone-event");
+//			originRequest.setHeader("Allow", "INVITE, ACK, CANCEL, BYE, REFER, NOTIFY, PRACK");
+//			originRequest.setHeader("Min-SE", "180");
+//			originRequest.setExpires(14400);
+//			originRequest.setHeader("Session-Expires", "14400;refresher=uas");
+//			originRequest.pushRoute(ThirdPartyCallControlServlet.factory.createAddress("sip:"
+//					+ ((SipURI) origin.getURI()).getUser()
+//					+ "@"
+//					+ ThirdPartyCallControlServlet.strOutboundProxy));
+
+			 if (ThirdPartyCallControlServlet.outboundProxy != null) {
+			 destinationRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
+			 originRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
+			 }
 
 			originRequest.send();
 
