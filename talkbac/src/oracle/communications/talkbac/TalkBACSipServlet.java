@@ -215,9 +215,71 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 					sipSession.setAttribute(DIGITS_TO_DIAL, digits);
 				}
 
-				SipServletRequest digitRequest = sipSession.createRequest("INFO");
-				String content = "Signal=" + digit + "\n" + "Duration=160";
-				digitRequest.setContent(content.getBytes(), DTMF_RELAY);
+				//INFO
+//				SipServletRequest digitRequest = sipSession.createRequest("INFO");
+//				String content = "Signal=" + digit + "\n" + "Duration=160";
+//				digitRequest.setContent(content.getBytes(), DTMF_RELAY);
+//				digitRequest.send();
+				
+				//NOTIFY
+				SipServletRequest digitRequest = sipSession.createRequest("NOTIFY");
+				int body=0;
+				switch(digit){
+				case '0':
+					body = 0x000001f4;
+					break;
+				case '1':
+					body = 0x010001f4;
+					break;
+				case '2':
+					body = 0x020001f4;
+					break;
+				case '3':
+					body = 0x030001f4;
+					break;
+				case '4':
+					body = 0x040001f4;
+					break;
+				case '5':
+					body = 0x050001f4;
+					break;
+				case '6':
+					body = 0x060001f4;
+					break;
+				case '7':
+					body = 0x070001f4;
+					break;
+				case '8':
+					body = 0x080001f4;
+					break;
+				case '9':
+					body = 0x090001f4;
+					break;
+				case '*': //10
+					body = 0x0A0001f4;
+					break;
+				case '#': //11
+					body = 0x0B0001f4;
+					break;
+				case 'A': //12
+					body = 0x0C0001f4;
+					break;
+				case 'B': //13
+					body = 0x0D0001f4;
+					break;
+				case 'C': //14
+					body = 0x0E0001f4;
+					break;
+				case 'D': //15
+					body = 0x0F0001f4;
+					break;
+				case 'F': //16 for 'flash'
+					body = 0x100001f4;
+					break;		
+				}
+				
+				digitRequest.setContent(body, "audio/telephone-event");
+				digitRequest.setHeader("Event", "telephone-event");
 				digitRequest.send();
 
 				break;
