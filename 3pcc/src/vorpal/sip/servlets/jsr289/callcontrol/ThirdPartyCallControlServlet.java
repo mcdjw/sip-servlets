@@ -97,7 +97,7 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 					} else {
 						handler = new Reinvite();
 					}
-				} else if (request.getMethod().equals("INFO")) {
+				} else if (request.getMethod().equals("INFO") || request.getMethod().equals("NOTIFY")) {
 					if (request.getContentType().equals(DTMF_RELAY)) {
 						handler = new DtmfRelay();
 					}

@@ -24,10 +24,17 @@ public class DtmfRelay extends CallStateHandler {
 
 			System.out.println("Getting DESTINATION_SESSION_ID: "+appSession.getId()+", "+sipSession.getId());
 
-			SipServletRequest dtmfRequest = sipSession.createRequest("INFO");
+			SipServletRequest dtmfRequest = sipSession.createRequest(request.getMethod());
 			dtmfRequest.setContent(request.getContent(), request.getContentType());
+			
+			String event = request.getHeader("Event");
+			if(event!=null){
+				dtmfRequest.setHeader("Event", event);
+			}
+			
+			
 			dtmfRequest.send();
-			System.out.println("Sending INFO: "+dtmfRequest.getSession().getId());
+//			System.out.println("Sending INFO: "+dtmfRequest.getSession().getId());
 			
 			
 
