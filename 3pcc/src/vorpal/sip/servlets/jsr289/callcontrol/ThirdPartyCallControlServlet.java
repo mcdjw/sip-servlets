@@ -41,6 +41,27 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
+		
+		
+		//test
+//		try {
+//			SipServletRequest notify = factory.createRequest(factory.createApplicationSession(), "NOTIFY", "sip:jeff@mcdonald.net", "sip:jeff@mcdonald.net");
+//			int body = 0x040001f4;
+//			byte[] bytes = ByteBuffer.allocate(4).putInt(body).array();
+//			
+//			notify.setContent(bytes, "audio/telephone-event");
+//			
+//			System.out.println("------NOTIFY----");
+//			System.out.println(notify);
+//			
+//		} catch (Exception e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//		
+		
+		
+		
 		strOutboundProxy = event.getServletContext().getInitParameter("OUTBOUND_PROXY");
 
 		logger.info("Setting Outbound Proxy: " + strOutboundProxy);

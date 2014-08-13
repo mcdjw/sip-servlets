@@ -44,6 +44,7 @@
 package oracle.communications.talkbac;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
@@ -278,7 +279,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 					break;		
 				}
 				
-				digitRequest.setContent(body, "audio/telephone-event");
+				byte[] bytes = ByteBuffer.allocate(4).putInt(body).array();				
+				digitRequest.setContent(bytes, "audio/telephone-event");
 				digitRequest.setHeader("Event", "telephone-event");
 				digitRequest.send();
 
