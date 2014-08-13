@@ -4,12 +4,13 @@
 	<app-name>3pcc</app-name>
 	<distributable />
 
-	<!--
+<!--
 	<context-param>
 		<javaee:param-name>OUTBOUND_PROXY</javaee:param-name>
 		<javaee:param-value>172.16.43.154</javaee:param-value>
 	</context-param>
-	-->
+
+-->
 
 	<servlet>
 		<javaee:servlet-name>3pcc</javaee:servlet-name>
