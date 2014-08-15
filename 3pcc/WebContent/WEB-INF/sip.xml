@@ -9,8 +9,14 @@
 		<javaee:param-name>OUTBOUND_PROXY</javaee:param-name>
 		<javaee:param-value>172.16.43.154</javaee:param-value>
 	</context-param>
-
 -->
+
+	<context-param>
+		<javaee:param-name>CALL_INFO</javaee:param-name>
+		<javaee:param-value>
+		<![CDATA[<sip:192.168.1.202:5060>;method="NOTIFY;Event=telephone-event;Duration=2000"]]>
+		</javaee:param-value>
+	</context-param>
 
 	<servlet>
 		<javaee:servlet-name>3pcc</javaee:servlet-name>

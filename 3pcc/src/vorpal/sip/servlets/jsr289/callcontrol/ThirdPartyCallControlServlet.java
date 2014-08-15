@@ -24,6 +24,7 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 	public static Address outboundProxy = null;
 	private final static String DTMF_RELAY = "application/dtmf-relay";
 	public static String strOutboundProxy=null;
+	public static String callInfo=null;
 
 	final static String INITIATOR = "INITIATOR";
 
@@ -74,6 +75,9 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 				e.printStackTrace();
 			}
 		}
+				
+		callInfo = event.getServletContext().getInitParameter("CALL_INFO");
+		
 	}
 
 	@Override

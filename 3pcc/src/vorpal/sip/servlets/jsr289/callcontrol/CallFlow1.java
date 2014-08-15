@@ -53,6 +53,11 @@ public class CallFlow1 extends CallStateHandler {
 			appSession = request.getApplicationSession();
 
 			destinationRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", origin, destination);
+			
+			if(ThirdPartyCallControlServlet.callInfo!=null){
+			destinationRequest.setHeader("Call-Info", ThirdPartyCallControlServlet.callInfo);
+			}
+			
 			// jwm-cisco?
 //			destinationRequest.setHeader("Allow-Events", "telephone-event");
 //			destinationRequest.setHeader("Allow", "INVITE, ACK, CANCEL, BYE, REFER, NOTIFY, PRACK");

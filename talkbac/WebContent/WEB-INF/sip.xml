@@ -4,6 +4,12 @@
 	<app-name>talkbac</app-name>
 	<distributable />
 
+	<context-param>
+		<javaee:param-name>DTMF_STYLE</javaee:param-name>
+		<javaee:param-value>RFC_2833</javaee:param-value>
+		<!--javaee:param-value>RFC_2976</javaee:param-value-->
+	</context-param>
+
 	<servlet>
 		<javaee:servlet-name>talkbac</javaee:servlet-name>
 		<javaee:servlet-class>oracle.communications.talkbac.TalkBACSipServlet</javaee:servlet-class>
