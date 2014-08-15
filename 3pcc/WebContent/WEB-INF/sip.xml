@@ -14,7 +14,7 @@
 	<context-param>
 		<javaee:param-name>CALL_INFO</javaee:param-name>
 		<javaee:param-value>
-		<![CDATA[<sip:192.168.1.202:5060>;method="NOTIFY;Event=telephone-event;Duration=2000"]]>
+		<![CDATA[<sip:192.168.1.202:5060>;method="NOTIFY;Event=telephone-event;Duration=500"]]>
 		</javaee:param-value>
 	</context-param>
 

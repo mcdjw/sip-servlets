@@ -85,7 +85,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	private final static String TO_URI = "TO_URI";
 	private final static String TPCC_SESSION_ID = "TPCC_SESSION_ID";
 	private final static String DTMF_RELAY = "application/dtmf-relay";
-	private final static String DIGITS_TO_DIAL = "DIGITS_TO_DIAL";
+	// private final static String DIGITS_TO_DIAL = "DIGITS_TO_DIAL";
+
+	private final static String DIGITS_REMAINING = "DIGITS_REMAINING";
+	private final static String DIGIT_DIALED = "DIGIT_DIALED";
 
 	public enum DTMF_STYLE {
 		RFC_2833, RFC_2976
@@ -141,64 +144,76 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		msg.send();
 	}
 
-	private int rfc2833(char digit) {
-		int body = 0;
+	private byte[] encodeRFC2833(char digit, boolean end, int duration) {
+		int payload = 0;
+		byte tone = 0;
 
 		switch (digit) {
 		case '0':
-			body = 0x000001f4;
+			tone = 0x00;
 			break;
 		case '1':
-			body = 0x010001f4;
+			tone = 0x01;
 			break;
 		case '2':
-			body = 0x020001f4;
+			tone = 0x02;
 			break;
 		case '3':
-			body = 0x030001f4;
+			tone = 0x03;
 			break;
 		case '4':
-			body = 0x040001f4;
+			tone = 0x04;
 			break;
 		case '5':
-			body = 0x050001f4;
+			tone = 0x05;
 			break;
 		case '6':
-			body = 0x060001f4;
+			tone = 0x06;
 			break;
 		case '7':
-			body = 0x070001f4;
+			tone = 0x07;
 			break;
 		case '8':
-			body = 0x080001f4;
+			tone = 0x08;
 			break;
 		case '9':
-			body = 0x090001f4;
+			tone = 0x09;
 			break;
 		case '*': // 10
-			body = 0x0A0001f4;
+			tone = 0x0A;
 			break;
 		case '#': // 11
-			body = 0x0B0001f4;
+			tone = 0x0B;
 			break;
 		case 'A': // 12
-			body = 0x0C0001f4;
+			tone = 0x0C;
 			break;
 		case 'B': // 13
-			body = 0x0D0001f4;
+			tone = 0x0D;
 			break;
 		case 'C': // 14
-			body = 0x0E0001f4;
+			tone = 0x0E;
 			break;
 		case 'D': // 15
-			body = 0x0F0001f4;
+			tone = 0x0F;
 			break;
 		case 'F': // 16 for 'flash'
-			body = 0x100001f4;
+			tone = 0x10;
 			break;
 		}
 
-		return body;
+		ByteBuffer buf = ByteBuffer.allocate(4);
+		buf.put(tone);
+
+		if (end) {
+			buf.put((byte) 0x80);
+		} else {
+			buf.put((byte) 0x00);
+		}
+
+		buf.putShort((short) duration);
+
+		return buf.array();
 	}
 
 	@Override
@@ -277,46 +292,25 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				retrieve(requestId);
 				break;
 			case 3083120: // dial
-
-				// SipApplicationSession appSession =
-				// util.getApplicationSessionByKey(requestId, false);
 				sipSession = appSession.getSipSession((String) appSession.getAttribute(TPCC_SESSION_ID));
 				sipSession.setAttribute(CALL_CONTROL, callControl);
 
 				String digits = rootNode.path("digits").asText();
 
-				SipServletRequest digitRequest;
-				switch (dtmf_style) {
-				case RFC_2833:
-					// NOTIFY
-					digitRequest = sipSession.createRequest("NOTIFY");
+				SipServletRequest digitRequest = sipSession.createRequest("NOTIFY");
 
-					int length = digits.length();
-					ByteBuffer buf = ByteBuffer.allocate(4 * length);
-					for (int i = 0; i < length; i++) {
-						buf.putInt(rfc2833(digits.charAt(i)));
-					}
-
-					byte[] bytes = buf.array();
-					digitRequest.setContent(bytes, "audio/telephone-event");
-					digitRequest.setHeader("Event", "telephone-event");
-					digitRequest.send();
-
-					break;
-				case RFC_2976:
-					digitRequest = sipSession.createRequest("INFO");
-					char digit = digits.charAt(0);
-					if (digits.length() > 1) {
-						digits = digits.substring(1);
-						sipSession.setAttribute(DIGITS_TO_DIAL, digits);
-					}
-
-					String content = "Signal=" + digit + "\n" + "Duration=160";
-					digitRequest.setContent(content.getBytes(), DTMF_RELAY);
-					digitRequest.send();
-
-					break;
+				char digit = digits.charAt(0);
+				sipSession.setAttribute(DIGIT_DIALED, digit);
+				if (digits.length() > 1) {
+					digits = digits.substring(1);
+					sipSession.setAttribute(DIGITS_REMAINING, digits);
 				}
+
+				digitRequest.setHeader("Subscription-State", "active");
+				digitRequest.setHeader("Event", "telephone-event");
+
+				digitRequest.setContent(encodeRFC2833(digit, false, 250), "audio/telephone-event");
+				digitRequest.send();
 
 				break;
 			case 3363353: // mute
@@ -502,38 +496,53 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				break;
 			case 3083120: // dial
 
-				String digits = (String) sipSession.getAttribute(DIGITS_TO_DIAL);
-				if (digits != null && digits.length() > 0) {
-					char digit = digits.charAt(0);
-					if (digits.length() > 1) {
-						digits = digits.substring(1);
-						sipSession.setAttribute(DIGITS_TO_DIAL, digits);
-					} else {
-						sipSession.removeAttribute(DIGITS_TO_DIAL);
-					}
-
-					SipServletRequest digitRequest = sipSession.createRequest("INFO");
-					content = "Signal=" + digit + "\n" + "Duration=160";
-					digitRequest.setContent(content.getBytes(), DTMF_RELAY);
+				Character digit_dialed = (Character) sipSession.getAttribute(DIGIT_DIALED);
+				if (digit_dialed != null) {
+					SipServletRequest digitRequest = sipSession.createRequest("NOTIFY");
+					digitRequest.setHeader("Subscription-State", "active");
+					digitRequest.setHeader("Event", "telephone-event");
+					digitRequest.setContent(encodeRFC2833(digit_dialed, true, 250), "audio/telephone-event");
 					digitRequest.send();
 
+					sipSession.removeAttribute(DIGIT_DIALED);
 				} else {
+					String digits = (String) sipSession.getAttribute(DIGITS_REMAINING);
 
-					content = ""
-							+ "{\"event\": \"digits_dialed\",\n"
-							+ "\"request_id\": \""
-							+ requestId
-							+ "\",\n"
-							+ "\"status\": "
-							+ response.getStatus()
-							+ ",\n"
-							+ "\"reason\": "
-							+ response.getReasonPhrase()
-							+ "}";
+					if (digits != null && digits.length() > 0) {
+						char digit = digits.charAt(0);
+						sipSession.setAttribute(DIGIT_DIALED, digit);
+						if (digits.length() > 1) {
+							digits = digits.substring(1);
+							sipSession.setAttribute(DIGITS_REMAINING, digits);
+						} else {
+							sipSession.removeAttribute(DIGITS_REMAINING);
+						}
 
-					message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
-					message.setContent(content, "text/plain");
-					message.send();
+						SipServletRequest digitRequest = sipSession.createRequest("NOTIFY");
+						digitRequest.setHeader("Subscription-State", "active");
+						digitRequest.setHeader("Event", "telephone-event");
+						digitRequest.setContent(encodeRFC2833(digit, false, 250), "audio/telephone-event");
+						digitRequest.send();
+
+					} else {
+
+						content = ""
+								+ "{\"event\": \"digits_dialed\",\n"
+								+ "\"request_id\": \""
+								+ requestId
+								+ "\",\n"
+								+ "\"status\": "
+								+ response.getStatus()
+								+ ",\n"
+								+ "\"reason\": "
+								+ response.getReasonPhrase()
+								+ "}";
+
+						message = factory.createRequest(factory.createApplicationSession(), "MESSAGE", toUri, fromUri);
+						message.setContent(content, "text/plain");
+						message.send();
+					}
+
 				}
 
 				break;

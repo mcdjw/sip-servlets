@@ -6,7 +6,10 @@
 
 	<context-param>
 		<javaee:param-name>DTMF_STYLE</javaee:param-name>
-		<javaee:param-value>RFC_2833</javaee:param-value>
+		<!-- NOTIFY -->
+		<javaee:param-value>RFC_2833</javaee:param-value> 
+		
+		<!-- INFO -->
 		<!--javaee:param-value>RFC_2976</javaee:param-value-->
 	</context-param>
 
