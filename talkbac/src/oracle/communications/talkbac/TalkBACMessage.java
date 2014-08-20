@@ -19,26 +19,25 @@ public class TalkBACMessage {
 	TalkBACMessage(SipServletMessage ssm, String event) {
 		SipApplicationSession appSession = ssm.getApplicationSession();
 		SipSession sipSession = ssm.getSession();
-		
+
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectNode = objectMapper.createObjectNode();
-		
+
 		String requestId = (String) sipSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
-		if(requestId==null){
+		if (requestId == null) {
 			requestId = (String) appSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
 		}
 		objectNode.put("request_id", requestId);
 		objectNode.put("event", event);
 
-		if(ssm instanceof SipServletResponse){
+		if (ssm instanceof SipServletResponse) {
 			objectNode.put("status", ((SipServletResponse) ssm).getStatus());
 			objectNode.put("reason", ((SipServletResponse) ssm).getReasonPhrase());
 		}
-		
-		
+
 		Address client_address = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
 		Address application_address = (Address) appSession.getAttribute(TalkBACSipServlet.APPLICATION_ADDRESS);
-		
+
 		message = TalkBACSipServlet.factory.createRequest(appSession, "MESSAGE", application_address, client_address);
 	}
 
@@ -51,6 +50,8 @@ public class TalkBACMessage {
 	}
 
 	void send() throws IOException {
+		TalkBACSipServlet.cdr.info(objectNode.toString().replaceAll("[\n\r]", ""));
+
 		message.setContent(objectNode.toString(), "text/plain");
 		message.send();
 	}

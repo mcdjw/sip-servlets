@@ -77,6 +77,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		logger.setParent(KernelLogManager.getLogger());
 	}
 
+	public static org.apache.logging.log4j.Logger cdr;
+
 	public final static String CALL_CONTROL = "CALL_CONTROL";
 	public final static String REQUEST_ID = "REQUEST_ID";
 	public final static String CLIENT_ADDRESS = "CLIENT_ADDRESS";
@@ -84,17 +86,20 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	private final static String FROM_URI = "FROM_URI";
 	private final static String TO_URI = "TO_URI";
 	private final static String TPCC_SESSION_ID = "TPCC_SESSION_ID";
-	private final static String DTMF_RELAY = "application/dtmf-relay";
+	// private final static String DTMF_RELAY = "application/dtmf-relay";
+	private final static String TELEPHONE_EVENT = "audio/telephone-event";
 	// private final static String DIGITS_TO_DIAL = "DIGITS_TO_DIAL";
 
 	private final static String DIGITS_REMAINING = "DIGITS_REMAINING";
 	private final static String DIGIT_DIALED = "DIGIT_DIALED";
 
-	public enum DTMF_STYLE {
-		RFC_2833, RFC_2976
-	};
+	private static String callInfo;
 
-	public static DTMF_STYLE dtmf_style;
+	// public enum DTMF_STYLE {
+	// RFC_2833, RFC_2976
+	// };
+
+	// public static DTMF_STYLE dtmf_style;
 
 	@Resource
 	public static SipFactory factory;
@@ -126,14 +131,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
 		logger.info(event.getSipServlet().getServletName() + " initialized.");
+		callInfo = event.getServletContext().getInitParameter("CALL_INFO");
 
-		String strDtmfStyle = event.getServletContext().getInitParameter("DTMF_STYLE");
-		if (strDtmfStyle.equals("RFC_2833")) {
-			dtmf_style = DTMF_STYLE.RFC_2833;
-		} else if (strDtmfStyle.equals("RFC_2976")) {
-			dtmf_style = DTMF_STYLE.RFC_2976;
-		}
-
+		cdr = org.apache.logging.log4j.LogManager.getLogger(TalkBACSipServlet.class.getName());
 	}
 
 	@Override
@@ -218,6 +218,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	@Override
 	protected void doMessage(SipServletRequest request) throws ServletException, IOException {
+		
+		cdr.info(request.getContent().toString().replaceAll("[\n\r]", ""));
+		
+		
 		TalkBACMessage msg;
 		String requestId = null;
 		String callControl = null;
@@ -307,9 +311,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				}
 
 				digitRequest.setHeader("Subscription-State", "active");
-				digitRequest.setHeader("Event", "telephone-event");
+				digitRequest.setHeader("Event", "telephone-event;rate=1000");
 
-				digitRequest.setContent(encodeRFC2833(digit, false, 250), "audio/telephone-event");
+				digitRequest.setContent(encodeRFC2833(digit, false, 500), "audio/telephone-event");
 				digitRequest.send();
 
 				break;
@@ -500,7 +504,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				if (digit_dialed != null) {
 					SipServletRequest digitRequest = sipSession.createRequest("NOTIFY");
 					digitRequest.setHeader("Subscription-State", "active");
-					digitRequest.setHeader("Event", "telephone-event");
+					digitRequest.setHeader("Event", "telephone-event;rate=1000");
 					digitRequest.setContent(encodeRFC2833(digit_dialed, true, 250), "audio/telephone-event");
 					digitRequest.send();
 
@@ -520,8 +524,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 						SipServletRequest digitRequest = sipSession.createRequest("NOTIFY");
 						digitRequest.setHeader("Subscription-State", "active");
-						digitRequest.setHeader("Event", "telephone-event");
-						digitRequest.setContent(encodeRFC2833(digit, false, 250), "audio/telephone-event");
+						digitRequest.setHeader("Event", "telephone-event;rate=1000");
+						digitRequest.setContent(encodeRFC2833(digit, false, 500), "audio/telephone-event");
 						digitRequest.send();
 
 					} else {

@@ -58,6 +58,10 @@ public class CallFlow4 extends CallStateHandler {
 
 			SipApplicationSession appSession = ThirdPartyCallControlServlet.factory.createApplicationSession();
 			destinationRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", origin, destination);
+			if (ThirdPartyCallControlServlet.callInfo != null) {
+				destinationRequest.setHeader("Call-Info", ThirdPartyCallControlServlet.callInfo);
+			}
+
 			originRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 
 			if (ThirdPartyCallControlServlet.outboundProxy != null) {

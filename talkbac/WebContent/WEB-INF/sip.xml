@@ -5,12 +5,10 @@
 	<distributable />
 
 	<context-param>
-		<javaee:param-name>DTMF_STYLE</javaee:param-name>
-		<!-- NOTIFY -->
-		<javaee:param-value>RFC_2833</javaee:param-value> 
-		
-		<!-- INFO -->
-		<!--javaee:param-value>RFC_2976</javaee:param-value-->
+		<javaee:param-name>CALL_INFO</javaee:param-name>
+		<javaee:param-value>
+		<![CDATA[<sip:192.168.1.202:5060>;method="NOTIFY;Event=telephone-event;Duration=500"]]>
+		</javaee:param-value>
 	</context-param>
 
 	<servlet>

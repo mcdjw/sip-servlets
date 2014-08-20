@@ -30,6 +30,7 @@ public class DtmfRelay extends CallStateHandler {
 			String event = request.getHeader("Event");
 			if(event!=null){
 				dtmfRequest.setHeader("Event", event);
+				dtmfRequest.setHeader("Events", event);
 			}
 			
 			
