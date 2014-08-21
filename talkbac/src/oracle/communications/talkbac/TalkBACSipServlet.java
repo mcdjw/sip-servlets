@@ -77,7 +77,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		logger.setParent(KernelLogManager.getLogger());
 	}
 
-	public static org.apache.logging.log4j.Logger cdr;
+	public final static org.apache.logging.log4j.Logger cdr = org.apache.logging.log4j.LogManager.getLogger(TalkBACSipServlet.class.getName());
 
 	public final static String CALL_CONTROL = "CALL_CONTROL";
 	public final static String REQUEST_ID = "REQUEST_ID";
@@ -122,10 +122,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	protected void doRegister(SipServletRequest request) throws ServletException, IOException {
 		// The REGISTER method servers as a keep-alive for the client web socket
 		// connection.
-		SipApplicationSession appSession = request.getApplicationSession();
-		int expires = request.getExpires();
-		appSession.setExpires(expires);
-		request.getProxy().proxyTo(request.getRequestURI());
+
+		
+//		if (request.getHeader("SID") == null) {
+//			request.createResponse(407);
+//		} else {
+			SipApplicationSession appSession = request.getApplicationSession();
+			int expires = request.getExpires();
+			appSession.setExpires(expires);
+			request.getProxy().proxyTo(request.getRequestURI());
+//		}
+
 	}
 
 	@Override
@@ -133,7 +140,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		logger.info(event.getSipServlet().getServletName() + " initialized.");
 		callInfo = event.getServletContext().getInitParameter("CALL_INFO");
 
-		cdr = org.apache.logging.log4j.LogManager.getLogger(TalkBACSipServlet.class.getName());
 	}
 
 	@Override
@@ -218,10 +224,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	@Override
 	protected void doMessage(SipServletRequest request) throws ServletException, IOException {
-		
+
 		cdr.info(request.getContent().toString().replaceAll("[\n\r]", ""));
-		
-		
+
 		TalkBACMessage msg;
 		String requestId = null;
 		String callControl = null;

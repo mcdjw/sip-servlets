@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="debug" name="TalkBACLog" packages="oracle.communications.talkbac">
+<Configuration status="debug">
 	<Properties>
-		<Property name="filename">cdrs/talkbac.log</Property>
+		<Property name="log-path">cdrs</Property>
 	</Properties>
 
 	<ThresholdFilter level="info" />
 
 	<Appenders>
-		<RollingFile name="RollingFile" fileName="${filename}" filePattern="logs/$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz">
+		<RollingFile name="RollingFile" fileName="${log-path}/talkbac.log" filePattern="${log-path}/talkbac-%d{yyyy-MM-dd}.log">
 			<PatternLayout>
-				<Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+				<Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %msg%n</Pattern>
 			</PatternLayout>
 			<Policies>
 				<TimeBasedTriggeringPolicy />
@@ -20,13 +20,14 @@
 	</Appenders>
 	<Loggers>
 
-		<Logger name="oracle.communications.talkbac.TalkBACSipServlet">
+		<Logger name="oracle.communications.talkbac">
 			<AppenderRef ref="RollingFile" />
 		</Logger>
 
-		<Root level="info" >
-		<AppenderRef ref="RollingFile"/>
+		<Root level="info">
+			<!-- AppenderRef ref="RollingFile" / -->
 		</Root>
+
 
 	</Loggers>
 
