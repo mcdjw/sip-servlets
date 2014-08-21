@@ -36,12 +36,14 @@ public class TerminateCall extends CallStateHandler {
 					if (ss.getId() != sipSession.getId()) {
 						System.out.println("TerminateCall State: " + ss.getState().toString());
 						switch (ss.getState()) {
+						case INITIAL:
+						case EARLY:
 						case CONFIRMED:
 							ss.createRequest("BYE").send();
 							ss.setAttribute(CALL_STATE_HANDLER, this);
 							break;
-						case INITIAL:
-						case EARLY:
+						
+						default:								
 							ss.createRequest("CANCEL").send();
 							ss.setAttribute(CALL_STATE_HANDLER, this);
 							break;

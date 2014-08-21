@@ -76,7 +76,7 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 
 				if (request.getMethod().equals("INVITE")) {
 					if (request.isInitial()) {
-						int callflow = 1;
+						int callflow = 3;
 						String callflowHeader = request.getHeader("Callflow");
 						if (callflowHeader != null) {
 							callflow = Integer.parseInt(callflowHeader);
