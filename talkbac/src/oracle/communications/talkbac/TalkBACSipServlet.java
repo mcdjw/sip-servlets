@@ -200,7 +200,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 							Address originAddress = factory.createAddress(origin);
 							Address destinationAddress = factory.createAddress(destination);
 
-							int callflow = 1;
+							int callflow = 4;
 							String callflowHeader = request.getHeader("Callflow");
 							if (callflowHeader != null) {
 								callflow = Integer.parseInt(callflowHeader);
