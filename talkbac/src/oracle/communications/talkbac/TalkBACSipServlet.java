@@ -83,7 +83,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	}
 
 	private enum CallControl {
-		call, terminate, transfer, hold, retrieve, dial, mute, unmute, redirect, accept, reject
+		call, disconnect, terminate, transfer, hold, retrieve, dial, mute, unmute, redirect, accept, reject
 	}
 
 	public final static String REQUEST_ID = "request_id";
@@ -224,6 +224,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 						}
 
 						break;
+					case disconnect:	
 					case terminate:
 						handler = new TerminateCall();
 						msg = new TalkBACMessage(request.getApplicationSession(), "call_completed");
