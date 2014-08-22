@@ -4,6 +4,13 @@
 	<app-name>talkbac</app-name>
 	<distributable />
 
+<!--
+	<context-param>
+		<javaee:param-name>OUTBOUND_PROXY</javaee:param-name>
+		<javaee:param-value>172.16.43.154</javaee:param-value>
+	</context-param>
+-->
+
 	<context-param>
 		<javaee:param-name>CALL_INFO</javaee:param-name>
 		<javaee:param-value>

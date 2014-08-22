@@ -15,6 +15,7 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSessionsUtil;
 import javax.servlet.sip.SipURI;
+import javax.servlet.sip.annotation.SipApplicationKey;
 import javax.servlet.sip.annotation.SipListener;
 
 import weblogic.kernel.KernelLogManager;
@@ -23,8 +24,8 @@ import weblogic.kernel.KernelLogManager;
 public class ThirdPartyCallControlServlet extends SipServlet implements SipServletListener {
 	public static Address outboundProxy = null;
 	private final static String DTMF_RELAY = "application/dtmf-relay";
-	public static String strOutboundProxy=null;
-	public static String callInfo=null;
+	public static String strOutboundProxy = null;
+	public static String callInfo = null;
 
 	final static String INITIATOR = "INITIATOR";
 
@@ -40,35 +41,48 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 	@Resource
 	public static SipSessionsUtil util;
 
+	@SipApplicationKey
+	public static String sessionKey(SipServletRequest req) {
+		return generateKey(req.getFrom());
+	}
+
+	public static String generateKey(Address address) {
+		SipURI uri = (SipURI) address.getURI();
+		String key = uri.getUser().toLowerCase() + "@" + uri.getHost().toLowerCase();
+		return key;
+	}
+	
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
-		
+
 		strOutboundProxy = event.getServletContext().getInitParameter("OUTBOUND_PROXY");
 
 		logger.info("Setting Outbound Proxy: " + strOutboundProxy);
 
 		if (strOutboundProxy != null) {
 			try {
-				this.outboundProxy = factory.createAddress("sip:"+strOutboundProxy);
+				this.outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
 				((SipURI) this.outboundProxy.getURI()).setLrParam(true);
 			} catch (ServletParseException e) {
 				e.printStackTrace();
 			}
 		}
-				
+
 		callInfo = event.getServletContext().getInitParameter("CALL_INFO");
-		
+
 	}
 
 	@Override
 	protected void doRequest(SipServletRequest request) throws ServletException, IOException {
+		System.out.println(request.getMethod());
+		
 		try {
 			CallStateHandler handler;
 
 			handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 
 			// Don't care about state, just end the call
-			if (request.getMethod().equals("BYE")) {
+			if (request.getMethod().equals("BYE") || request.getMethod().equals("CANCEL")) {
 				handler = new TerminateCall();
 			}
 
@@ -76,7 +90,7 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 
 				if (request.getMethod().equals("INVITE")) {
 					if (request.isInitial()) {
-						int callflow = 3;
+						int callflow = 4;
 						String callflowHeader = request.getHeader("Callflow");
 						if (callflowHeader != null) {
 							callflow = Integer.parseInt(callflowHeader);
@@ -103,9 +117,9 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 						handler = new Reinvite();
 					}
 				} else if (request.getMethod().equals("INFO") || request.getMethod().equals("NOTIFY")) {
-					//if (request.getContentType().equals(DTMF_RELAY)) {
-						handler = new DtmfRelay();
-					//}
+					// if (request.getContentType().equals(DTMF_RELAY)) {
+					handler = new DtmfRelay();
+					// }
 
 				}
 
@@ -120,6 +134,7 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 			handler.processEvent(request, null);
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new ServletException(e);
 		}
 
@@ -134,8 +149,24 @@ public class ThirdPartyCallControlServlet extends SipServlet implements SipServl
 
 		try {
 			if (handler != null) {
-				System.out.println(handler.getClass() + " " + response.getMethod() + " "+response.getStatus()+" "+ response.getReasonPhrase() + " State: " + handler.state);
-				logger.fine(handler.getClass() + " " + response.getMethod() + " " + +response.getStatus()+" "+response.getReasonPhrase() + " State: " + handler.state);
+				System.out.println(handler.getClass()
+						+ " "
+						+ response.getMethod()
+						+ " "
+						+ response.getStatus()
+						+ " "
+						+ response.getReasonPhrase()
+						+ " State: "
+						+ handler.state);
+				logger.fine(handler.getClass()
+						+ " "
+						+ response.getMethod()
+						+ " "
+						+ +response.getStatus()
+						+ " "
+						+ response.getReasonPhrase()
+						+ " State: "
+						+ handler.state);
 				handler.processEvent(null, response);
 			}
 		} catch (Exception e) {

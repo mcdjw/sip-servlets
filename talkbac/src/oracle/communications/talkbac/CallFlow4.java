@@ -28,7 +28,7 @@
  *
  */
 
-package vorpal.sip.servlets.jsr289.callcontrol;
+package oracle.communications.talkbac;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
@@ -44,30 +44,43 @@ public class CallFlow4 extends CallStateHandler {
 
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
+	
+	CallFlow4(Address origin, Address destination) {
+		this.origin = origin;
+		this.destination = destination;
+	}
 
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
+		SipApplicationSession appSession;
+		TalkBACMessage msg;
+		
 		switch (state) {
 		case 1: {
 
 			this.origin = request.getFrom();
 			this.destination = request.getTo();
-			this.initiator = request;
+//			this.initiator = request;
 
-			SipApplicationSession appSession = ThirdPartyCallControlServlet.factory.createApplicationSession();
-			destinationRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", origin, destination);
-			if (ThirdPartyCallControlServlet.callInfo != null) {
-				destinationRequest.setHeader("Call-Info", ThirdPartyCallControlServlet.callInfo);
+			appSession = request.getApplicationSession();
+			
+			msg = new TalkBACMessage(appSession, "call_created");
+			msg.send();
+			
+			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
+			if (TalkBACSipServlet.callInfo != null) {
+				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			}
 
-			originRequest = ThirdPartyCallControlServlet.factory.createRequest(appSession, "INVITE", destination, origin);
+			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 
-			if (ThirdPartyCallControlServlet.outboundProxy != null) {
-				destinationRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
-				originRequest.pushRoute(ThirdPartyCallControlServlet.outboundProxy);
+			if (TalkBACSipServlet.outboundProxy != null) {
+				destinationRequest.pushRoute(TalkBACSipServlet.outboundProxy);
+				originRequest.pushRoute(TalkBACSipServlet.outboundProxy);
 			}
+
 
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
@@ -80,7 +93,7 @@ public class CallFlow4 extends CallStateHandler {
 
 			appSession.setAttribute(DESTINATION_SESSION_ID, destinationRequest.getSession().getId());
 			appSession.setAttribute(ORIGIN_SESSION_ID, originRequest.getSession().getId());
-			appSession.setAttribute(INITIATOR_SESSION_ID, initiator.getSession().getId());
+//			appSession.setAttribute(INITIATOR_SESSION_ID, initiator.getSession().getId());
 
 		}
 			break;
@@ -98,16 +111,24 @@ public class CallFlow4 extends CallStateHandler {
 				originResponse = response;
 				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-				initiator.createResponse(183).send();
-			} else {
-				initiator.createResponse(response.getStatus(), response.getReasonPhrase()).send();
+//				initiator.createResponse(183).send();
+				msg = new TalkBACMessage(response.getApplicationSession(), "source_connected");
+				msg.setStatus(183, "Session Progress");
+				msg.send();
+			} 
+			
+			if (status >= 300) {
+				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msg.send();
 			}
+			
 		}
 			break;
 
 		case 5:
 		case 6:
-			SipServletResponse initResponse = initiator.createResponse(response.getStatus(), response.getReasonPhrase());
+//			SipServletResponse initResponse = initiator.createResponse(response.getStatus(), response.getReasonPhrase());
 
 			if (status >= 200 && status < 300) {
 				destinationResponse = response;
@@ -118,6 +139,10 @@ public class CallFlow4 extends CallStateHandler {
 
 				state = 7;
 				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
+				
+				msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msg.send();
 			}
 			
 			
@@ -126,12 +151,16 @@ public class CallFlow4 extends CallStateHandler {
 
 				response.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
+				
+				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msg.send();
 
 //				state = 7;
 //				initResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 			}
 
-			initResponse.send();
+//			initResponse.send();
 			
 	
 			break;
@@ -150,16 +179,30 @@ public class CallFlow4 extends CallStateHandler {
 
 				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
+				
+				msg = new TalkBACMessage(response.getApplicationSession(), "call_connected");
+				msg.send();
 			}
 			
-			initiator.createResponse(response.getStatus(), response.getReasonPhrase()).send();
+			if (status >= 300) {
+				originResponse.getSession().createRequest("BYE").send();
+
+				response.getSession().removeAttribute(CALL_STATE_HANDLER);
+				originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
+				
+				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msg.send();
+			}
+			
+//			initiator.createResponse(response.getStatus(), response.getReasonPhrase()).send();
 			
 		}
 			break;
 
-		case 10: //misc. cleanup
-			response.getSession().removeAttribute(CALL_STATE_HANDLER);
-			break;
+//		case 10: //misc. cleanup
+//			response.getSession().removeAttribute(CALL_STATE_HANDLER);
+//			break;
 			
 		}
 

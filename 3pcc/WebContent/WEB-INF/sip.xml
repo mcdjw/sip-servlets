@@ -34,6 +34,27 @@
 				</equal>
 			</pattern>
 		</servlet-mapping>
+		
+		<servlet-mapping>
+			<servlet-name>3pcc</servlet-name>
+			<pattern>
+				<equal>
+					<var>request.method</var>
+					<value>CANCEL</value>
+				</equal>
+			</pattern>
+		</servlet-mapping>
+		
+		<servlet-mapping>
+			<servlet-name>3pcc</servlet-name>
+			<pattern>
+				<equal>
+					<var>request.method</var>
+					<value>BYE</value>
+				</equal>
+			</pattern>
+		</servlet-mapping>					
+		
 	</servlet-selection>
 
 

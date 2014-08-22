@@ -1,4 +1,4 @@
-package vorpal.sip.servlets.jsr289.callcontrol;
+package oracle.communications.talkbac;
 
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -21,7 +21,6 @@ public class TerminateCall extends CallStateHandler {
 	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
 
 		if (request != null) { // BYE REQUEST
-			request.createResponse(200).send();
 
 			SipApplicationSession appSession = request.getApplicationSession();
 			SipSession sipSession = request.getSession();
@@ -33,9 +32,12 @@ public class TerminateCall extends CallStateHandler {
 
 				try {
 					
-					if (ss.getId() != sipSession.getId()) {
+					if (ss.isValid() && ss.getId() != sipSession.getId()) {
 						System.out.println("TerminateCall State: " + ss.getState().toString());
 						switch (ss.getState()) {
+						
+						
+						
 						case INITIAL:
 							ss.createRequest("CANCEL").send();
 							ss.setAttribute(CALL_STATE_HANDLER, this);

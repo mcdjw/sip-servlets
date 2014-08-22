@@ -4,10 +4,7 @@ import java.io.IOException;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
-import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.SipSession;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
@@ -16,24 +13,15 @@ public class TalkBACMessage {
 	ObjectNode objectNode;
 	SipServletRequest message;
 
-	TalkBACMessage(SipServletMessage ssm, String event) {
-		SipApplicationSession appSession = ssm.getApplicationSession();
-		SipSession sipSession = ssm.getSession();
+	public TalkBACMessage(SipApplicationSession appSession, String event) {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectNode = objectMapper.createObjectNode();
 
-		String requestId = (String) sipSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
-		if (requestId == null) {
-			requestId = (String) appSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
-		}
-		objectNode.put("request_id", requestId);
-		objectNode.put("event", event);
+		String requestId = (String) appSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
 
-		if (ssm instanceof SipServletResponse) {
-			objectNode.put("status", ((SipServletResponse) ssm).getStatus());
-			objectNode.put("reason", ((SipServletResponse) ssm).getReasonPhrase());
-		}
+		setParameter("request_id", requestId);
+		setParameter("event", event);
 
 		Address client_address = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
 		Address application_address = (Address) appSession.getAttribute(TalkBACSipServlet.APPLICATION_ADDRESS);
@@ -41,15 +29,36 @@ public class TalkBACMessage {
 		message = TalkBACSipServlet.factory.createRequest(appSession, "MESSAGE", application_address, client_address);
 	}
 
-	void setParameter(String name, String value) {
-		objectNode.put(name, value);
+	public void setStatus(int status, String reason){
+		setParameter("status", Integer.toString(status));
+		setParameter("reason", reason);
+	}
+	
+	public void setParameter(String name, String value) {
+		if (value != null) {
+			objectNode.put(name, value);
+		}
+	}
+	
+	public void setParameter(String name, char value) {
+		StringBuilder strValue = new StringBuilder();
+		strValue.append(value);
+		objectNode.put(name, strValue.toString());
 	}
 
-	String getParameter(String name) {
-		return objectNode.getTextValue();
+	public String getParameter(String name) {
+		return objectNode.get(name).asText();
+	}
+	
+	public String getReason(){
+		return objectNode.get("reason").asText();
+	}
+	
+	public int getStatus(){
+		return Integer.parseInt( objectNode.get("reason").asText() );
 	}
 
-	void send() throws IOException {
+	public void send() throws IOException {
 		TalkBACSipServlet.cdr.info(objectNode.toString().replaceAll("[\n\r]", ""));
 
 		message.setContent(objectNode.toString(), "text/plain");
