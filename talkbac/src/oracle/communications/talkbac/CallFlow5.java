@@ -1,33 +1,3 @@
-/*
- * http://tools.ietf.org/html/rfc3725
- * 4.4.  Flow IV
- *
- *             A                 Controller                  B
- *             |(1) INVITE offer1     |                      |
- *             |no media              |                      |
- *             |<---------------------|                      |
- *             |(2) 200 answer1       |                      |
- *             |no media              |                      |
- *             |--------------------->|                      |
- *             |(3) ACK               |                      |
- *             |<---------------------|                      |
- *             |                      |(4) INVITE no SDP     |
- *             |                      |--------------------->|
- *             |                      |(5) 200 OK offer2     |
- *             |                      |<---------------------|
- *             |(6) INVITE offer2'    |                      |
- *             |<---------------------|                      |
- *             |(7) 200 answer2'      |                      |
- *             |--------------------->|                      |
- *             |                      |(8) ACK answer2       |
- *             |                      |--------------------->|
- *             |(9) ACK               |                      |
- *             |<---------------------|                      |
- *             |(10) RTP              |                      |
- *             |.............................................|
- *
- */
-
 package oracle.communications.talkbac;
 
 import javax.servlet.sip.Address;
@@ -35,7 +5,7 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-public class CallFlow4 extends CallStateHandler {
+public class CallFlow5 extends CallStateHandler {
 	Address origin;
 	Address destination;
 
@@ -45,7 +15,7 @@ public class CallFlow4 extends CallStateHandler {
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
 
-	CallFlow4(Address origin, Address destination) {
+	CallFlow5(Address origin, Address destination) {
 		this.origin = origin;
 		this.destination = destination;
 	}
@@ -100,11 +70,15 @@ public class CallFlow4 extends CallStateHandler {
 				SipServletRequest originAck = response.createAck();
 				originAck.send();
 
-				destinationRequest.send();
+				
+				SipServletRequest refer = response.getSession().createRequest("REFER");				
+				refer.setHeader("Refer-To", destination.toString());
+				refer.send();
+				
 
 				state = 5;
 				originResponse = response;
-				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
+				refer.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 				// initiator.createResponse(183).send();
 				msg = new TalkBACMessage(response.getApplicationSession(), "source_connected");
@@ -123,41 +97,33 @@ public class CallFlow4 extends CallStateHandler {
 
 		case 5:
 		case 6:
-			// SipServletResponse initResponse =
-			// initiator.createResponse(response.getStatus(),
-			// response.getReasonPhrase());
 
-			if (status >= 200 && status < 300) {
-				destinationResponse = response;
-
-				originRequest = originRequest.getSession().createRequest("INVITE");
-				originRequest.setContent(destinationResponse.getContent(), destinationResponse.getContentType());
-				originRequest.send();
-
-				state = 7;
-				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
-
-				msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
-				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msg.send();
-			}
-
-			if (status >= 300) {
-				originResponse.getSession().createRequest("BYE").send();
-
-				response.getSession().removeAttribute(CALL_STATE_HANDLER);
-				originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
-
-				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
-				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msg.send();
-
-				// state = 7;
-				// initResponse.getSession().setAttribute(CALL_STATE_HANDLER,
-				// this);
-			}
-
-			// initResponse.send();
+//			if (status >= 200 && status < 300) {
+//				destinationResponse = response;
+//
+//				originRequest = originRequest.getSession().createRequest("INVITE");
+//				originRequest.setContent(destinationResponse.getContent(), destinationResponse.getContentType());
+//				originRequest.send();
+//
+//				state = 7;
+//				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
+//
+//				msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
+//				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+//				msg.send();
+//			}
+//
+//			if (status >= 300) {
+//				originResponse.getSession().createRequest("BYE").send();
+//
+//				response.getSession().removeAttribute(CALL_STATE_HANDLER);
+//				originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
+//
+//				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
+//				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+//				msg.send();
+//
+//			}
 
 			break;
 

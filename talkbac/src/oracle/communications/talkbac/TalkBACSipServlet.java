@@ -107,8 +107,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	public final static String ORIGIN_SESSION_ID = "ORIGIN_SESSION_ID";
 	public final static String DESTINATION_SESSION_ID = "DESTINATION_SESSION_ID";
 
-	public static String callInfo=null;
-	
+	public static String callInfo = null;
+
 	public static String strOutboundProxy = null;
 	public static Address outboundProxy = null;
 
@@ -135,16 +135,15 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	public void servletInitialized(SipServletContextEvent event) {
 		logger.info(event.getSipServlet().getServletName() + " initialized.");
 		callInfo = event.getServletContext().getInitParameter("CALL_INFO");
-		
-		
+
 		strOutboundProxy = event.getServletContext().getInitParameter("OUTBOUND_PROXY");
 
 		logger.info("Setting Outbound Proxy: " + strOutboundProxy);
 
 		if (strOutboundProxy != null) {
 			try {
-				this.outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
-				((SipURI) this.outboundProxy.getURI()).setLrParam(true);
+				outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
+				((SipURI) outboundProxy.getURI()).setLrParam(true);
 			} catch (ServletParseException e) {
 				e.printStackTrace();
 			}
@@ -162,12 +161,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		try {
 
 			handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
-			if(handler==null){
-				System.out.println("hander: "+handler);
-			}else{
-				System.out.println("handler: "+handler.getClass().getName());
-			}
-			
+
 			if (handler == null) {
 
 				switch (SipMethod.valueOf(request.getMethod())) {
@@ -187,8 +181,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 					appSession.setAttribute(CLIENT_ADDRESS, request.getFrom());
 					appSession.setAttribute(APPLICATION_ADDRESS, request.getTo());
 
-					System.out.println("Call Control: "+cc);
-					
 					switch (CallControl.valueOf(cc)) {
 					case call:
 						String origin = rootNode.path("origin").asText();
@@ -196,35 +188,37 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 						String destination = rootNode.path("destination").asText();
 						appSession.setAttribute(DESTINATION, destination);
 
-						if (request.isInitial()) {
-							Address originAddress = factory.createAddress(origin);
-							Address destinationAddress = factory.createAddress(destination);
+						int cf = 4;
+						String callflow = rootNode.path("callflow").asText();
 
-							int callflow = 4;
-							String callflowHeader = request.getHeader("Callflow");
-							if (callflowHeader != null) {
-								callflow = Integer.parseInt(callflowHeader);
-							}
-							switch (callflow) {
-							case 1:
-								handler = new CallFlow1(originAddress, destinationAddress);
-								break;
-							case 2:
-								handler = new CallFlow2(originAddress, destinationAddress);
-								break;
-							case 3:
-								handler = new CallFlow3(originAddress, destinationAddress);
-								break;
-							case 4:
-								handler = new CallFlow4(originAddress, destinationAddress);
-								break;
-							}
-						} else {
-							handler = new Reinvite();
+						if (callflow != null) {
+							cf = Integer.parseInt(callflow);
+						}
+
+						Address originAddress = factory.createAddress(origin);
+						Address destinationAddress = factory.createAddress(destination);
+
+						switch (cf) {
+						case 1:
+							handler = new CallFlow1(originAddress, destinationAddress);
+							break;
+						case 2:
+							handler = new CallFlow2(originAddress, destinationAddress);
+							break;
+						case 3:
+							handler = new CallFlow3(originAddress, destinationAddress);
+							break;
+						case 4:
+							handler = new CallFlow4(originAddress, destinationAddress);
+							break;
+						case 5:
+							handler = new CallFlow5(originAddress, destinationAddress);
+							break;
+
 						}
 
 						break;
-					case disconnect:	
+					case disconnect:
 					case terminate:
 						handler = new TerminateCall();
 						msg = new TalkBACMessage(request.getApplicationSession(), "call_completed");
@@ -251,7 +245,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 						break;
 					}
 					break;
-					
+
 				case REGISTER:
 					handler = new KeepAlive();
 					break;
@@ -288,7 +282,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				handler = new NotImplemented();
 			}
 
-			System.out.println("TalkBACSipServlet  REQUEST: " + request.getMethod() + " " + handler.getClass().getSimpleName() + " " + handler.state);
+			System.out.println("REQUEST : " + request.getMethod() + " " + handler.getClass().getSimpleName() + " " + handler.state);
 			handler.processEvent(request, null);
 
 		} catch (Exception e) {
@@ -302,55 +296,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	}
 
-	protected void connect(String requestId, String origin, String destination) throws ServletException, IOException {
-		SipApplicationSession appSession = util.getApplicationSessionByKey(requestId, true);
-		SipServletRequest connectRequest = factory.createRequest(appSession, "INVITE", origin, destination);
-		connectRequest.send();
-		appSession.setAttribute(TPCC_SESSION_ID, connectRequest.getSession().getId());
-	}
-
-	protected void transfer(String requestId, String endpoint) throws ServletException, IOException {
-		SipApplicationSession appSession = util.getApplicationSessionByKey(requestId, false);
-		SipSession sipSession = appSession.getSipSession((String) appSession.getAttribute(TPCC_SESSION_ID));
-		SipServletRequest transferRequest = sipSession.createRequest("INVITE");
-		transferRequest.setHeader("To", endpoint);
-		transferRequest.send();
-	}
-
-	protected void hold(String requestId) throws ServletException, IOException {
-	}
-
-	protected void retrieve(String requestId) throws ServletException, IOException {
-	}
-
-	protected void dial(String requestId, String digit) throws ServletException, IOException {
-
-	}
-
-	protected void mute(String requestId) throws ServletException, IOException {
-	}
-
-	protected void unmute(String requestId) throws ServletException, IOException {
-	}
-
-	protected void redirect(String requestId, String endpoint) throws ServletException, IOException {
-	}
-
-	protected void accept(String requestId, String endpoint) throws ServletException, IOException {
-	}
-
-	protected void reject(String requestId, String endpoint) throws ServletException, IOException {
-	}
-
 	@Override
 	protected void doResponse(SipServletResponse response) throws ServletException, IOException {
 		CallStateHandler handler = (CallStateHandler) response.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 
-		System.out.println("TalkBACSipServlet RESPONSE: " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase());
-
 		try {
 			if (handler != null) {
+				System.out.println("RESPONSE: " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase() + " "
+						+ handler.getClass().getSimpleName() + " "	+ handler.state);
 				handler.processEvent(null, response);
+			} else {
+				System.out.println("RESPONSE: " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase());
 			}
 		} catch (Exception e) {
 			throw new ServletException(e);
