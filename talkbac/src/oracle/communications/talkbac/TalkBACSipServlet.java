@@ -163,7 +163,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		SipApplicationSession appSession = request.getApplicationSession();
 		try {
 
-			handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
+//			handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 
 			if (handler == null) {
 
@@ -275,7 +275,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				case REFER:
 				case UPDATE:
 				default:
-					handler = new NotImplemented();
+					handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 					break;
 				}
 			}
