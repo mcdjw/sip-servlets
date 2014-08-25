@@ -134,13 +134,16 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
 		logger.info(event.getSipServlet().getServletName() + " initialized.");
-		callInfo = event.getServletContext().getInitParameter("CALL_INFO");
 
-		strOutboundProxy = event.getServletContext().getInitParameter("OUTBOUND_PROXY");
+		String listenAddress = System.getProperty("listenAddress");
+		listenAddress = (listenAddress != null) ? listenAddress : event.getServletContext().getInitParameter("listenAddress");
+		callInfo = "<sip:" + listenAddress + ">;method=\"NOTIFY;Event=telephone-event;Duration=500\"";
+		logger.info("Setting Listen Address: " + listenAddress);
 
-		logger.info("Setting Outbound Proxy: " + strOutboundProxy);
-
+		String strOutboundProxy = System.getProperty("outboundProxy");
+		strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy : event.getServletContext().getInitParameter("outboundProxy");
 		if (strOutboundProxy != null) {
+			logger.info("Setting Outbound Proxy: " + strOutboundProxy);
 			try {
 				outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
 				((SipURI) outboundProxy.getURI()).setLrParam(true);
@@ -302,8 +305,16 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 		try {
 			if (handler != null) {
-				System.out.println("RESPONSE: " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase() + " "
-						+ handler.getClass().getSimpleName() + " "	+ handler.state);
+				System.out.println("RESPONSE: "
+						+ response.getMethod()
+						+ " "
+						+ response.getStatus()
+						+ " "
+						+ response.getReasonPhrase()
+						+ " "
+						+ handler.getClass().getSimpleName()
+						+ " "
+						+ handler.state);
 				handler.processEvent(null, response);
 			} else {
 				System.out.println("RESPONSE: " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase());
