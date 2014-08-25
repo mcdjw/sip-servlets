@@ -31,23 +31,21 @@ public class TerminateCall extends CallStateHandler {
 				logger.info(ss.getId() + " " + ss.getState().toString());
 
 				try {
-					
-					if (ss.isValid() && ss.getId() != sipSession.getId()) {
+
+					if (ss.isValid()) {
 						System.out.println("TerminateCall State: " + ss.getState().toString());
 						switch (ss.getState()) {
-						
-						
-						
+
 						case INITIAL:
 							ss.createRequest("CANCEL").send();
 							ss.setAttribute(CALL_STATE_HANDLER, this);
 							break;
 						case EARLY:
 						case CONFIRMED:
-						default:								
+						default:
 							ss.createRequest("BYE").send();
 							ss.setAttribute(CALL_STATE_HANDLER, this);
-							break;						
+							break;
 						}
 					}
 
@@ -55,6 +53,22 @@ public class TerminateCall extends CallStateHandler {
 					// do nothing;
 				}
 
+			}
+		}else{
+			response.getSession().invalidate();			
+			boolean invalidate=true;
+			SipSession ss;
+			
+			Iterator<?> sessions = response.getApplicationSession().getSessions("SIP");
+			while (sessions.hasNext()) {
+				ss = (SipSession) sessions.next();
+				if(ss.isValid()){
+					invalidate = false;
+				}
+			}
+			
+			if(invalidate==true){
+				response.getApplicationSession().invalidate();
 			}
 		}
 	}
