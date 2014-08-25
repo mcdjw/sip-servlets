@@ -163,7 +163,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		SipApplicationSession appSession = request.getApplicationSession();
 		try {
 
-//			handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
+			// handler = (CallStateHandler)
+			// request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 
 			if (handler == null) {
 
@@ -295,6 +296,13 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				msg.send();
 			}
 			e.printStackTrace();
+
+			try {
+				handler = new TerminateCall();
+				handler.processEvent(request, null);
+			} catch (Exception e2) {
+				// do nothing;
+			}
 		}
 
 	}
@@ -320,7 +328,13 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				System.out.println("RESPONSE: " + response.getMethod() + " " + response.getStatus() + " " + response.getReasonPhrase());
 			}
 		} catch (Exception e) {
-			throw new ServletException(e);
+			e.printStackTrace();
+			handler = new TerminateCall();
+			try {
+				handler.processEvent(null, response);
+			} catch (Exception e1) {
+				// do nothing;
+			}
 		}
 
 	}
