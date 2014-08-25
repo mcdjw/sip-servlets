@@ -32,7 +32,7 @@ public class TerminateCall extends CallStateHandler {
 
 				try {
 
-					if (ss.isValid()) {
+					if (ss.isValid() && false==ss.getId().equals(sipSession.getId())) {
 						System.out.println("TerminateCall State: " + ss.getState().toString());
 						switch (ss.getState()) {
 
