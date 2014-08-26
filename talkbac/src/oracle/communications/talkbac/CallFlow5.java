@@ -2,27 +2,32 @@
  * Jeff's 'Ringing' Callflow
  *
  *             A                 Controller                  B
- *             |(1) INVITE offer1     |                      |
- *             |no media              |                      |
+ *             |(1) INVITE w/o SDP    |                      |
  *             |<---------------------|                      |
- *             |(2) 200 answer1       |                      |
- *             |no media              |                      |
+ *             |(2) 200 OK            |                      |
  *             |--------------------->|                      |
  *             |(3) ACK               |                      |
  *             |<---------------------|                      |
- *             |                      |(4) INVITE no SDP     |
- *             |                      |--------------------->|
- *             |                      |(5) 200 OK offer2     |
- *             |                      |<---------------------|
- *             |(6) INVITE offer2'    |                      |
+ *             |(4) REFER             |                      |
  *             |<---------------------|                      |
- *             |(7) 200 answer2'      |                      |
+ *             |(5) 202 Accepted      |                      |
  *             |--------------------->|                      |
- *             |                      |(8) ACK answer2       |
- *             |                      |--------------------->|
- *             |(9) ACK               |                      |
+ *             |(6) NOTIFY            |                      |
  *             |<---------------------|                      |
- *             |(10) RTP              |                      |
+ *             |(7) 200 OK            |                      |
+ *             |--------------------->|                      |
+ *             |(8) INVITE w/SDP      |                      |
+ *             |--------------------->|                      |
+ *             |                      |(9) INVITE            |
+ *             |                      |--------------------->|
+ *             |                      |(5) 200 OK            |
+ *             |                      |<---------------------|
+ *             |(2) 200 OK            |                      |
+ *             |<---------------------|                      |
+ *             |(2) ACK               |                      |
+ *             |--------------------->|                      |
+ *             |                      |(5) ACK               |
+ *             |                      |--------------------->|
  *             |.............................................|
  *
  */
@@ -95,21 +100,18 @@ public class CallFlow5 extends CallStateHandler {
 		case 2:
 		case 3:
 		case 4: {
-			if (status == 200) {
+			if (status >= 200 && status < 300) {
 				SipServletRequest originAck = response.createAck();
 				originAck.send();
 
-				
-				SipServletRequest refer = response.getSession().createRequest("REFER");				
+				SipServletRequest refer = response.getSession().createRequest("REFER");
 				refer.setHeader("Refer-To", destination.toString());
 				refer.send();
-				
 
 				state = 5;
 				originResponse = response;
 				refer.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-				// initiator.createResponse(183).send();
 				msg = new TalkBACMessage(response.getApplicationSession(), "source_connected");
 				msg.setStatus(183, "Session Progress");
 				msg.send();
@@ -126,33 +128,16 @@ public class CallFlow5 extends CallStateHandler {
 
 		case 5:
 		case 6:
-
-//			if (status >= 200 && status < 300) {
-//				destinationResponse = response;
-//
-//				originRequest = originRequest.getSession().createRequest("INVITE");
-//				originRequest.setContent(destinationResponse.getContent(), destinationResponse.getContentType());
-//				originRequest.send();
-//
-//				state = 7;
-//				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
-//
-//				msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
-//				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-//				msg.send();
-//			}
-//
-//			if (status >= 300) {
-//				originResponse.getSession().createRequest("BYE").send();
-//
-//				response.getSession().removeAttribute(CALL_STATE_HANDLER);
-//				originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
-//
-//				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
-//				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-//				msg.send();
-//
-//			}
+			
+			if(status==202){
+				SipServletRequest notify = response.getSession().createRequest("NOTIFY");
+				notify.setHeader("Event", "refer");
+				notify.setHeader("Subscription-State", "active;expires=60");
+				notify.send();
+				 state = 7;
+				 originRequest.getSession().setAttribute(CALL_STATE_HANDLER,
+				 this);
+			}
 
 			break;
 

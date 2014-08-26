@@ -67,6 +67,10 @@ public class CallFlow4 extends CallStateHandler {
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 			if (TalkBACSipServlet.callInfo != null) {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
+				destinationRequest.setHeader("Allow-Events", "telephone-event");
+				destinationRequest.setHeader("Content-Disposition", "session;handling=required");
+				destinationRequest.setHeader("Supported", "100rel,time,resource-priority,replaces,sdp-anat");
+				
 			}
 
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
