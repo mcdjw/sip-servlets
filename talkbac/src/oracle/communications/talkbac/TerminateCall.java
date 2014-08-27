@@ -31,9 +31,10 @@ public class TerminateCall extends CallStateHandler {
 			System.out.println("Request: "
 					+ request.getMethod()
 					+ ", State: "
-					+ request.getSession().getState().toString()
+					+ sipSession.getState().toString()
 					+ ", Session: "
-					+ request.getSession().getId());
+					+ sipSession.getId()
+					+ ", Remote Party: " + sipSession.getRemoteParty().toString());
 
 			while (sessions.hasNext()) {
 				SipSession ss = (SipSession) sessions.next();
@@ -43,8 +44,8 @@ public class TerminateCall extends CallStateHandler {
 
 				try {
 
-					System.out.println("\t " + ss.getState() + ", Session: " + ss.getId() + ", " + ss.getRemoteParty().toString());
-					if (ss.isValid() && false==request.getSession().equals(ss.getRemoteParty())) {
+					System.out.println("\t " + ss.getState() + ", Session: " + ss.getId() + ", Remote Party: " + ss.getRemoteParty().toString());
+					if (ss.isValid() && false==sipSession.getRemoteParty().equals(ss.getRemoteParty())) {
 						switch (ss.getState()) {
 
 						case INITIAL:
