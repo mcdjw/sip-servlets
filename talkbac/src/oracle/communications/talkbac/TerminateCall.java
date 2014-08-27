@@ -39,10 +39,10 @@ public class TerminateCall extends CallStateHandler {
 						switch (ss.getState()) {
 
 						case INITIAL:
-							ss.createRequest("CANCEL").send();
-							ss.setAttribute(CALL_STATE_HANDLER, this);
-							System.out.println("sending CANCEL");
-							break;
+//							ss.createRequest("CANCEL").send();
+//							ss.setAttribute(CALL_STATE_HANDLER, this);
+//							System.out.println("sending CANCEL");
+//							break;
 						case EARLY:
 						case CONFIRMED:
 						default:
@@ -54,6 +54,8 @@ public class TerminateCall extends CallStateHandler {
 					}
 
 				} catch (Exception e) {
+
+					e.printStackTrace();
 					// do nothing;
 				}
 
