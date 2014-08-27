@@ -67,15 +67,17 @@ public class CallFlow4 extends CallStateHandler {
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 			if (TalkBACSipServlet.callInfo != null) {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-				destinationRequest.setHeader("Allow-Events", "telephone-event");
-				destinationRequest.setHeader("Content-Disposition", "session;handling=required");
-				destinationRequest.setHeader("Supported", "100rel,time,resource-priority,replaces,sdp-anat");
 				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
-				destinationRequest.setHeader("Min-SE", "600");
-				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, UPDATE, MESSAGE, PUBLISH");
-				
-				
-				
+				// destinationRequest.setHeader("Allow-Events",
+				// "telephone-event");
+				// destinationRequest.setHeader("Content-Disposition",
+				// "session;handling=required");
+				// destinationRequest.setHeader("Supported",
+				// "100rel,time,resource-priority,replaces,sdp-anat");
+				// destinationRequest.setHeader("Min-SE", "600");
+				// destinationRequest.setHeader("Allow",
+				// "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, UPDATE, MESSAGE, PUBLISH");
+
 			}
 
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
@@ -115,7 +117,6 @@ public class CallFlow4 extends CallStateHandler {
 				originResponse = response;
 				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-				// initiator.createResponse(183).send();
 				msg = new TalkBACMessage(response.getApplicationSession(), "source_connected");
 				msg.setStatus(183, "Session Progress");
 				msg.send();

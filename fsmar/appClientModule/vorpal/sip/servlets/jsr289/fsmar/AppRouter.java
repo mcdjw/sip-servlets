@@ -16,7 +16,9 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.sip.Address;
 import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipURI;
 import javax.servlet.sip.ar.SipApplicationRouter;
 import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
@@ -63,14 +65,27 @@ public class AppRouter implements SipApplicationRouter {
 	public SipApplicationRouterInfo getNextApplication(SipServletRequest request, SipApplicationRoutingRegion region, SipApplicationRoutingDirective directive,
 			SipTargetedRequestInfo requestInfo, Serializable state) {
 
+		SipApplicationRouterInfo nextApp = null;
+		String previous = "null";
+
 		// For targeted sessions, skip all this nonsense and route to that app
 		if (requestInfo != null) {
 			return new SipApplicationRouterInfo(requestInfo.getApplicationName(), region, null, null, SipRouteModifier.NO_ROUTE, state);
 		}
-
-		SipApplicationRouterInfo nextApp = null;
-		String previous = "null";
-
+		
+		// Is the request intended for a deployed app?
+		if (nextApp == null) {
+			Address address = request.getTo();
+			if(address.getURI().isSipURI()){
+				SipURI sipURI = (SipURI)address.getURI();
+				String user = sipURI.getUser();
+				if (deployed.contains(user)) {
+					logger.fine("Matching deployed app: "+user);
+					return new SipApplicationRouterInfo(user, region, null, null, SipRouteModifier.NO_ROUTE, previous);
+				}				
+			}
+		}		
+		
 		// Did the request originate from an app?
 		SipApplicationSessionImpl sasi = ((SipServletRequestAdapter) request).getImpl().getSipApplicationSessionImpl();
 		if (sasi != null) {
@@ -96,15 +111,7 @@ public class AppRouter implements SipApplicationRouter {
 			}
 		}
 		
-		// Is the request intended for a deployed app?
-		if (nextApp == null) {
-			String requestURI = request.getRequestURI().toString();
-			String scheme = request.getRequestURI().getScheme();
-			String possibleApp = requestURI.substring(requestURI.indexOf(scheme) + scheme.length() + 1);
-			if (deployed.contains(possibleApp)) {
-				nextApp = new SipApplicationRouterInfo(possibleApp, region, null, null, SipRouteModifier.NO_ROUTE, previous);
-			}
-		}
+
 
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("Matching Transition Set: [" + ts_key + ": " + ts_value + "]");

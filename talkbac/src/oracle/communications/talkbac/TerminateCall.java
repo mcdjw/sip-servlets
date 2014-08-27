@@ -19,7 +19,7 @@ public class TerminateCall extends CallStateHandler {
 
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
-
+		
 		if (request != null) { // BYE REQUEST
 
 			SipApplicationSession appSession = request.getApplicationSession();

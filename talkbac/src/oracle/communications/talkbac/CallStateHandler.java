@@ -16,7 +16,6 @@ public abstract class CallStateHandler implements Serializable{
 	
 	
 	int state=1;
-//	SipServletRequest initiator=null;
 
 	public abstract void processEvent(SipServletRequest request, SipServletResponse response) throws Exception;
 	
