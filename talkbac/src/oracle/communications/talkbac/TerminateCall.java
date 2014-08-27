@@ -19,36 +19,38 @@ public class TerminateCall extends CallStateHandler {
 
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
-		
+
 		if (request != null) { // BYE REQUEST
 
 			SipApplicationSession appSession = request.getApplicationSession();
 			SipSession sipSession = request.getSession();
 
 			Iterator<?> sessions = appSession.getSessions("SIP");
+
+			// System.out.println("***TERMINATE***");
+			// System.out.println("Request: "+request.getMethod()+", State: "+request.getSession().getState().toString()+", Session: "+request.getSession().getId());
+
 			while (sessions.hasNext()) {
 				SipSession ss = (SipSession) sessions.next();
 				logger.info(ss.getId() + " " + ss.getState().toString());
 
 				ss.removeAttribute(CALL_STATE_HANDLER);
-				
+
 				try {
 
-					if (ss.isValid() && false==ss.getId().equals(sipSession.getId())) {
-						System.out.println("TerminateCall State: " + ss.getState().toString());
+					if (ss.isValid() && false == ss.getId().equals(sipSession.getId())) {
+						// System.out.println("\t "+ss.getState()+", Session: "
+						// + ss.getId()+", "+ss.getRemoteParty().toString());
 						switch (ss.getState()) {
 
 						case INITIAL:
-//							ss.createRequest("CANCEL").send();
-//							ss.setAttribute(CALL_STATE_HANDLER, this);
-//							System.out.println("sending CANCEL");
-//							break;
+							break;
 						case EARLY:
 						case CONFIRMED:
 						default:
-							ss.createRequest("BYE").send();
+							// ss.createRequest("BYE").send();
 							ss.setAttribute(CALL_STATE_HANDLER, this);
-							System.out.println("sending BYE");
+							System.out.println("\t sending BYE");
 							break;
 						}
 					}
@@ -60,20 +62,20 @@ public class TerminateCall extends CallStateHandler {
 				}
 
 			}
-		}else{
-			response.getSession().invalidate();			
-			boolean invalidate=true;
+		} else {
+			response.getSession().invalidate();
+			boolean invalidate = true;
 			SipSession ss;
-			
+
 			Iterator<?> sessions = response.getApplicationSession().getSessions("SIP");
 			while (sessions.hasNext()) {
 				ss = (SipSession) sessions.next();
-				if(ss.isValid()){
+				if (ss.isValid()) {
 					invalidate = false;
 				}
 			}
-			
-			if(invalidate==true){
+
+			if (invalidate == true) {
 				response.getApplicationSession().invalidate();
 			}
 		}
