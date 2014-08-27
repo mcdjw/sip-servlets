@@ -27,8 +27,13 @@ public class TerminateCall extends CallStateHandler {
 
 			Iterator<?> sessions = appSession.getSessions("SIP");
 
-			// System.out.println("***TERMINATE***");
-			// System.out.println("Request: "+request.getMethod()+", State: "+request.getSession().getState().toString()+", Session: "+request.getSession().getId());
+			System.out.println("***TERMINATE***");
+			System.out.println("Request: "
+					+ request.getMethod()
+					+ ", State: "
+					+ request.getSession().getState().toString()
+					+ ", Session: "
+					+ request.getSession().getId());
 
 			while (sessions.hasNext()) {
 				SipSession ss = (SipSession) sessions.next();
@@ -38,17 +43,15 @@ public class TerminateCall extends CallStateHandler {
 
 				try {
 
-					if (ss.isValid() && false == ss.getId().equals(sipSession.getId())) {
-						// System.out.println("\t "+ss.getState()+", Session: "
-						// + ss.getId()+", "+ss.getRemoteParty().toString());
+					System.out.println("\t " + ss.getState() + ", Session: " + ss.getId() + ", " + ss.getRemoteParty().toString());
+					if (ss.isValid() && false==request.getSession().equals(ss.getRemoteParty())) {
 						switch (ss.getState()) {
 
 						case INITIAL:
-							break;
 						case EARLY:
 						case CONFIRMED:
 						default:
-							// ss.createRequest("BYE").send();
+							ss.createRequest("BYE").send();
 							ss.setAttribute(CALL_STATE_HANDLER, this);
 							System.out.println("\t sending BYE");
 							break;
