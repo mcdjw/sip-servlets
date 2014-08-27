@@ -222,7 +222,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 					appSession.setAttribute(CLIENT_ADDRESS, request.getFrom());
 					appSession.setAttribute(APPLICATION_ADDRESS, request.getTo());
 
-					request.getSession().setAttribute("CLIENT", "true");
+					appSession.setAttribute("USER", request.getSession().getRemoteParty().getURI().toString());
 					
 					
 					
