@@ -222,6 +222,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 					appSession.setAttribute(CLIENT_ADDRESS, request.getFrom());
 					appSession.setAttribute(APPLICATION_ADDRESS, request.getTo());
 
+					request.getSession().setAttribute("CLIENT", "true");
+					
+					
+					
 					switch (CallControl.valueOf(cc)) {
 					case call:
 						String origin = rootNode.path("origin").asText();
