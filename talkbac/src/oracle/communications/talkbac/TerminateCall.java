@@ -30,6 +30,8 @@ public class TerminateCall extends CallStateHandler {
 				SipSession ss = (SipSession) sessions.next();
 				logger.info(ss.getId() + " " + ss.getState().toString());
 
+				ss.removeAttribute(CALL_STATE_HANDLER);
+				
 				try {
 
 					if (ss.isValid() && false==ss.getId().equals(sipSession.getId())) {
@@ -39,12 +41,14 @@ public class TerminateCall extends CallStateHandler {
 						case INITIAL:
 							ss.createRequest("CANCEL").send();
 							ss.setAttribute(CALL_STATE_HANDLER, this);
+							System.out.println("sending CANCEL");
 							break;
 						case EARLY:
 						case CONFIRMED:
 						default:
 							ss.createRequest("BYE").send();
 							ss.setAttribute(CALL_STATE_HANDLER, this);
+							System.out.println("sending BYE");
 							break;
 						}
 					}
