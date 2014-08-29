@@ -20,9 +20,13 @@
  *             |--------------------->|                      |
  *             |                      |(9) INVITE            |
  *             |                      |--------------------->|
- *             |                      |(10) 200 OK            |
+ *             |                      |(10a) 180 Ringing     |
  *             |                      |<---------------------|
- *             |(11) 200 OK            |                      |
+ *             |(11a) 180 Ringing     |                      |
+ *             |<---------------------|                      |
+ *             |                      |(10b) 200 OK          |
+ *             |                      |<---------------------|
+ *             |(11b) 200 OK          |                      |
  *             |<---------------------|                      |
  *             |(12) ACK              |                      |
  *             |--------------------->|                      |
@@ -40,22 +44,21 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 public class CallFlow5 extends CallStateHandler {
-	Address origin;
-	Address destination;
-	public Address user;
+	private Address origin;
+	private Address destination;
+	private String requestId;
 
 	SipServletRequest destinationRequest;
 	SipServletResponse destinationResponse;
 
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
-	
+
 	SipServletRequest originInviteRequest;
 	SipServletResponse originInviteResponse;
-	
 
-	CallFlow5(Address user, Address origin, Address destination) {
-		this.user = user;
+	CallFlow5(String requestId, Address origin, Address destination) {
+		this.requestId = requestId;
 		this.origin = origin;
 		this.destination = destination;
 	}
@@ -68,7 +71,9 @@ public class CallFlow5 extends CallStateHandler {
 		TalkBACMessage msg;
 
 		if (request != null && request.getMethod().equals("NOTIFY")) {
-			request.createResponse(200).send();
+			SipServletResponse notifyResponse = request.createResponse(200);
+			notifyResponse.send();
+			this.printOutboundMessage(notifyResponse);
 			return;
 		}
 
@@ -83,7 +88,9 @@ public class CallFlow5 extends CallStateHandler {
 			if (TalkBACSipServlet.callInfo != null) {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
-				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, UPDATE, MESSAGE, PUBLISH");
+				destinationRequest
+						.setHeader("Allow",
+								"INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, UPDATE, MESSAGE, PUBLISH");
 			}
 
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
@@ -98,6 +105,7 @@ public class CallFlow5 extends CallStateHandler {
 
 			originRequest.setContent(blackhole, "application/sdp");
 			originRequest.send();
+			this.printOutboundMessage(originRequest);
 
 			state = 2;
 			originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
@@ -116,14 +124,16 @@ public class CallFlow5 extends CallStateHandler {
 			if (status >= 200 && status < 300) {
 				SipServletRequest originAck = response.createAck();
 				originAck.send();
+				this.printOutboundMessage(originAck);
 
 				SipServletRequest refer = response.getSession().createRequest("REFER");
-
-				Address selfAddress = TalkBACSipServlet.factory.createAddress("sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress);
-				selfAddress.getURI().setParameter("key", TalkBACSipServlet.generateKey(user));
-
-				refer.setAddressHeader("Refer-To", selfAddress);
+				Address self = (Address) TalkBACSipServlet.talkBACAddress.clone();
+				self.getURI().setParameter("rqst", requestId);
+				refer.setAddressHeader("Refer-To", self);
+				// refer.addHeader("Supported", "norefsub");
+				// refer.addHeader("Require", "norefsub");
 				refer.send();
+				this.printOutboundMessage(refer);
 
 				state = 5;
 				originResponse = response;
@@ -155,6 +165,7 @@ public class CallFlow5 extends CallStateHandler {
 				destinationRequest = destinationRequest.getSession().createRequest("INVITE");
 				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
+				this.printOutboundMessage(destinationRequest);
 
 				state = 8;
 				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
@@ -169,6 +180,7 @@ public class CallFlow5 extends CallStateHandler {
 				originInviteResponse = originInviteRequest.createResponse(response.getStatus());
 				originInviteResponse.setContent(response.getContent(), response.getContentType());
 				originInviteResponse.send();
+				this.printOutboundMessage(originInviteResponse);
 
 				if (status == 200) {
 					destinationResponse = response;
@@ -183,7 +195,10 @@ public class CallFlow5 extends CallStateHandler {
 
 				if (status > 300) {
 
-					originRequest.getSession().createRequest("BYE").send();
+					SipServletRequest bye = originRequest.getSession().createRequest("BYE");
+					originRequest.send();
+					this.printOutboundMessage(bye);
+
 					response.getSession().removeAttribute(CALL_STATE_HANDLER);
 					originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
 
@@ -203,6 +218,7 @@ public class CallFlow5 extends CallStateHandler {
 				destinationRequest = destinationResponse.createAck();
 				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
+				this.printOutboundMessage(destinationRequest);
 
 				msg = new TalkBACMessage(request.getApplicationSession(), "call_connected");
 				msg.send();
@@ -215,24 +231,11 @@ public class CallFlow5 extends CallStateHandler {
 	}
 
 	// media line has a range of zero ports "4002/0"
-	static final String blackhole = ""
-			+ "v=0\n"
-			+ "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n"
-			+ "s=cpc_med\n"
-			+ "c=IN IP4 192.168.1.202\n"
-			+ "t=0 0\n"
-			+ "m=audio 4002/0 RTP/AVP 111 110 109 9 0 8 101"
-			+ "a=sendrecv\n"
-			+ "a=rtpmap:111 OPUS/48000\n"
-			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
-			+ "a=rtpmap:110 SILK/24000\n"
-			+ "a=fmtp:110 useinbandfec=1\n"
-			+ "a=rtpmap:109 SILK/16000\n"
-			+ "a=fmtp:109 useinbandfec=1\n"
-			+ "a=rtpmap:9 G722/8000\n"
-			+ "a=rtpmap:0 PCMU/8000\n"
-			+ "a=rtpmap:8 PCMA/8000\n"
-			+ "a=rtpmap:101 telephone-event/8000\n"
-			+ "a=fmtp:101 0-16\n";
+	static final String blackhole = "" + "v=0\n" + "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n" + "s=cpc_med\n"
+			+ "c=IN IP4 192.168.1.202\n" + "t=0 0\n" + "m=audio 4002/0 RTP/AVP 111 110 109 9 0 8 101" + "a=sendrecv\n"
+			+ "a=rtpmap:111 OPUS/48000\n" + "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
+			+ "a=rtpmap:110 SILK/24000\n" + "a=fmtp:110 useinbandfec=1\n" + "a=rtpmap:109 SILK/16000\n"
+			+ "a=fmtp:109 useinbandfec=1\n" + "a=rtpmap:9 G722/8000\n" + "a=rtpmap:0 PCMU/8000\n"
+			+ "a=rtpmap:8 PCMA/8000\n" + "a=rtpmap:101 telephone-event/8000\n" + "a=fmtp:101 0-16\n";
 
 }

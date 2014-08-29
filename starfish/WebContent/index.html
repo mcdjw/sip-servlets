@@ -9,6 +9,58 @@
 <script src="/api/wsc.js" type="text/javascript"></script>
 <script type="text/javascript">
 
+function refreshAuth(authType, authHeaders){
+	console.log("refreshAuth...");
+
+  var authInfo = null;
+  var sid = document.getElementById("sid").value;
+
+  if(authType==wsc.AUTHTYPE.SERVICE) {
+    // Return a JSON object according to the content of the "authHeaders".
+    // authInfo = JSON.stringify( { SID: sid } );
+    
+ //   authInfo = { "SID" : sid };
+ 
+/*  authInfo = {
+  "username": userIdentity,
+  "scheme": "Digest",
+  "nonce": "a12e8f74-af01-4e74-9714-4d65bae4e024",
+  "realm": "example.com",
+  "qop": "auth",
+  "challenge_code": "407",
+  "opaque": "YXBwLTNjOHFlaHR2eGRhcnxiYWNkMTIxMWFmZDlkNmUyMThmZmI0ZDc4ZmY3ZmY1YUAxMC4xODIuMTMuMTh8Mzc3N2E3Nzc0ODYyMGY4",
+  "charset": "utf-8",
+  "method": "REGISTER",
+  "uri": "sip:10.182.12.165:5060"
+}; */
+
+ authInfo = {
+  "username": userIdentity,
+  "scheme": "SID",
+//  "sid": sid,
+//  "nonce": "a12e8f74-af01-4e74-9714-4d65bae4e024",
+//  "realm": "example.com",
+  "qop": "auth",
+  "challenge_code": "401",
+  "opaque": sid,
+  "charset": "utf-8",
+  "method": "REGISTER",
+//  "uri": "sip:10.182.12.165:5060"
+};
+ 
+ 
+ 
+    
+  } else if(authType==wsc.AUTHTYPE.TURN) {
+    // Return a JSON object formatted like this: {"iceServers" : [ {"url":"turn:test@:", "credential":""} ]}.
+    authInfo = "";
+  }
+
+  return authInfo;
+ };
+
+
+
 function onMessage(message){
 	console.log("Got a message...");
 	
@@ -167,20 +219,6 @@ function onSessionStateChange(sessionState) {
 	console.log("onSessionStateChange... " + sessionState);
 }
 
- function refreshAuth(authType,authHeaders){
- 	console.log("refreshAuth... " + authType);
- 
-/*   	var authInfo = null;
-  	if(authType==wsc.AUTHTYPE.SERVICE){
-   		authInfo = getServiceAuth(authHeaders);
-  	}else if(authType==wsc.AUTHTYPE.TURN){
-   		authInfo = getTurnAuth();
-   		console.log("Current the turn auth server is: "+JSON.stringify(authInfo));
-  	}
- */ 
-	return authInfo;
-};
-
 function onResurrect(resurrectedCall) {
  	console.log("onResurrect... ");
 }
@@ -197,6 +235,10 @@ function onResurrect(resurrectedCall) {
     <tr>
       <td><div align="right">User Name:</div></td>
       <td><input name="userName" type="text" id="userName" size="45"></td>
+    </tr>
+    <tr>
+      <td><div align="right">SID:</div></td>
+      <td><input name="sid" type="text" id="sid" size="45"></td>
     </tr>
     <tr>
       <td colspan="2"><div align="center">
