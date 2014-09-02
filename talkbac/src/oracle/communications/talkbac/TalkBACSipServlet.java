@@ -44,13 +44,18 @@
 package oracle.communications.talkbac;
 
 import java.io.IOException;
-import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
+import javax.naming.Context;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import javax.naming.directory.SearchControls;
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
-import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
@@ -58,7 +63,6 @@ import javax.servlet.sip.SipServletContextEvent;
 import javax.servlet.sip.SipServletListener;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipSessionsUtil;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.annotation.SipApplicationKey;
@@ -122,6 +126,16 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	public static boolean disableAuth = false;
 
+	public static String ldapProviderURL = null;
+	public static String ldapUser = null;
+	public static String ldapPassword = null;
+	public static String ldapUserDN = null;
+	public static String ldapFilter = null;
+
+	public static Hashtable ldapEnv;
+
+	public static DirContext ldapCtx;
+
 	// public enum DTMF_STYLE {
 	// RFC_2833, RFC_2976
 	// };
@@ -151,6 +165,12 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		}
 
 		return key;
+	}
+
+	public String getParameter(SipServletContextEvent event, String name) {
+		String value = System.getProperty(name);
+		value = (value != null) ? value : event.getServletContext().getInitParameter(name);
+		return value;
 	}
 
 	@Override
@@ -191,10 +211,46 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				disableAuth = Boolean.parseBoolean(strDisableAuth);
 			}
 
-		} catch (ServletParseException e) {
+			// LDAP
+			ldapProviderURL = getParameter(event, "ldapProviderURL");
+			ldapUser = getParameter(event, "ldapUser");
+			ldapPassword = getParameter(event, "ldapPassword");
+			ldapUserDN = getParameter(event, "ldapUserDN");
+			ldapFilter = getParameter(event, "ldapFilter");
+
+			ldapEnv = new Hashtable();
+			ldapEnv.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+			ldapEnv.put(Context.PROVIDER_URL, ldapProviderURL);
+			ldapEnv.put(Context.SECURITY_AUTHENTICATION, "simple");
+			ldapEnv.put(Context.SECURITY_PRINCIPAL, ldapUser);
+			ldapEnv.put(Context.SECURITY_CREDENTIALS, ldapPassword);
+
+			ldapCtx = new InitialDirContext(ldapEnv);
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
+	}
+
+	public static boolean ldapSearch(String userId, String objectSid) throws NamingException {
+		NamingEnumeration results = null;
+
+		try {
+			String filter = new String(ldapFilter);
+
+			filter.replace("${userId}", userId);
+			filter.replace("${objectSID}", objectSid);
+
+			SearchControls controls = new SearchControls();
+			controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+			results = ldapCtx.search("", filter, controls);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return (results != null) ? true : false;
 	}
 
 	@Override

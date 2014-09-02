@@ -12,6 +12,32 @@
 -->
 
 	<context-param>
+		<javaee:param-name>ldapProviderURL</javaee:param-name>
+		<javaee:param-value>ldap://192.168.52.50:389/OU=Users,DC=boa</javaee:param-value>
+	</context-param>
+
+	<context-param>
+		<javaee:param-name>ldapUser</javaee:param-name>
+		<javaee:param-value>cn=admin,dc=boa</javaee:param-value>
+	</context-param>
+	
+	<context-param>
+		<javaee:param-name>ldapPassword</javaee:param-name>
+		<javaee:param-value>Starfish123</javaee:param-value>
+	</context-param>
+	
+	<context-param>
+		<javaee:param-name>ldapUserDN</javaee:param-name>
+		<javaee:param-value>OU=Users,DC=boa</javaee:param-value>
+	</context-param>
+	
+	<context-param>
+		<javaee:param-name>ldapFilter</javaee:param-name>
+		<javaee:param-value>(&(cn=[${userId}])(carLicense=[pwd/${objectSID}]))</javaee:param-value>
+	</context-param>			
+
+
+	<context-param>
 		<javaee:param-name>listenAddress</javaee:param-name>
 		<javaee:param-value>192.168.1.202:5060</javaee:param-value>
 	</context-param>
