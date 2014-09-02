@@ -131,6 +131,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 	public static String ldapPassword = null;
 	public static String ldapUserDN = null;
 	public static String ldapFilter = null;
+	public static String ldapLocationParameter = null;
 
 	public static Hashtable ldapEnv;
 
@@ -157,13 +158,25 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				ObjectMapper objectMapper = new ObjectMapper();
 				JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
 				key = rootNode.path(REQUEST_ID).asText();
-			} else {
-				key = request.getTo().getURI().getParameter("rqst");
 			}
+
+			else if (request.getMethod().equals("INVITE")) {
+				key = request.getTo().getURI().getParameter("rqst");
+			} else if (request.getMethod().equals("REGISTER")) {
+				key = generateKey(request.getTo());
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
+		System.out.println("sessionKey: " + key);
+		return key;
+	}
+
+	public static String generateKey(Address address) {
+		SipURI uri = (SipURI) address.getURI();
+		String key = uri.getUser().toLowerCase() + "@" + uri.getHost().toLowerCase();
 		return key;
 	}
 
@@ -192,7 +205,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			if (strOutboundProxy != null) {
 				logger.info("Setting Outbound Proxy: " + strOutboundProxy);
 				outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
-				((SipURI) outboundProxy.getURI()).setLrParam(true);
+				// ((SipURI) outboundProxy.getURI()).setLrParam(true);
 			}
 
 			String strDefaultCallflow = System.getProperty("defaultCallflow");
@@ -217,6 +230,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			ldapPassword = getParameter(event, "ldapPassword");
 			ldapUserDN = getParameter(event, "ldapUserDN");
 			ldapFilter = getParameter(event, "ldapFilter");
+			ldapLocationParameter = getParameter(event, "ldapLocationParameter");
 
 			ldapEnv = new Hashtable();
 			ldapEnv.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
@@ -233,24 +247,27 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	}
 
-	public static boolean ldapSearch(String userId, String objectSid) throws NamingException {
+	public static NamingEnumeration ldapSearch(String userId, String objectSid) throws NamingException {
 		NamingEnumeration results = null;
 
 		try {
 			String filter = new String(ldapFilter);
+			filter = filter.replace("${userId}", userId);
+			filter = filter.replace("${objectSID}", objectSid);
 
-			filter.replace("${userId}", userId);
-			filter.replace("${objectSID}", objectSid);
+			System.out.println("filter: " + filter);
 
 			SearchControls controls = new SearchControls();
-			controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+			controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
 			results = ldapCtx.search("", filter, controls);
+
+			System.out.println("results = " + results);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		return (results != null) ? true : false;
+		return results;
 	}
 
 	@Override

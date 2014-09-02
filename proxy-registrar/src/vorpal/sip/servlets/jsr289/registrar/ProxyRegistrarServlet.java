@@ -152,7 +152,7 @@ public class ProxyRegistrarServlet extends SipServlet {
 
 			HashMap<Address, Long> contacts = (HashMap<Address, Long>) appSession.getAttribute(CONTACTS_MAP);
 			if (null == contacts) {
-				aors.add(request.getTo().getURI());
+				aors.add(request.getRequestURI());
 			} else {
 				for (Entry<Address, Long> entry : contacts.entrySet()) {
 					aors.add(entry.getKey().getURI());

@@ -4,16 +4,21 @@
 	<app-name>talkbac</app-name>
 	<distributable />
 
-<!--
+ 
 	<context-param>
-		<javaee:param-name>OUTBOUND_PROXY</javaee:param-name>
-		<javaee:param-value>172.16.43.154</javaee:param-value>
+		<javaee:param-name>outboundProxy</javaee:param-name>
+		<javaee:param-value>192.168.52.207:5060</javaee:param-value>
 	</context-param>
--->
+
 
 	<context-param>
+		<javaee:param-name>ldapLocationParameter</javaee:param-name>
+		<javaee:param-value>l</javaee:param-value>
+	</context-param>
+	
+	<context-param>
 		<javaee:param-name>ldapProviderURL</javaee:param-name>
-		<javaee:param-value>ldap://192.168.52.50:389/OU=Users,DC=boa</javaee:param-value>
+		<javaee:param-value>ldap://192.168.52.50:5000/OU=Users,DC=boa</javaee:param-value>
 	</context-param>
 
 	<context-param>
@@ -33,8 +38,9 @@
 	
 	<context-param>
 		<javaee:param-name>ldapFilter</javaee:param-name>
-		<javaee:param-value>(&(cn=[${userId}])(carLicense=[pwd/${objectSID}]))</javaee:param-value>
+		<javaee:param-value><![CDATA[(&(cn=${userId})(carLicense=${objectSID}))]]></javaee:param-value>
 	</context-param>			
+
 
 
 	<context-param>
