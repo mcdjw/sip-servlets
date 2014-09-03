@@ -29,6 +29,7 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
 
 import weblogic.kernel.KernelLogManager;
 
@@ -75,9 +76,21 @@ public class CallFlow1 extends CallStateHandler {
 
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 
-			if (TalkBACSipServlet.outboundProxy != null) {
-				destinationRequest.pushRoute(TalkBACSipServlet.outboundProxy);
-				originRequest.pushRoute(TalkBACSipServlet.outboundProxy);
+			Address identity = request.getAddressHeader("P-Asserted-Identity");
+			String originKey = TalkBACSipServlet.generateKey(identity);						
+			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
+			String pbx = (String) originAppSession.getAttribute("PBX");
+			System.out.println("CallFlow4 pbx: " + pbx + ", " + originAppSession.getId().hashCode());
+			if (pbx != null) {
+
+				String originUser = ((SipURI) origin.getURI()).getUser();
+				SipURI originUri = (SipURI) TalkBACSipServlet.factory.createURI("sip:" + originUser + "@" + pbx);
+				originRequest.pushRoute(originUri);
+
+				String destinationUser = ((SipURI) destination.getURI()).getUser();
+				SipURI destinationURI = (SipURI) TalkBACSipServlet.factory.createURI("sip:" + destinationUser + "@"
+						+ pbx);
+				destinationRequest.pushRoute(destinationURI);
 			}
 
 			originRequest.send();

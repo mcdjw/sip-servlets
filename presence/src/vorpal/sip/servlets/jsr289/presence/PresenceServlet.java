@@ -8,24 +8,32 @@ package vorpal.sip.servlets.jsr289.presence;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletException;
-import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
+import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
+import javax.servlet.sip.SipServletContextEvent;
+import javax.servlet.sip.SipServletListener;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
-import javax.servlet.sip.SipURI;
+import javax.servlet.sip.SipSessionsUtil;
 import javax.servlet.sip.annotation.SipApplicationKey;
+import javax.servlet.sip.annotation.SipListener;
 
 import weblogic.kernel.KernelLogManager;
 
 @SuppressWarnings("serial")
-public class PresenceServlet extends SipServlet {
+@SipListener
+public class PresenceServlet extends SipServlet implements SipServletListener {
 
 	static Logger logger;
 	{
@@ -33,61 +41,124 @@ public class PresenceServlet extends SipServlet {
 		logger.setParent(KernelLogManager.getLogger());
 	}
 
+	@Resource
+	public static SipFactory factory;
+
+	@Resource
+	public static SipSessionsUtil util;
+
 	@SipApplicationKey
 	public static String sessionKey(SipServletRequest req) {
-		String key = null;
-
-		if (0 == req.getMethod().compareTo("SUBSCRIBE") && req.getExpires() > 0) {
-			key = generateKey(req.getTo());
-		} else if (0 == req.getMethod().compareTo("PUBLISH") && req.getExpires() > 0) {
-			key = generateKey(req.getFrom());
-		}
-
-		return key;
+		return generateKey(req.getTo().getURI().toString());
 	}
 
-	public static String generateKey(Address address) {
-		SipURI uri = (SipURI) address.getURI();
-		String key = uri.getUser().toLowerCase() + "@" + uri.getHost().toLowerCase();
-		return key;
+	private static String generateKey(String uri) {
+		return uri.substring(uri.indexOf(':') + 1).toLowerCase();
 	}
 
 	@Override
-	protected void doSubscribe(SipServletRequest req) throws ServletException, IOException {
-
-		// Send Ok response back
-		SipServletResponse response = req.createResponse(202);
-		response.addHeader("Expires", req.getHeader("Expires"));
-		response.send();
-
-		SipApplicationSession app = req.getApplicationSession();
-		app.setInvalidateWhenReady(false);
-		app.setExpires(req.getExpires());
-
-		// Add self to list of subscribers
-		HashMap<String, String> subscribers; // URI, SessionId
-		subscribers = (HashMap<String, String>) app.getAttribute(req.getHeader("Event") + ".subscribers");
-		subscribers = (subscribers != null) ? subscribers : new HashMap<String, String>();
-		subscribers.put(req.getFrom().getURI().toString(), req.getSession().getId());
-		app.setAttribute(req.getHeader("Event") + ".subscribers", subscribers);
-
+	public void doSubscribe(SipServletRequest req) throws ServletException, IOException {
 		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("SUBSCRIBE, "+req.getTo()+", Event: " + req.getHeader("Event") + ", Subscribers: " + Arrays.toString(subscribers.keySet().toArray()));
+			logger.fine("SUBSCRIBE, " + req.getTo() + ", Event: " + req.getHeader("Event") + ", Contact: "
+					+ req.getHeader("Contact"));
 		}
+		
+		
 
-		// Send 'notify' if status known
-		SipServletRequest status = (SipServletRequest) app.getAttribute(req.getHeader("Event") + ".status");
-		if (null != status) {
-			SipServletRequest notify = req.getSession().createRequest("NOTIFY");
-			notify.setContent(status.getContent(), status.getContentType());
-			notify.setHeader("Event", status.getHeader("Event"));
-			notify.setHeader("Subscription-State", "active;expires=" + status.getExpires());
-			notify.send();
+		SipApplicationSession appSession = req.getApplicationSession();
+		String identity = generateKey( req.getTo().getURI().toString() );
+		// String event = req.getHeader("Event");
+		// String contact = req.getAddressHeader("Contact").toString();
+		// Integer expires = req.getExpires();
+		//
+		ListIterator<String> acceptsItr = req.getHeaders("Accepts");
+		HashSet<String> accepts = new HashSet<String>();
+		while (acceptsItr.hasNext()) {
+			accepts.add(acceptsItr.next());
 		}
+		
+		 // Send Ok response back
+		 SipServletResponse response = req.createResponse(202);
+		 response.setHeader("Expires", req.getHeader("Expires"));
+		 response.send();
+
+		HashMap<String, Subscriber> subscribers;
+		subscribers = doSubscribe(appSession, identity, event, contact, expires, acceptsItr);
+		//
+		// String eventStatus = (String) appSession.getAttribute(event +
+		// ".status");
+		// String eventType = (String) appSession.getAttribute(event + ".type");
+		// Long eventExpiration = (Long) appSession.getAttribute(event +
+		// ".expiration");
+		//
+		// if (eventExpiration != null) { // if status is known
+		// if (eventExpiration > System.currentTimeMillis()) { // and not
+		// // expired
+		// if (accepts.contains(eventType)) { // and of the right type
+		// SipServletRequest notify = factory.createRequest(appSession,
+		// "NOTIFY", req.getTo(),
+		// req.getAddressHeader("Contact"));
+		// notify.setHeader("Event", event);
+		// notify.setHeader("Subscription-State", "active;expires=" + expires);
+		// notify.setContent(eventStatus, eventType);
+		// notify.send();
+		// }
+		// } else {
+		// appSession.removeAttribute(event + ".status");
+		// appSession.removeAttribute(event + ".type");
+		// appSession.removeAttribute(event + ".expiration");
+		// }
+		// }
+
+	}
+
+	public void doSubscribe(SipApplicationSession appSession, String identity, String event, String contact,
+			Integer expires, ListIterator<String> acceptsItr) throws ServletException, IOException {
+
+		appSession.setInvalidateWhenReady(false);
+		appSession.setExpires(expires);
+
+		Subscriber subscriber = new Subscriber(contact, expires, acceptsItr);
+
+		HashMap<String, Subscriber> subscribers; // Contact, Subscriber
+		subscribers = (HashMap<String, Subscriber>) appSession.getAttribute(event + ".subscribers");
+		subscribers = (subscribers != null) ? subscribers : new HashMap<String, Subscriber>();
+
+		subscribers.put(contact, subscriber);
+		appSession.setAttribute(event + ".subscribers", subscribers);
+
 	}
 
 	@Override
-	protected void doPublish(SipServletRequest req) throws ServletException, IOException {
+	 protected void doPublish(SipServletRequest req) throws ServletException,
+	 IOException {
+//	 req.createResponse(200).send();
+//	
+//	 SipApplicationSession appSession = req.getApplicationSession();
+//	 String event = req.getHeader("Event");
+//	 Object eventStatus = req.getContent();
+//	 String eventType = req.getContentType();
+//	 int expires = req.getExpires();
+//	 String identity = req.getTo().getURI().toString();
+//	
+//	 List<Subscriber> subscribers;
+//	 subscribers = doPublish(appSession, eventStatus, eventType, expires);
+//	
+//	 for(Subscriber subscriber : subscribers){ //This assumes SIP for
+//	 everything
+//	 SipServletRequest notify = factory.createRequest(appSession, "NOTIFY",
+//	 identity, subscriber.getContact());
+//	
+//	 notify.setHeader("Event", event);
+//	 notify.setHeader("Subscription-State", "active;expires=" + expires);
+//	 notify.setContent(eventStatus, eventType);
+//	 notify.send();
+		//
+		// }
+	
+	 }
+
+	protected void doPublishOld(SipServletRequest req) throws ServletException, IOException {
 
 		// send OK response back
 		req.createResponse(200).send();
@@ -105,7 +176,8 @@ public class PresenceServlet extends SipServlet {
 			SipSession session;
 
 			if (logger.isLoggable(Level.FINE)) {
-				logger.fine("PUBLISH "+req.getFrom()+", Event: " + req.getHeader("Event") + ", Subscribers: " + Arrays.toString(subscribers.keySet().toArray()));
+				logger.fine("PUBLISH " + req.getFrom() + ", Event: " + req.getHeader("Event") + ", Subscribers: "
+						+ Arrays.toString(subscribers.keySet().toArray()));
 			}
 
 			for (Entry<String, String> entry : subscribers.entrySet()) {
@@ -128,10 +200,15 @@ public class PresenceServlet extends SipServlet {
 			}
 		} else {
 			if (logger.isLoggable(Level.FINE)) {
-				logger.fine("PUBLISH "+req.getFrom()+", Event: " + req.getHeader("Event") + ", Subscribers: none");
+				logger.fine("PUBLISH " + req.getFrom() + ", Event: " + req.getHeader("Event") + ", Subscribers: none");
 			}
 		}
 
+	}
+
+	@Override
+	public void servletInitialized(SipServletContextEvent arg0) {
+		logger.fine(this.getServletName() + " initialized");
 	}
 
 }
