@@ -42,6 +42,7 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
 
 public class CallFlow5 extends CallStateHandler {
 	private Address origin;
@@ -84,20 +85,26 @@ public class CallFlow5 extends CallStateHandler {
 			msg = new TalkBACMessage(appSession, "call_created");
 			msg.send();
 
+			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 			if (TalkBACSipServlet.callInfo != null) {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
-				destinationRequest
-						.setHeader("Allow",
-								"INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, UPDATE, MESSAGE, PUBLISH");
+				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, UPDATE, MESSAGE, PUBLISH");
 			}
 
-			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
+			Address identity = request.getAddressHeader("P-Asserted-Identity");
+			String originKey = TalkBACSipServlet.generateKey(identity);
+			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
+			String pbx = (String) originAppSession.getAttribute("PBX");
+			if (pbx != null) {
+				String originUser = ((SipURI) origin.getURI()).getUser();
+				SipURI originUri = (SipURI) TalkBACSipServlet.factory.createURI("sip:" + originUser + "@" + pbx);
+				originRequest.pushRoute(originUri);
 
-			if (TalkBACSipServlet.outboundProxy != null) {
-				destinationRequest.pushRoute(TalkBACSipServlet.outboundProxy);
-				originRequest.pushRoute(TalkBACSipServlet.outboundProxy);
+				String destinationUser = ((SipURI) destination.getURI()).getUser();
+				SipURI destinationURI = (SipURI) TalkBACSipServlet.factory.createURI("sip:" + destinationUser + "@" + pbx);
+				destinationRequest.pushRoute(destinationURI);
 			}
 
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
@@ -162,7 +169,7 @@ public class CallFlow5 extends CallStateHandler {
 				request.getApplicationSession().removeAttribute(CALL_STATE_HANDLER);
 
 				originInviteRequest = request;
-				destinationRequest = destinationRequest.getSession().createRequest("INVITE");
+				//destinationRequest = destinationRequest.getSession().createRequest("INVITE");
 				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
 				this.printOutboundMessage(destinationRequest);
@@ -231,11 +238,10 @@ public class CallFlow5 extends CallStateHandler {
 	}
 
 	// media line has a range of zero ports "4002/0"
-	static final String blackhole = "" + "v=0\n" + "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n" + "s=cpc_med\n"
-			+ "c=IN IP4 192.168.1.202\n" + "t=0 0\n" + "m=audio 4002/0 RTP/AVP 111 110 109 9 0 8 101" + "a=sendrecv\n"
-			+ "a=rtpmap:111 OPUS/48000\n" + "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
-			+ "a=rtpmap:110 SILK/24000\n" + "a=fmtp:110 useinbandfec=1\n" + "a=rtpmap:109 SILK/16000\n"
-			+ "a=fmtp:109 useinbandfec=1\n" + "a=rtpmap:9 G722/8000\n" + "a=rtpmap:0 PCMU/8000\n"
-			+ "a=rtpmap:8 PCMA/8000\n" + "a=rtpmap:101 telephone-event/8000\n" + "a=fmtp:101 0-16\n";
+	static final String blackhole = "" + "v=0\n" + "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n" + "s=cpc_med\n" + "c=IN IP4 192.168.1.202\n" + "t=0 0\n"
+			+ "m=audio 4002/0 RTP/AVP 111 110 109 9 0 8 101" + "a=sendrecv\n" + "a=rtpmap:111 OPUS/48000\n"
+			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n" + "a=rtpmap:110 SILK/24000\n" + "a=fmtp:110 useinbandfec=1\n" + "a=rtpmap:109 SILK/16000\n"
+			+ "a=fmtp:109 useinbandfec=1\n" + "a=rtpmap:9 G722/8000\n" + "a=rtpmap:0 PCMU/8000\n" + "a=rtpmap:8 PCMA/8000\n"
+			+ "a=rtpmap:101 telephone-event/8000\n" + "a=fmtp:101 0-16\n";
 
 }

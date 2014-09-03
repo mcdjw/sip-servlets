@@ -66,41 +66,26 @@ public class CallFlow4 extends CallStateHandler {
 			msg = new TalkBACMessage(appSession, "call_created");
 			msg.send();
 
+			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 			if (TalkBACSipServlet.callInfo != null) {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
-				destinationRequest
-						.setHeader("Allow",
-								"INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, UPDATE, MESSAGE, PUBLISH");
-				// destinationRequest.setHeader("Allow-Events",
-				// "telephone-event");
-				// destinationRequest.setHeader("Content-Disposition",
-				// "session;handling=required");
-				// destinationRequest.setHeader("Supported",
-				// "100rel,time,resource-priority,replaces,sdp-anat");
-				// destinationRequest.setHeader("Min-SE", "600");
-
+				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, UPDATE, MESSAGE, PUBLISH");
 			}
 
-			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
-
-			String originKey = TalkBACSipServlet.generateKey(origin);
-			System.out.println("CallFlow4 originKey: "+originKey);
+			Address identity = request.getAddressHeader("P-Asserted-Identity");
+			String originKey = TalkBACSipServlet.generateKey(identity);
 			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
 			String pbx = (String) originAppSession.getAttribute("PBX");
-			System.out.println("CallFlow4 pbx: " + pbx + ", " + originAppSession.getId().hashCode());
 			if (pbx != null) {
-
-				String originUser = ((SipURI) origin.getURI()).getHost();
+				String originUser = ((SipURI) origin.getURI()).getUser();
 				SipURI originUri = (SipURI) TalkBACSipServlet.factory.createURI("sip:" + originUser + "@" + pbx);
 				originRequest.pushRoute(originUri);
 
-				String destinationUser = ((SipURI) destination.getURI()).getHost();
-				SipURI destinationURI = (SipURI) TalkBACSipServlet.factory.createURI("sip:" + destinationUser + "@"
-						+ pbx);
+				String destinationUser = ((SipURI) destination.getURI()).getUser();
+				SipURI destinationURI = (SipURI) TalkBACSipServlet.factory.createURI("sip:" + destinationUser + "@" + pbx);
 				destinationRequest.pushRoute(destinationURI);
-
 			}
 
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
@@ -232,11 +217,10 @@ public class CallFlow4 extends CallStateHandler {
 	}
 
 	// media line has a range of zero ports "4002/0"
-	static final String blackhole = "" + "v=0\n" + "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n" + "s=cpc_med\n"
-			+ "c=IN IP4 192.168.1.202\n" + "t=0 0\n" + "m=audio 4002/0 RTP/AVP 111 110 109 9 0 8 101" + "a=sendrecv\n"
-			+ "a=rtpmap:111 OPUS/48000\n" + "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
-			+ "a=rtpmap:110 SILK/24000\n" + "a=fmtp:110 useinbandfec=1\n" + "a=rtpmap:109 SILK/16000\n"
-			+ "a=fmtp:109 useinbandfec=1\n" + "a=rtpmap:9 G722/8000\n" + "a=rtpmap:0 PCMU/8000\n"
-			+ "a=rtpmap:8 PCMA/8000\n" + "a=rtpmap:101 telephone-event/8000\n" + "a=fmtp:101 0-16\n";
+	static final String blackhole = "" + "v=0\n" + "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n" + "s=cpc_med\n" + "c=IN IP4 192.168.1.202\n" + "t=0 0\n"
+			+ "m=audio 4002/0 RTP/AVP 111 110 109 9 0 8 101" + "a=sendrecv\n" + "a=rtpmap:111 OPUS/48000\n"
+			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n" + "a=rtpmap:110 SILK/24000\n" + "a=fmtp:110 useinbandfec=1\n" + "a=rtpmap:109 SILK/16000\n"
+			+ "a=fmtp:109 useinbandfec=1\n" + "a=rtpmap:9 G722/8000\n" + "a=rtpmap:0 PCMU/8000\n" + "a=rtpmap:8 PCMA/8000\n"
+			+ "a=rtpmap:101 telephone-event/8000\n" + "a=fmtp:101 0-16\n";
 
 }
