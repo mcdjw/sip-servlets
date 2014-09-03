@@ -23,12 +23,22 @@
 
 package oracle.communications.talkbac;
 
+import java.util.logging.Logger;
+
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import weblogic.kernel.KernelLogManager;
+
 public class CallFlow1 extends CallStateHandler {
+	static Logger logger;
+	{
+		logger = Logger.getLogger(CallFlow1.class.getName());
+		logger.setParent(KernelLogManager.getLogger());
+	}	
+	
 	Address origin;
 	Address destination;
 

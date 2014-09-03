@@ -2,6 +2,7 @@ package oracle.communications.talkbac;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.logging.Logger;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
@@ -12,7 +13,15 @@ import javax.servlet.sip.SipServletResponse;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 
+import weblogic.kernel.KernelLogManager;
+
 public class TalkBACMessage {
+	static Logger logger;
+	{
+		logger = Logger.getLogger(Authentication.class.getName());
+		logger.setParent(KernelLogManager.getLogger());
+	}
+
 	ObjectNode objectNode;
 	public SipServletRequest message;
 
@@ -74,11 +83,11 @@ public class TalkBACMessage {
 
 		if (message instanceof SipServletRequest) {
 			SipServletRequest rqst = (SipServletRequest) message;
-			System.out.println("<-- " + this.getClass().getSimpleName() + " " + rqst.getMethod() + " " + rqst.getTo());
+			logger.fine("<-- " + this.getClass().getSimpleName() + " " + rqst.getMethod() + " " + rqst.getTo());
 
 		} else {
 			SipServletResponse rspn = (SipServletResponse) message;
-			System.out.println("--> " + this.getClass().getSimpleName() + " " + rspn.getMethod()
+			logger.fine("--> " + this.getClass().getSimpleName() + " " + rspn.getMethod()
 					+ rspn.getReasonPhrase() + rspn.getTo());
 		}
 

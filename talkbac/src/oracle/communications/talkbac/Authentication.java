@@ -1,5 +1,7 @@
 package oracle.communications.talkbac;
 
+import java.util.logging.Logger;
+
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.SearchResult;
 import javax.servlet.sip.Proxy;
@@ -7,7 +9,14 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import weblogic.kernel.KernelLogManager;
+
 public class Authentication extends CallStateHandler {
+	static Logger logger;
+	{
+		logger = Logger.getLogger(Authentication.class.getName());
+		logger.setParent(KernelLogManager.getLogger());
+	}
 
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
@@ -38,14 +47,14 @@ public class Authentication extends CallStateHandler {
 					userId = userId.substring(0, userId.indexOf("@"));
 				}
 
-				System.out.println("userId: " + userId);
+				logger.fine("userId: " + userId);
 
 				String strSid = "opaque=\"";
 				begin = auth.indexOf(strSid, 0);
 				begin = begin + strSid.length();
 				end = auth.indexOf("\"", begin);
 				String objectSid = auth.substring(begin, end);
-				System.out.println("objectSid: " + objectSid);
+				logger.fine("objectSid: " + objectSid);
 
 				NamingEnumeration results = TalkBACSipServlet.ldapSearch(userId, objectSid);
 				if (results.hasMoreElements()) {
@@ -53,12 +62,12 @@ public class Authentication extends CallStateHandler {
 
 					SearchResult sr = (SearchResult) results.nextElement();
 
-					System.out.println("TalkBACSipServlet.ldapLocationParameter: "
+					logger.fine("TalkBACSipServlet.ldapLocationParameter: "
 							+ TalkBACSipServlet.ldapLocationParameter);
 
 					String pbx = (String) sr.getAttributes().get(TalkBACSipServlet.ldapLocationParameter).get();
 
-					System.out.println("Authentication pbx: " + pbx+", "+appSession.getId().hashCode());
+					logger.fine("Authentication pbx: " + pbx+", "+appSession.getId().hashCode());
 
 					if (pbx != null) {
 						appSession.setAttribute("PBX", pbx);
@@ -66,7 +75,7 @@ public class Authentication extends CallStateHandler {
 
 					int expires = request.getExpires();
 					appSession.setExpires(expires);
-					System.out.println("Expires: "+expires);
+					logger.fine("Expires: "+expires);
 					if (expires > 0) {
 						appSession.setInvalidateWhenReady(false);
 					} else {

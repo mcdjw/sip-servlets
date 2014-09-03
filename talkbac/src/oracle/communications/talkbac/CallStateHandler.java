@@ -11,16 +11,13 @@ import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import weblogic.kernel.KernelLogManager;
+
 public abstract class CallStateHandler implements Serializable {
 	static Logger logger;
 	{
-		logger = Logger.getLogger(TalkBACSipServlet.class.getName());
-		try {
-			logger.addHandler(new FileHandler("my_talkbac.log"));
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		logger = Logger.getLogger(CallFlow1.class.getName());
+		logger.setParent(KernelLogManager.getLogger());
 	}
 
 	final static String CALL_STATE_HANDLER = "CALL_STATE_HANDLER";

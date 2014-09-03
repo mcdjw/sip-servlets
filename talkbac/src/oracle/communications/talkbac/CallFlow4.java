@@ -30,6 +30,8 @@
 
 package oracle.communications.talkbac;
 
+import java.util.logging.Logger;
+
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
@@ -37,7 +39,14 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 
+import weblogic.kernel.KernelLogManager;
+
 public class CallFlow4 extends CallStateHandler {
+	static Logger logger;
+	{
+		logger = Logger.getLogger(CallFlow4.class.getName());
+		logger.setParent(KernelLogManager.getLogger());
+	}
 	Address origin;
 	Address destination;
 
@@ -86,10 +95,10 @@ public class CallFlow4 extends CallStateHandler {
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 
 			String originKey = TalkBACSipServlet.generateKey(origin);
-			System.out.println("CallFlow4 originKey: "+originKey);
+			logger.info("CallFlow4 originKey: "+originKey);
 			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
 			String pbx = (String) originAppSession.getAttribute("PBX");
-			System.out.println("CallFlow4 pbx: " + pbx + ", " + originAppSession.getId().hashCode());
+			logger.info("CallFlow4 pbx: " + pbx + ", " + originAppSession.getId().hashCode());
 			if (pbx != null) {
 
 				String originUser = ((SipURI) origin.getURI()).getHost();

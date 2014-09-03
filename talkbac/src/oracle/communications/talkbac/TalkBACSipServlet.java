@@ -170,7 +170,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			e.printStackTrace();
 		}
 
-		System.out.println("sessionKey: " + key);
+		logger.fine("sessionKey: " + key);
 		return key;
 	}
 
@@ -255,13 +255,13 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			filter = filter.replace("${userId}", userId);
 			filter = filter.replace("${objectSID}", objectSid);
 
-			System.out.println("filter: " + filter);
+			logger.fine("filter: " + filter);
 
 			SearchControls controls = new SearchControls();
 			controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
 			results = ldapCtx.search("", filter, controls);
 
-			System.out.println("results = " + results);
+			logger.fine("results = " + results);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -462,7 +462,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				handler.printInboundMessage(response);
 				handler.processEvent(null, response);
 			} else {
-				// System.out.println("--> " + this.getClass().getSimpleName() +
+				// logger.fine("--> " + this.getClass().getSimpleName() +
 				// " " + response.getMethod()
 				// + response.getReasonPhrase() + " " + response.getTo());
 			}
