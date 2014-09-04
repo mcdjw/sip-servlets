@@ -54,6 +54,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
@@ -135,7 +136,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	public static Hashtable ldapEnv;
 
-	public static DirContext ldapCtx;
+//	public static DirContext ldapCtx;
 
 	// public enum DTMF_STYLE {
 	// RFC_2833, RFC_2976
@@ -248,11 +249,19 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	}
 
-	public static NamingEnumeration ldapSearch(String userId, String objectSid) throws NamingException {
+	public static DirContext connectLdap() throws NamingException {
+		return new InitialDirContext(ldapEnv);
+	}
+
+	public static void disconnectLdap(DirContext ldapCtx, NamingEnumeration results) throws NamingException {
+		results.close();
+		ldapCtx.close();
+	}
+
+	public static NamingEnumeration ldapSearch(DirContext ldapCtx, String userId, String objectSid) throws NamingException {
 		NamingEnumeration results = null;
 
 		try {
-			ldapCtx = new InitialDirContext(ldapEnv);
 
 			String filter = new String(ldapFilter);
 			filter = filter.replace("${userId}", userId);
@@ -266,7 +275,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 			logger.fine("results = " + results);
 
-			ldapCtx.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();

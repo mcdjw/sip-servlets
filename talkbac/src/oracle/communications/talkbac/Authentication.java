@@ -3,6 +3,7 @@ package oracle.communications.talkbac;
 import java.util.logging.Logger;
 
 import javax.naming.NamingEnumeration;
+import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchResult;
 import javax.servlet.sip.Proxy;
 import javax.servlet.sip.SipApplicationSession;
@@ -56,18 +57,19 @@ public class Authentication extends CallStateHandler {
 				String objectSid = auth.substring(begin, end);
 				logger.fine("objectSid: " + objectSid);
 
-				NamingEnumeration results = TalkBACSipServlet.ldapSearch(userId, objectSid);
+				DirContext ldapCtx = TalkBACSipServlet.connectLdap();
+
+				NamingEnumeration results = TalkBACSipServlet.ldapSearch(ldapCtx, userId, objectSid);
 				if (results.hasMoreElements()) {
 					SipApplicationSession appSession = request.getApplicationSession();
 
 					SearchResult sr = (SearchResult) results.nextElement();
 
-					logger.fine("TalkBACSipServlet.ldapLocationParameter: "
-							+ TalkBACSipServlet.ldapLocationParameter);
+					logger.fine("TalkBACSipServlet.ldapLocationParameter: " + TalkBACSipServlet.ldapLocationParameter);
 
 					String pbx = (String) sr.getAttributes().get(TalkBACSipServlet.ldapLocationParameter).get();
 
-					logger.fine("Authentication pbx: " + pbx+", "+appSession.getId().hashCode());
+					logger.fine("Authentication pbx: " + pbx + ", " + appSession.getId().hashCode());
 
 					if (pbx != null) {
 						appSession.setAttribute("PBX", pbx);
@@ -75,7 +77,7 @@ public class Authentication extends CallStateHandler {
 
 					int expires = request.getExpires();
 					appSession.setExpires(expires);
-					logger.fine("Expires: "+expires);
+					logger.fine("Expires: " + expires);
 					if (expires > 0) {
 						appSession.setInvalidateWhenReady(false);
 					} else {
@@ -93,6 +95,8 @@ public class Authentication extends CallStateHandler {
 					SipServletResponse authResponse = request.createResponse(403);
 					authResponse.send();
 				}
+
+				TalkBACSipServlet.disconnectLdap(ldapCtx, results);
 
 			}
 
