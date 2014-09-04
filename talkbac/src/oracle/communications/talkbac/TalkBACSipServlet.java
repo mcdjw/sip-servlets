@@ -361,15 +361,18 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 						Address destinationAddress = factory.createAddress(destination);
 
 						Address identity = request.getAddressHeader("P-Asserted-Identity");
+						logger.fine("identity: " + identity.toString());
 						String originKey = TalkBACSipServlet.generateKey(identity);
 						SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
 						String pbx = (String) originAppSession.getAttribute("PBX");
-						logger.info("pbx: " + pbx + ", " + originAppSession.getId().hashCode());
+						logger.fine("pbx: " + pbx + ", " + originAppSession.getId().hashCode());
 						if (pbx != null) {
 							String originUser = ((SipURI) originAddress.getURI()).getUser();
-							originAddress = TalkBACSipServlet.factory.createAddress("<sip:" + originUser + "@" + pbx+">");
+							originAddress = TalkBACSipServlet.factory.createAddress("<sip:" + originUser + "@" + pbx + ">");
+							logger.fine("originAddress: " + originAddress.toString());
 							String destinationUser = ((SipURI) destinationAddress.getURI()).getUser();
-							destinationAddress = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + pbx+">");
+							destinationAddress = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + pbx + ">");
+							logger.fine("destinationAddress: " + destinationAddress.toString());
 						}
 
 						switch (cf) {
