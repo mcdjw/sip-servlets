@@ -233,7 +233,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 			// LDAP
 			ldapProviderURL = getParameter(event, "ldapProviderURL");
-			logger.info("disableAuth: " + disableAuth);
+			logger.info("ldapProviderURL: " + ldapProviderURL);
 			ldapUser = getParameter(event, "ldapUser");
 			logger.info("ldapUser: " + ldapUser);
 			ldapPassword = getParameter(event, "ldapPassword");
