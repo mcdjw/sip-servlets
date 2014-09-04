@@ -238,8 +238,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			ldapEnv.put(Context.SECURITY_AUTHENTICATION, "simple");
 			ldapEnv.put(Context.SECURITY_PRINCIPAL, ldapUser);
 			ldapEnv.put(Context.SECURITY_CREDENTIALS, ldapPassword);
+			ldapEnv.put("com.sun.jndi.ldap.connect.pool", "true");
 
-			ldapCtx = new InitialDirContext(ldapEnv);
+			// ldapCtx = new InitialDirContext(ldapEnv);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -251,6 +252,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		NamingEnumeration results = null;
 
 		try {
+			ldapCtx = new InitialDirContext(ldapEnv);
+
 			String filter = new String(ldapFilter);
 			filter = filter.replace("${userId}", userId);
 			filter = filter.replace("${objectSID}", objectSid);
@@ -262,6 +265,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			results = ldapCtx.search("", filter, controls);
 
 			logger.fine("results = " + results);
+
+			ldapCtx.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
