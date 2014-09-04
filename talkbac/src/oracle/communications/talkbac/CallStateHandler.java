@@ -75,7 +75,7 @@ public abstract class CallStateHandler implements Serializable {
 			SipServletResponse rspn = (SipServletResponse) message;
 			if (logger.isLoggable(Level.FINE)) {
 				logger.fine("--> " + this.getClass().getSimpleName() + " " + state + " " + rspn.getMethod() + " "
-						+ rspn.getReasonPhrase() + " " + sdp + " " + rspn.getTo());
+						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " " + sdp + " " + rspn.getTo());
 			}
 		}
 	}

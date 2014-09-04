@@ -38,8 +38,8 @@ public class CallFlow1 extends CallStateHandler {
 	{
 		logger = Logger.getLogger(CallFlow1.class.getName());
 		logger.setParent(KernelLogManager.getLogger());
-	}	
-	
+	}
+
 	Address origin;
 	Address destination;
 
@@ -67,6 +67,7 @@ public class CallFlow1 extends CallStateHandler {
 			msg = new TalkBACMessage(appSession, "call_created");
 			msg.send();
 
+			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 			if (TalkBACSipServlet.callInfo != null) {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
@@ -74,11 +75,10 @@ public class CallFlow1 extends CallStateHandler {
 				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, UPDATE, MESSAGE, PUBLISH");
 			}
 
-			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
-
 			Address identity = request.getAddressHeader("P-Asserted-Identity");
-			String originKey = TalkBACSipServlet.generateKey(identity);						
-			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
+			String originKey = TalkBACSipServlet.generateKey(identity);
+			SipApplicationSession originAppSession = TalkBACSipServlet.util
+					.getApplicationSessionByKey(originKey, false);
 			String pbx = (String) originAppSession.getAttribute("PBX");
 			System.out.println("CallFlow4 pbx: " + pbx + ", " + originAppSession.getId().hashCode());
 			if (pbx != null) {
@@ -148,10 +148,10 @@ public class CallFlow1 extends CallStateHandler {
 				msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msg.send();
-				
+
 				msg = new TalkBACMessage(response.getApplicationSession(), "call_connected");
 				msg.send();
-				
+
 			}
 			if (status >= 300) {
 				originResponse.getSession().createRequest("BYE").send();
