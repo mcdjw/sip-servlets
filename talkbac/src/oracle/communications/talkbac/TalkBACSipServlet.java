@@ -136,7 +136,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	public static Hashtable ldapEnv;
 
-//	public static DirContext ldapCtx;
+	// public static DirContext ldapCtx;
 
 	// public enum DTMF_STYLE {
 	// RFC_2833, RFC_2976
@@ -197,8 +197,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			listenAddress = System.getProperty("listenAddress");
 			listenAddress = (listenAddress != null) ? listenAddress : event.getServletContext().getInitParameter(
 					"listenAddress");
+
+			logger.info("listenAddress: " + listenAddress);
+
 			callInfo = "<sip:" + listenAddress + ">;method=\"NOTIFY;Event=telephone-event;Duration=500\"";
-			logger.info("Setting Listen Address: " + listenAddress);
 
 			String strOutboundProxy = System.getProperty("outboundProxy");
 			strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy : event.getServletContext()
@@ -208,6 +210,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 				outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
 				// ((SipURI) outboundProxy.getURI()).setLrParam(true);
 			}
+			logger.info("outboundProxy: " + outboundProxy);
 
 			String strDefaultCallflow = System.getProperty("defaultCallflow");
 			strDefaultCallflow = (strDefaultCallflow != null) ? strDefaultCallflow : event.getServletContext()
@@ -215,8 +218,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			if (strDefaultCallflow != null) {
 				defaultCallflow = Integer.parseInt(strDefaultCallflow);
 			}
+			logger.info("defaultCallflow: " + defaultCallflow);
 
 			talkBACAddress = factory.createAddress("<sip:" + servletName + "@" + listenAddress + ">");
+			logger.info("talkBACAddress: " + talkBACAddress);
 
 			String strDisableAuth = System.getProperty("disableAuth");
 			strDisableAuth = (strDisableAuth != null) ? strDisableAuth : event.getServletContext().getInitParameter(
@@ -224,14 +229,21 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			if (strDisableAuth != null) {
 				disableAuth = Boolean.parseBoolean(strDisableAuth);
 			}
+			logger.info("disableAuth: " + disableAuth);
 
 			// LDAP
 			ldapProviderURL = getParameter(event, "ldapProviderURL");
+			logger.info("disableAuth: " + disableAuth);
 			ldapUser = getParameter(event, "ldapUser");
+			logger.info("ldapUser: " + ldapUser);
 			ldapPassword = getParameter(event, "ldapPassword");
+			logger.info("ldapPassword: " + ldapPassword);
 			ldapUserDN = getParameter(event, "ldapUserDN");
+			logger.info("ldapUserDN: " + ldapUserDN);
 			ldapFilter = getParameter(event, "ldapFilter");
+			logger.info("ldapFilter: " + ldapFilter);
 			ldapLocationParameter = getParameter(event, "ldapLocationParameter");
+			logger.info("ldapLocationParameter: " + ldapLocationParameter);
 
 			ldapEnv = new Hashtable();
 			ldapEnv.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
@@ -258,7 +270,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		ldapCtx.close();
 	}
 
-	public static NamingEnumeration ldapSearch(DirContext ldapCtx, String userId, String objectSid) throws NamingException {
+	public static NamingEnumeration ldapSearch(DirContext ldapCtx, String userId, String objectSid)
+			throws NamingException {
 		NamingEnumeration results = null;
 
 		try {
@@ -274,7 +287,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			results = ldapCtx.search("", filter, controls);
 
 			logger.fine("results = " + results);
-
 
 		} catch (Exception e) {
 			e.printStackTrace();
