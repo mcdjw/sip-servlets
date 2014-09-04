@@ -105,8 +105,6 @@ public class CallFlow5 extends CallStateHandler {
 
 			appSession.setAttribute(DESTINATION_SESSION_ID, destinationRequest.getSession().getId());
 			appSession.setAttribute(ORIGIN_SESSION_ID, originRequest.getSession().getId());
-			// appSession.setAttribute(INITIATOR_SESSION_ID,
-			// initiator.getSession().getId());
 
 		}
 			break;
