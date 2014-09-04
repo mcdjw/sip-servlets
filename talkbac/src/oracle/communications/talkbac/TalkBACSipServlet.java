@@ -82,8 +82,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		logger.setParent(KernelLogManager.getLogger());
 	}
 
-	public final static org.apache.logging.log4j.Logger cdr = org.apache.logging.log4j.LogManager
-			.getLogger(TalkBACSipServlet.class.getName());
+	public final static org.apache.logging.log4j.Logger cdr = org.apache.logging.log4j.LogManager.getLogger(TalkBACSipServlet.class.getName());
 
 	private enum SipMethod {
 		INVITE, ACK, BYE, CANCEL, OPTIONS, REGISTER, PRACK, SUBSCRIBE, NOTIFY, PUBLISH, INFO, REFER, MESSAGE, UPDATE
@@ -195,16 +194,14 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			servletName = event.getSipServlet().getServletName();
 
 			listenAddress = System.getProperty("listenAddress");
-			listenAddress = (listenAddress != null) ? listenAddress : event.getServletContext().getInitParameter(
-					"listenAddress");
+			listenAddress = (listenAddress != null) ? listenAddress : event.getServletContext().getInitParameter("listenAddress");
 
 			logger.info("listenAddress: " + listenAddress);
 
 			callInfo = "<sip:" + listenAddress + ">;method=\"NOTIFY;Event=telephone-event;Duration=500\"";
 
 			String strOutboundProxy = System.getProperty("outboundProxy");
-			strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy : event.getServletContext()
-					.getInitParameter("outboundProxy");
+			strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy : event.getServletContext().getInitParameter("outboundProxy");
 			if (strOutboundProxy != null) {
 				logger.info("Setting Outbound Proxy: " + strOutboundProxy);
 				outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
@@ -213,8 +210,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			logger.info("outboundProxy: " + outboundProxy);
 
 			String strDefaultCallflow = System.getProperty("defaultCallflow");
-			strDefaultCallflow = (strDefaultCallflow != null) ? strDefaultCallflow : event.getServletContext()
-					.getInitParameter("defaultCallflow");
+			strDefaultCallflow = (strDefaultCallflow != null) ? strDefaultCallflow : event.getServletContext().getInitParameter("defaultCallflow");
 			if (strDefaultCallflow != null) {
 				defaultCallflow = Integer.parseInt(strDefaultCallflow);
 			}
@@ -224,8 +220,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			logger.info("talkBACAddress: " + talkBACAddress);
 
 			String strDisableAuth = System.getProperty("disableAuth");
-			strDisableAuth = (strDisableAuth != null) ? strDisableAuth : event.getServletContext().getInitParameter(
-					"disableAuth");
+			strDisableAuth = (strDisableAuth != null) ? strDisableAuth : event.getServletContext().getInitParameter("disableAuth");
 			if (strDisableAuth != null) {
 				disableAuth = Boolean.parseBoolean(strDisableAuth);
 			}
@@ -270,8 +265,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		ldapCtx.close();
 	}
 
-	public static NamingEnumeration ldapSearch(DirContext ldapCtx, String userId, String objectSid)
-			throws NamingException {
+	public static NamingEnumeration ldapSearch(DirContext ldapCtx, String userId, String objectSid) throws NamingException {
 		NamingEnumeration results = null;
 
 		try {
@@ -323,8 +317,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			}
 
 			if (handler == null) {
-				handler = (CallStateHandler) request.getApplicationSession().getAttribute(
-						CallStateHandler.CALL_STATE_HANDLER);
+				handler = (CallStateHandler) request.getApplicationSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 			}
 
 			if (handler == null) {
@@ -366,6 +359,18 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 						Address originAddress = factory.createAddress(origin);
 						Address destinationAddress = factory.createAddress(destination);
+
+						Address identity = request.getAddressHeader("P-Asserted-Identity");
+						String originKey = TalkBACSipServlet.generateKey(identity);
+						SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
+						String pbx = (String) originAppSession.getAttribute("PBX");
+						logger.info("pbx: " + pbx + ", " + originAppSession.getId().hashCode());
+						if (pbx != null) {
+							String originUser = ((SipURI) originAddress.getURI()).getUser();
+							originAddress = TalkBACSipServlet.factory.createAddress("<sip:" + originUser + "@" + pbx+">");
+							String destinationUser = ((SipURI) destinationAddress.getURI()).getUser();
+							destinationAddress = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + pbx+">");
+						}
 
 						switch (cf) {
 						case 1:
@@ -479,8 +484,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	@Override
 	protected void doResponse(SipServletResponse response) throws ServletException, IOException {
-		CallStateHandler handler = (CallStateHandler) response.getSession().getAttribute(
-				CallStateHandler.CALL_STATE_HANDLER);
+		CallStateHandler handler = (CallStateHandler) response.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 
 		try {
 			if (handler != null) {

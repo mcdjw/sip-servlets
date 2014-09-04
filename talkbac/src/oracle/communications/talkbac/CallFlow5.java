@@ -93,22 +93,6 @@ public class CallFlow5 extends CallStateHandler {
 				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, UPDATE, MESSAGE, PUBLISH");
 			}
 
-			Address identity = request.getAddressHeader("P-Asserted-Identity");
-			String originKey = TalkBACSipServlet.generateKey(identity);
-			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
-			String pbx = (String) originAppSession.getAttribute("PBX");
-			System.out.println("pbx: " + pbx + ", " + originAppSession.getId().hashCode());
-			if (pbx != null) {
-
-				String originUser = ((SipURI) origin.getURI()).getUser();
-				SipURI originUri = (SipURI) TalkBACSipServlet.factory.createURI("sip:" + originUser + "@" + pbx);
-				originRequest.pushRoute(originUri);
-
-				String destinationUser = ((SipURI) destination.getURI()).getUser();
-				SipURI destinationURI = (SipURI) TalkBACSipServlet.factory.createURI("sip:" + destinationUser + "@" + pbx);
-				destinationRequest.pushRoute(destinationURI);
-			}
-
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 
