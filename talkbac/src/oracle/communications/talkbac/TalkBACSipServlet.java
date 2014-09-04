@@ -443,17 +443,19 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 					break;
 				case ACK:
-				case CANCEL:
+					//do nothing;
+					
+				case UPDATE:
 				case OPTIONS:
+				case INFO:
+				case NOTIFY:
+				case CANCEL:
 				case PRACK:
 				case SUBSCRIBE:
-				case NOTIFY:
 				case PUBLISH:
-				case INFO:
 				case REFER:
-				case UPDATE:
 				default:
-					// do nothing;
+					request.createResponse(200).send();
 					break;
 				}
 			}
