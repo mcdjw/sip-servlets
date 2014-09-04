@@ -80,7 +80,7 @@ public class CallFlow1 extends CallStateHandler {
 			SipApplicationSession originAppSession = TalkBACSipServlet.util
 					.getApplicationSessionByKey(originKey, false);
 			String pbx = (String) originAppSession.getAttribute("PBX");
-			System.out.println("CallFlow4 pbx: " + pbx + ", " + originAppSession.getId().hashCode());
+			System.out.println("pbx: " + pbx + ", " + originAppSession.getId().hashCode());
 			if (pbx != null) {
 
 				String originUser = ((SipURI) origin.getURI()).getUser();

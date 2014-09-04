@@ -97,7 +97,9 @@ public class CallFlow5 extends CallStateHandler {
 			String originKey = TalkBACSipServlet.generateKey(identity);
 			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
 			String pbx = (String) originAppSession.getAttribute("PBX");
+			System.out.println("pbx: " + pbx + ", " + originAppSession.getId().hashCode());
 			if (pbx != null) {
+
 				String originUser = ((SipURI) origin.getURI()).getUser();
 				SipURI originUri = (SipURI) TalkBACSipServlet.factory.createURI("sip:" + originUser + "@" + pbx);
 				originRequest.pushRoute(originUri);
@@ -169,7 +171,8 @@ public class CallFlow5 extends CallStateHandler {
 				request.getApplicationSession().removeAttribute(CALL_STATE_HANDLER);
 
 				originInviteRequest = request;
-				//destinationRequest = destinationRequest.getSession().createRequest("INVITE");
+				// destinationRequest =
+				// destinationRequest.getSession().createRequest("INVITE");
 				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
 				this.printOutboundMessage(destinationRequest);
