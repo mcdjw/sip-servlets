@@ -1,3 +1,24 @@
+/*
+ * DTMF Relay w/Unsolicited Notify
+ * RFC 2833 encoded payload
+ *
+ *             A                 Controller                  B
+ *             | Established RTP      |                      |
+ *             |.............................................|
+ *             |                      | NOTIFY (begin)       |
+ *             |                      |--------------------->|
+ *             |                      | 200 OK               |
+ *             |                      |<---------------------|
+ *             |                      | NOTIFY (end)         |
+ *             |                      |--------------------->|
+ *             |                      | 200 OK               |
+ *             |                      |<---------------------|
+ *             |           (repeat until finished)           |
+ *             |.............................................|
+ *
+ */
+
+
 package oracle.communications.talkbac;
 
 import java.nio.ByteBuffer;

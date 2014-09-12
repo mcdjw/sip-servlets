@@ -1,8 +1,8 @@
 /*
- * Jeff's 'Ringing' Callflow
+ * Ringback Tone during Blind Transfer
  *
  *             A                 Controller                  B
- *             |(1) INVITE w/o SDP    |                      |
+ *             |(1) INVITE w/SDP      |                      |
  *             |<---------------------|                      |
  *             |(2) 200 OK            |                      |
  *             |--------------------->|                      |
@@ -96,7 +96,7 @@ public class CallFlow5 extends CallStateHandler {
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 
-			originRequest.setContent(blackhole, "application/sdp");
+			originRequest.setContent(blackhole3, "application/sdp");
 			originRequest.send();
 			this.printOutboundMessage(originRequest);
 
@@ -121,6 +121,8 @@ public class CallFlow5 extends CallStateHandler {
 				Address self = (Address) TalkBACSipServlet.talkBACAddress.clone();
 				self.getURI().setParameter("rqst", requestId);
 				refer.setAddressHeader("Refer-To", self);
+				// refer.setAddressHeader("Refer-To", destination);
+
 				// refer.addHeader("Supported", "norefsub");
 				// refer.addHeader("Require", "norefsub");
 				refer.send();
@@ -229,4 +231,7 @@ public class CallFlow5 extends CallStateHandler {
 			+ "a=fmtp:109 useinbandfec=1\n" + "a=rtpmap:9 G722/8000\n" + "a=rtpmap:0 PCMU/8000\n" + "a=rtpmap:8 PCMA/8000\n"
 			+ "a=rtpmap:101 telephone-event/8000\n" + "a=fmtp:101 0-16\n";
 
+	static final String blackhole3 = "" + "v=0\n" + "o=- 15474517 1 IN IP4 127.0.0.1\n" + "s=cpc_med\n" + "c=IN IP4 0.0.0.0\n" + "t=0 0\n"
+			+ "m=audio 23348 RTP/AVP 0\n" + "a=rtpmap:0 pcmu/8000\n" + "a=sendrecv \n";
+	
 }
