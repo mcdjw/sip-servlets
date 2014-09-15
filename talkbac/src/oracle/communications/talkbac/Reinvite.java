@@ -21,6 +21,7 @@
 
 package oracle.communications.talkbac;
 
+import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -33,7 +34,7 @@ public class Reinvite extends CallStateHandler {
 	
 	
 	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
+	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		
 		int status = (null != response) ? response.getStatus() : 0;
 

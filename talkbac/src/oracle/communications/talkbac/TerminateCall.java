@@ -3,6 +3,7 @@ package oracle.communications.talkbac;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -18,7 +19,7 @@ public class TerminateCall extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
+	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 
 		if (request != null) { // BYE REQUEST
 
@@ -76,6 +77,9 @@ public class TerminateCall extends CallStateHandler {
 
 			}
 		} else {
+			
+			//Does this code even work?
+			
 			response.getSession().invalidate();
 			boolean invalidate = true;
 			SipSession ss;

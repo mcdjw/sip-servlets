@@ -27,6 +27,7 @@
 package oracle.communications.talkbac;
 
 import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -40,7 +41,7 @@ public class Transfer extends CallStateHandler {
 	SipServletResponse transferResponse;
 
 	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
+	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 
 		int status = (null != response) ? response.getStatus() : 0;
 

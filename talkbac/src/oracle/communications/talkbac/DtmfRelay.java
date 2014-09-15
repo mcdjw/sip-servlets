@@ -23,6 +23,7 @@ package oracle.communications.talkbac;
 
 import java.nio.ByteBuffer;
 
+import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -38,7 +39,7 @@ public class DtmfRelay extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
+	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		SipApplicationSession appSession = null;
 		SipSession sipSession = null;
 		SipServletRequest digitRequest = null;

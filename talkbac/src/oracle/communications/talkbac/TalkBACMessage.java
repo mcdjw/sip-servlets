@@ -26,11 +26,10 @@ public class TalkBACMessage {
 	public SipServletRequest message;
 
 	public TalkBACMessage(SipApplicationSession appSession, String event) {
+		String requestId = (String) appSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectNode = objectMapper.createObjectNode();
-
-		String requestId = (String) appSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
 
 		setParameter("request_id", requestId);
 		setParameter("event", event);
@@ -83,12 +82,11 @@ public class TalkBACMessage {
 
 		if (message instanceof SipServletRequest) {
 			SipServletRequest rqst = (SipServletRequest) message;
-			logger.fine("<-- " + this.getClass().getSimpleName() + " " + rqst.getMethod() + " " + rqst.getTo());
+			logger.fine(" <== " + this.getClass().getSimpleName() + " " + rqst.getMethod() + " " + rqst.getTo());
 
 		} else {
 			SipServletResponse rspn = (SipServletResponse) message;
-			logger.fine("--> " + this.getClass().getSimpleName() + " " + rspn.getMethod()
-					+ rspn.getReasonPhrase() + rspn.getTo());
+			logger.fine(" <== " + this.getClass().getSimpleName() + " " + rspn.getMethod() + rspn.getReasonPhrase() + rspn.getTo());
 		}
 
 	}

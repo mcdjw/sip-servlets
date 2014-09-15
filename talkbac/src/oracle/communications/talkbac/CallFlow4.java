@@ -33,11 +33,10 @@ package oracle.communications.talkbac;
 import java.util.logging.Logger;
 
 import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.SipURI;
-import javax.servlet.sip.URI;
 
 import weblogic.kernel.KernelLogManager;
 
@@ -62,7 +61,7 @@ public class CallFlow4 extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response) throws Exception {
+	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
 		SipApplicationSession appSession;

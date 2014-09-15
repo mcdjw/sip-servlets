@@ -54,9 +54,9 @@ import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
@@ -66,6 +66,8 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSessionsUtil;
 import javax.servlet.sip.SipURI;
+import javax.servlet.sip.TimerListener;
+import javax.servlet.sip.TimerService;
 import javax.servlet.sip.annotation.SipApplicationKey;
 import javax.servlet.sip.annotation.SipListener;
 
@@ -75,7 +77,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import weblogic.kernel.KernelLogManager;
 
 @SipListener
-public class TalkBACSipServlet extends SipServlet implements SipServletListener {
+public class TalkBACSipServlet extends SipServlet implements SipServletListener, TimerListener {
 	static Logger logger;
 	{
 		logger = Logger.getLogger(TalkBACSipServlet.class.getName());
@@ -148,6 +150,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 	@Resource
 	public static SipSessionsUtil util;
+
+	@Resource
+	public static TimerService timer;
 
 	@SipApplicationKey
 	public static String sessionKey(SipServletRequest request) {
@@ -443,8 +448,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 
 					break;
 				case ACK:
-					//do nothing;
-					
+					// do nothing;
+
 				case UPDATE:
 				case OPTIONS:
 				case INFO:
@@ -466,23 +471,25 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			}
 
 			handler.printInboundMessage(request);
-			handler.processEvent(request, null);
+			handler.processEvent(request, null, null);
 
 		} catch (Exception e) {
-			if (appSession != null) {
+			e.printStackTrace();
+
+			String requestId = (String) appSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
+			if (requestId != null) {
 				msg = new TalkBACMessage(appSession, "exception");
 				msg.setStatus(500, e.getClass().getSimpleName());
 				msg.send();
-
 			}
-			e.printStackTrace();
 
 			try {
 				handler = new TerminateCall();
-				handler.processEvent(request, null);
+				handler.processEvent(request, null, null);
 			} catch (Exception e2) {
-				// do nothing;
+				e2.printStackTrace();
 			}
+
 		}
 
 	}
@@ -494,7 +501,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 		try {
 			if (handler != null) {
 				handler.printInboundMessage(response);
-				handler.processEvent(null, response);
+				handler.processEvent(null, response, null);
 			} else {
 				// logger.fine("--> " + this.getClass().getSimpleName() +
 				// " " + response.getMethod()
@@ -504,12 +511,30 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener 
 			e.printStackTrace();
 			handler = new TerminateCall();
 			try {
-				handler.processEvent(null, response);
+				handler.processEvent(null, response, null);
 			} catch (Exception e1) {
 				// do nothing;
 			}
 		}
 
+	}
+
+	@Override
+	public void timeout(ServletTimer timer) {
+		CallStateHandler handler;
+		try {
+			logger.fine("timeout... ");
+			handler = (CallStateHandler) timer.getInfo();
+			handler.processEvent(null, null, timer);
+		} catch (Exception e) {
+			e.printStackTrace();
+			handler = new TerminateCall();
+			try {
+				handler.processEvent(null, null, timer);
+			} catch (Exception e1) {
+				// do nothing;
+			}
+		}
 	}
 
 }
