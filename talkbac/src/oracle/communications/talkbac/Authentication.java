@@ -22,20 +22,22 @@ public class Authentication extends CallStateHandler {
 
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
-		boolean proxyOn = false;
+		boolean proxyOn = true;
 
 		SipApplicationSession appSession = request.getApplicationSession();
 
+		logger.fine("isInitial: "+request.isInitial());	
 		if (request.isInitial()) {
-
+	
 			String auth = request.getHeader("Authorization");
+			logger.fine("auth: "+auth);
 			if (auth == null) {
 				SipServletResponse authResponse = request.createResponse(401);
 				authResponse.setHeader("WWW-Authenticate",
 						"Digest realm=\"oracle.com\", qop=\"auth\",nonce=\"ea9c8e88df84f1cec4341ae6cbe5a359\",opaque=\"\", stale=FALSE, algorithm=MD5");
 				authResponse.send();
 			} else {
-
+				logger.fine("disableAuth: "+TalkBACSipServlet.disableAuth);
 				if (TalkBACSipServlet.disableAuth != false) {
 
 					// do LDP lookup.
@@ -63,31 +65,24 @@ public class Authentication extends CallStateHandler {
 
 					NamingEnumeration results = TalkBACSipServlet.ldapSearch(ldapCtx, userId, objectSid);
 					if (results.hasMoreElements()) {
-						proxyOn = true;
-
 						SearchResult sr = (SearchResult) results.nextElement();
-
 						logger.fine("TalkBACSipServlet.ldapLocationParameter: " + TalkBACSipServlet.ldapLocationParameter);
-
 						String pbx = (String) sr.getAttributes().get(TalkBACSipServlet.ldapLocationParameter).get();
-
 						logger.fine("Authentication pbx: " + pbx + ", " + appSession.getId().hashCode());
-
 						if (pbx != null) {
 							appSession.setAttribute("PBX", pbx);
 						}
-
 					} else {
+						proxyOn = false;
 						SipServletResponse authResponse = request.createResponse(403);
 						authResponse.send();
 					}
 
 					TalkBACSipServlet.disconnectLdap(ldapCtx, results);
+				} 
 
-				} else {
-					proxyOn = true;
-				}
-
+				
+				logger.fine("proxyOn: "+proxyOn);
 				if (proxyOn) {
 					int expires = request.getExpires();
 					appSession.setExpires(expires);
