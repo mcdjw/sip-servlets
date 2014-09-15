@@ -38,7 +38,7 @@ public class Authentication extends CallStateHandler {
 				authResponse.send();
 			} else {
 				logger.fine("disableAuth: "+TalkBACSipServlet.disableAuth);
-				if (TalkBACSipServlet.disableAuth != false) {
+				if (TalkBACSipServlet.disableAuth == false) {
 
 					// do LDP lookup.
 
