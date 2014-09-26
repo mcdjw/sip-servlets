@@ -102,13 +102,13 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	// private final static String MESSAGE_FROM_URI = "MESSAGE_FROM_URI";
 	// private final static String MESSAGE_TO_URI = "MESSAGE_TO_URI";
 
-	private final static String TPCC_SESSION_ID = "TPCC_SESSION_ID";
+//	private final static String TPCC_SESSION_ID = "TPCC_SESSION_ID";
 	// private final static String DTMF_RELAY = "application/dtmf-relay";
-	private final static String TELEPHONE_EVENT = "audio/telephone-event";
+//	private final static String TELEPHONE_EVENT = "audio/telephone-event";
 	// private final static String DIGITS_TO_DIAL = "DIGITS_TO_DIAL";
 
-	private final static String DIGITS_REMAINING = "DIGITS_REMAINING";
-	private final static String DIGIT_DIALED = "DIGIT_DIALED";
+//	private final static String DIGITS_REMAINING = "DIGITS_REMAINING";
+//	private final static String DIGIT_DIALED = "DIGIT_DIALED";
 	private final static String ORIGIN = "ORIGIN";
 	private final static String DESTINATION = "DESTINATION";
 
@@ -221,7 +221,12 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			}
 			logger.info("defaultCallflow: " + defaultCallflow);
 
-			talkBACAddress = factory.createAddress("<sip:" + servletName + "@" + listenAddress + ">");
+			String appName = System.getProperty("appName");
+			if (appName == null) {
+				talkBACAddress = factory.createAddress("<sip:" + servletName + "@" + listenAddress + ">");
+			} else {
+				talkBACAddress = factory.createAddress("<sip:" + appName + "@" + listenAddress + ">");
+			}
 			logger.info("talkBACAddress: " + talkBACAddress);
 
 			String strDisableAuth = System.getProperty("disableAuth");

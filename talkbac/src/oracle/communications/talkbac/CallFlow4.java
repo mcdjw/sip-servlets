@@ -181,6 +181,11 @@ public class CallFlow4 extends CallStateHandler {
 
 				msg = new TalkBACMessage(response.getApplicationSession(), "call_connected");
 				msg.send();
+
+				// Launch Keep Alive Timer
+				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
+				ka.processEvent(request, response, timer);
+
 			}
 
 			if (status >= 300) {
@@ -198,11 +203,8 @@ public class CallFlow4 extends CallStateHandler {
 			// response.getReasonPhrase()).send();
 
 		}
-			break;
 
-		// case 10: //misc. cleanup
-		// response.getSession().removeAttribute(CALL_STATE_HANDLER);
-		// break;
+			break;
 
 		}
 

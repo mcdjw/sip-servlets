@@ -31,7 +31,7 @@
  *             |<---------------------|                      |
  *             |(11) ACK              |                      |
  *             |--------------------->|                      |
- *             |                      |(11) ACK              |
+ *             |                      |(12) ACK              |
  *             |                      |--------------------->|
  *             |.............................................|
  *
@@ -149,7 +149,7 @@ public class CallFlow5 extends CallStateHandler {
 			Address self = (Address) TalkBACSipServlet.talkBACAddress.clone();
 			self.getURI().setParameter("rqst", requestId);
 			refer.setAddressHeader("Refer-To", self);
-
+			refer.setAddressHeader("Referred-By", self);
 			refer.send();
 			this.printOutboundMessage(refer);
 
@@ -234,6 +234,10 @@ public class CallFlow5 extends CallStateHandler {
 				msg.send();
 
 				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
+				
+				//Launch Keep Alive Timer
+				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
+				ka.processEvent(request, response, timer);	
 			}
 
 			break;

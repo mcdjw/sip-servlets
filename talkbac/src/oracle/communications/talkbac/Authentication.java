@@ -1,3 +1,40 @@
+/*
+ * SUCCESSFUL REGISTRATION
+ *             WSC                     TALKBAC                 LDAP                 REGISTRAR
+ * open socket  |                        |                      |                      |
+ *              | REGISTER               |                      |                      |
+ *              |----------------------->|                      |                      |
+ *              | 401 Unauthorized       |                      |                      |
+ *              |<-----------------------|                      |                      |
+ *              | REGISTER w/credentials |                      |                      |
+ *              |----------------------->|                      |                      |
+ *              |                        | search w/result      |                      |
+ *              |                        |--------------------->|                      |
+ *              |                        | REGISTER             |                      |
+ *              |                        |-------------------------------------------->|
+ *              |                        | 200 OK               |                      |
+ *              |                        |<--------------------------------------------|
+ *              | 200 OK                 |                      |                      |
+ *              |<-----------------------|                      |                      |
+ * open socket  |                        |                      |                      |
+ *
+ * UNSUCCESSFUL REGISTRATION
+ *             WSC                     TALKBAC                 LDAP                 REGISTRAR
+ * open socket  |                        |                      |                      |
+ *              | REGISTER               |                      |                      |
+ *              |----------------------->|                      |                      |
+ *              | 401 Unauthorized       |                      |                      |
+ *              |<-----------------------|                      |                      |
+ *              | REGISTER w/credentials |                      |                      |
+ *              |----------------------->|                      |                      |
+ *              |                        | search w/o result    |                      |
+ *              |                        |--------------------->|                      |
+ *              | 403 Forbidden          |                      |                      |
+ *              |<-----------------------|                      |                      |
+ * close socket |                        |                      |                      |
+ *
+ */
+
 package oracle.communications.talkbac;
 
 import java.util.logging.Logger;
