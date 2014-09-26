@@ -10,7 +10,7 @@ public class KeepAlive extends CallStateHandler {
 
 	SipSession originSession;
 	SipSession destinationSession;
-	
+
 	SipServletResponse originResponse;
 
 	KeepAlive(SipSession originSession, SipSession destinationSession) {
@@ -32,35 +32,35 @@ public class KeepAlive extends CallStateHandler {
 		}
 
 		switch (state) {
-		case 1: //set timer
+		case 1: // set timer
 			state = 2;
-			ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, 15*1000, false, this);			
+			ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
 			break;
-		case 2: //receive timeout
+		case 2: // receive timeout
 			originSession.createRequest("INVITE").send();
-			
+
 			state = 3;
 			originSession.setAttribute(CALL_STATE_HANDLER, this);
 			break;
 		case 3:
-			if(status==200){
+			if (status == 200) {
 				originResponse = response;
-				
+
 				SipServletRequest dstRqst = destinationSession.createRequest("INVITE");
 				dstRqst.setContent(response.getContent(), response.getContentType());
 				dstRqst.send();
-				
+
 				state = 4;
-				destinationSession.setAttribute(CALL_STATE_HANDLER, this);				
+				destinationSession.setAttribute(CALL_STATE_HANDLER, this);
 			}
 			break;
 		case 4:
-			if(status==200){
+			if (status == 200) {
 				response.createAck().send();
 				SipServletRequest ackRqst = originResponse.createAck();
 				ackRqst.setContent(response.getContent(), response.getContentType());
 				ackRqst.send();
-				
+
 				state = 1;
 				this.processEvent(request, response, timer);
 			}

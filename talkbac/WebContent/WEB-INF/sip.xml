@@ -4,6 +4,11 @@
 	<app-name>talkbac</app-name>
 	<distributable />
 
+ 	<context-param>
+		<javaee:param-name>keepAlive</javaee:param-name>
+		<javaee:param-value>60</javaee:param-value>
+	</context-param>
+ 
  
 	<context-param>
 		<javaee:param-name>outboundProxy</javaee:param-name>

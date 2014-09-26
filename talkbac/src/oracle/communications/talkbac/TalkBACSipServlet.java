@@ -102,13 +102,13 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	// private final static String MESSAGE_FROM_URI = "MESSAGE_FROM_URI";
 	// private final static String MESSAGE_TO_URI = "MESSAGE_TO_URI";
 
-//	private final static String TPCC_SESSION_ID = "TPCC_SESSION_ID";
+	// private final static String TPCC_SESSION_ID = "TPCC_SESSION_ID";
 	// private final static String DTMF_RELAY = "application/dtmf-relay";
-//	private final static String TELEPHONE_EVENT = "audio/telephone-event";
+	// private final static String TELEPHONE_EVENT = "audio/telephone-event";
 	// private final static String DIGITS_TO_DIAL = "DIGITS_TO_DIAL";
 
-//	private final static String DIGITS_REMAINING = "DIGITS_REMAINING";
-//	private final static String DIGIT_DIALED = "DIGIT_DIALED";
+	// private final static String DIGITS_REMAINING = "DIGITS_REMAINING";
+	// private final static String DIGIT_DIALED = "DIGIT_DIALED";
 	private final static String ORIGIN = "ORIGIN";
 	private final static String DESTINATION = "DESTINATION";
 
@@ -136,6 +136,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public static String ldapLocationParameter = null;
 
 	public static Hashtable ldapEnv;
+
+	public static long keepAlive;
 
 	// public static DirContext ldapCtx;
 
@@ -204,6 +206,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			logger.info("listenAddress: " + listenAddress);
 
 			callInfo = "<sip:" + listenAddress + ">;method=\"NOTIFY;Event=telephone-event;Duration=500\"";
+
+			String strKeepAlive = System.getProperty("keepAlive");
+			strKeepAlive = (strKeepAlive != null) ? strKeepAlive : event.getServletContext().getInitParameter("keepAlive");
+			keepAlive = Long.parseLong(strKeepAlive) * 1000;
 
 			String strOutboundProxy = System.getProperty("outboundProxy");
 			strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy : event.getServletContext().getInitParameter("outboundProxy");
