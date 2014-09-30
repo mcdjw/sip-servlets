@@ -44,7 +44,9 @@
 package oracle.communications.talkbac;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Hashtable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
@@ -62,6 +64,7 @@ import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletContextEvent;
 import javax.servlet.sip.SipServletListener;
+import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSessionsUtil;
@@ -134,6 +137,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public static String ldapUserDN = null;
 	public static String ldapFilter = null;
 	public static String ldapLocationParameter = null;
+	public static boolean managedRefer = true;
 
 	public static Hashtable ldapEnv;
 
@@ -156,6 +160,33 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	@Resource
 	public static TimerService timer;
 
+	// Good
+	// @SipApplicationKey
+	// public static String sessionKey(SipServletRequest request) {
+	// String key = null;
+	//
+	// try {
+	// if (request.getMethod().equals("MESSAGE")) {
+	// ObjectMapper objectMapper = new ObjectMapper();
+	// JsonNode rootNode =
+	// objectMapper.readTree(request.getContent().toString());
+	// key = rootNode.path(REQUEST_ID).asText();
+	// }
+	//
+	// else if (request.getMethod().equals("INVITE")) {
+	// key = request.getTo().getURI().getParameter("rqst");
+	// } else if (request.getMethod().equals("REGISTER")) {
+	// key = generateKey(request.getTo());
+	// }
+	//
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	//
+	// logger.fine("sessionKey: " + key);
+	// return key;
+	// }
+
 	@SipApplicationKey
 	public static String sessionKey(SipServletRequest request) {
 		String key = null;
@@ -164,13 +195,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			if (request.getMethod().equals("MESSAGE")) {
 				ObjectMapper objectMapper = new ObjectMapper();
 				JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
-				key = rootNode.path(REQUEST_ID).asText();
-			}
+				// key = rootNode.path(REQUEST_ID).asText();
 
-			else if (request.getMethod().equals("INVITE")) {
-				key = request.getTo().getURI().getParameter("rqst");
+				String origin = rootNode.path("origin").asText();
+				key = ((SipURI) factory.createAddress(origin).getURI()).getUser();
+
+			} else if (request.getMethod().equals("INVITE")) {
+				// key = request.getTo().getURI().getParameter("rqst");
+				key = ((SipURI) request.getFrom().getURI()).getUser();
 			} else if (request.getMethod().equals("REGISTER")) {
 				key = generateKey(request.getTo());
+				// key = ((SipURI)request.getFrom().getURI()).getUser();
 			}
 
 		} catch (Exception e) {
@@ -210,6 +245,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			String strKeepAlive = System.getProperty("keepAlive");
 			strKeepAlive = (strKeepAlive != null) ? strKeepAlive : event.getServletContext().getInitParameter("keepAlive");
 			keepAlive = Long.parseLong(strKeepAlive) * 1000;
+
+			String strManagedRefer = System.getProperty("managedRefer");
+			managedRefer = (strManagedRefer != null) ? Boolean.parseBoolean(strManagedRefer) : true;
 
 			String strOutboundProxy = System.getProperty("outboundProxy");
 			strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy : event.getServletContext().getInitParameter("outboundProxy");
@@ -378,7 +416,11 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 						Address identity = request.getAddressHeader("P-Asserted-Identity");
 						logger.fine("identity: " + identity.toString());
+						// jwm
 						String originKey = TalkBACSipServlet.generateKey(identity);
+						// String originKey = ((SipURI)
+						// identity.getURI()).getUser();
+
 						SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
 						String pbx = (String) originAppSession.getAttribute("PBX");
 						logger.fine("pbx: " + pbx + ", " + originAppSession.getId().hashCode());
@@ -432,8 +474,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					case accept:
 					case reject:
 					default:
+						handler = new NotImplemented();
 						response = request.createResponse(200);
 						response.send();
+						handler.printOutboundMessage(response);
 
 						msg = new TalkBACMessage(request.getApplicationSession(), "request_failed");
 						msg.setStatus(500, "Method Not Implemented");
@@ -450,10 +494,11 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					handler = new Reinvite();
 					break;
 				case BYE:
+					handler = new TerminateCall();
 					response = request.createResponse(200);
 					response.send();
+					handler.printOutboundMessage(response);
 
-					handler = new TerminateCall();
 					msg = new TalkBACMessage(request.getApplicationSession(), "call_completed");
 					msg.send();
 
@@ -471,7 +516,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 				case PUBLISH:
 				case REFER:
 				default:
-					request.createResponse(200).send();
+					handler = new NotImplemented();
+					SipServletResponse ok = request.createResponse(200);
+					ok.send();
+					handler.printOutboundMessage(ok);
 					break;
 				}
 			}
@@ -496,6 +544,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 			try {
 				handler = new TerminateCall();
+				handler.printInboundMessage(request);
 				handler.processEvent(request, null, null);
 			} catch (Exception e2) {
 				e2.printStackTrace();
@@ -522,6 +571,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			e.printStackTrace();
 			handler = new TerminateCall();
 			try {
+				handler.printInboundMessage(response);
 				handler.processEvent(null, response, null);
 			} catch (Exception e1) {
 				// do nothing;

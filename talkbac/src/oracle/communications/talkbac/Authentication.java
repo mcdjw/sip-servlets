@@ -73,6 +73,7 @@ public class Authentication extends CallStateHandler {
 				authResponse.setHeader("WWW-Authenticate",
 						"Digest realm=\"oracle.com\", qop=\"auth\",nonce=\"ea9c8e88df84f1cec4341ae6cbe5a359\",opaque=\"\", stale=FALSE, algorithm=MD5");
 				authResponse.send();
+				this.printOutboundMessage(authResponse);
 			} else {
 				logger.fine("disableAuth: "+TalkBACSipServlet.disableAuth);
 				if (TalkBACSipServlet.disableAuth == false) {
@@ -113,6 +114,7 @@ public class Authentication extends CallStateHandler {
 						proxyOn = false;
 						SipServletResponse authResponse = request.createResponse(403);
 						authResponse.send();
+						this.printOutboundMessage(authResponse);
 					}
 
 					TalkBACSipServlet.disconnectLdap(ldapCtx, results);
@@ -138,6 +140,12 @@ public class Authentication extends CallStateHandler {
 
 		}
 
+//		if(request.getExpires()==0){
+//			appSession.invalidate();
+//			System.out.println("Invalidating Session...");
+//		}
+		
+		
 	}
 
 }

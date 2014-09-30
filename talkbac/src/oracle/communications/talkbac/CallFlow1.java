@@ -76,6 +76,7 @@ public class CallFlow1 extends CallStateHandler {
 			}
 
 			originRequest.send();
+			this.printOutboundMessage(originRequest);
 
 			state = 2;
 			originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
@@ -94,6 +95,7 @@ public class CallFlow1 extends CallStateHandler {
 			if (status == 200) {
 				destinationRequest.setContent(response.getContent(), response.getContentType());
 				destinationRequest.send();
+				this.printOutboundMessage(destinationRequest);
 
 				state = 4;
 				originResponse = response;
@@ -119,10 +121,12 @@ public class CallFlow1 extends CallStateHandler {
 			if (status >= 200 && status < 300) {
 				SipServletRequest destinationAck = response.createAck();
 				destinationAck.send();
+				this.printOutboundMessage(destinationAck);
 
 				SipServletRequest originAck = originResponse.createAck();
 				originAck.setContent(response.getContent(), response.getContentType());
 				originAck.send();
+				this.printOutboundMessage(originAck);
 
 				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
@@ -133,15 +137,16 @@ public class CallFlow1 extends CallStateHandler {
 
 				msg = new TalkBACMessage(response.getApplicationSession(), "call_connected");
 				msg.send();
-				
-				
+
 				// Launch Keep Alive Timer
 				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
 				ka.processEvent(request, response, timer);
 
 			}
 			if (status >= 300) {
-				originResponse.getSession().createRequest("BYE").send();
+				SipServletRequest bye = originResponse.getSession().createRequest("BYE");
+				bye.send();
+				this.printOutboundMessage(bye);
 
 				response.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
@@ -151,8 +156,6 @@ public class CallFlow1 extends CallStateHandler {
 				msg.send();
 			}
 
-			
-			
 			break;
 
 		}

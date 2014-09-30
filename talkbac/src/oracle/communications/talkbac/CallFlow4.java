@@ -87,6 +87,7 @@ public class CallFlow4 extends CallStateHandler {
 
 			originRequest.setContent(blackhole, "application/sdp");
 			originRequest.send();
+			this.printOutboundMessage(originRequest);
 
 			state = 2;
 			originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
@@ -103,8 +104,10 @@ public class CallFlow4 extends CallStateHandler {
 			if (status == 200) {
 				SipServletRequest originAck = response.createAck();
 				originAck.send();
+				this.printOutboundMessage(originAck);
 
 				destinationRequest.send();
+				this.printOutboundMessage(destinationRequest);
 
 				state = 5;
 				originResponse = response;
@@ -136,6 +139,7 @@ public class CallFlow4 extends CallStateHandler {
 				originRequest = originRequest.getSession().createRequest("INVITE");
 				originRequest.setContent(destinationResponse.getContent(), destinationResponse.getContentType());
 				originRequest.send();
+				this.printOutboundMessage(originRequest);
 
 				state = 7;
 				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
@@ -146,7 +150,9 @@ public class CallFlow4 extends CallStateHandler {
 			}
 
 			if (status >= 300) {
-				originResponse.getSession().createRequest("BYE").send();
+				SipServletRequest bye = originResponse.getSession().createRequest("BYE");
+				bye.send();
+				this.printOutboundMessage(bye);
 
 				response.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
@@ -172,9 +178,11 @@ public class CallFlow4 extends CallStateHandler {
 				SipServletRequest destinationAck = destinationResponse.createAck();
 				destinationAck.setContent(originResponse.getContent(), originResponse.getContentType());
 				destinationAck.send();
+				this.printOutboundMessage(destinationAck);
 
 				SipServletRequest originAck = originResponse.createAck();
 				originAck.send();
+				this.printOutboundMessage(originAck);
 
 				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
@@ -189,7 +197,9 @@ public class CallFlow4 extends CallStateHandler {
 			}
 
 			if (status >= 300) {
-				originResponse.getSession().createRequest("BYE").send();
+				SipServletRequest bye = originResponse.getSession().createRequest("BYE");
+				bye.send();
+				this.printOutboundMessage(bye);
 
 				response.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);

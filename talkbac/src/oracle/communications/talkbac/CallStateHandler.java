@@ -43,12 +43,12 @@ public abstract class CallStateHandler implements Serializable {
 			SipServletRequest rqst = (SipServletRequest) message;
 
 			if (logger.isLoggable(Level.FINE)) {
-				logger.fine(" <== " + this.getClass().getSimpleName() + " " + state + " " + rqst.getMethod() + " " + sdp + " " + rqst.getTo());
+				System.out.println("<-- " + this.getClass().getSimpleName() + " " + state + " " + rqst.getMethod() + " " + sdp + " " + rqst.getTo());
 			}
 		} else {
 			SipServletResponse rspn = (SipServletResponse) message;
 			if (logger.isLoggable(Level.FINE)) {
-				logger.fine(" <== " + this.getClass().getSimpleName() + " " + state + " " + rspn.getMethod() + " " + rspn.getStatus() + " "
+				System.out.println("<-- " + this.getClass().getSimpleName() + " " + state + " " + rspn.getMethod() + " " + rspn.getStatus() + " "
 						+ rspn.getReasonPhrase() + " " + sdp + " " + rspn.getTo());
 			}
 		}
@@ -67,12 +67,12 @@ public abstract class CallStateHandler implements Serializable {
 		if (message instanceof SipServletRequest) {
 			SipServletRequest rqst = (SipServletRequest) message;
 			if (logger.isLoggable(Level.FINE)) {
-				logger.fine("--> " + this.getClass().getSimpleName() + " " + state + " " + rqst.getMethod() + " " + sdp + " " + rqst.getTo());
+				System.out.println("--> " + this.getClass().getSimpleName() + " " + state + " " + rqst.getMethod() + " " + sdp + " " + rqst.getTo());
 			}
 		} else {
 			SipServletResponse rspn = (SipServletResponse) message;
 			if (logger.isLoggable(Level.FINE)) {
-				logger.fine("--> " + this.getClass().getSimpleName() + " " + state + " " + rspn.getMethod() + " " + rspn.getStatus() + " "
+				System.out.println("--> " + this.getClass().getSimpleName() + " " + state + " " + rspn.getMethod() + " " + rspn.getStatus() + " "
 						+ rspn.getReasonPhrase() + " " + sdp + " " + rspn.getTo());
 			}
 		}

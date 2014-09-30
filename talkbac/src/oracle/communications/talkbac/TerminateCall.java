@@ -1,5 +1,6 @@
 package oracle.communications.talkbac;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
@@ -22,28 +23,22 @@ public class TerminateCall extends CallStateHandler {
 	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 
 		if (request != null) { // BYE REQUEST
-
 			SipApplicationSession appSession = request.getApplicationSession();
 			SipSession sipSession = request.getSession();
+
+			Collection<ServletTimer> timers = appSession.getTimers();
+			for (ServletTimer t : timers) {
+				t.cancel();
+			}
 
 			Iterator<?> sessions = appSession.getSessions("SIP");
 
 			String user = (String) request.getApplicationSession().getAttribute("USER");
 
-			
 			logger.fine("***TERMINATE***");
-			logger.fine("Request: "
-					+ request.getMethod()
-					+ ", State: "
-					+ sipSession.getState().toString()
-					+ ", Session: "
-					+ sipSession.getId()
-					+ ", Remote Party: "
-					+ sipSession.getRemoteParty().toString()
-					+", User: "+user);
+			logger.fine("Request: " + request.getMethod() + ", State: " + sipSession.getState().toString() + ", Session: " + sipSession.getId()
+					+ ", Remote Party: " + sipSession.getRemoteParty().toString() + ", User: " + user);
 
-			
-			
 			while (sessions.hasNext()) {
 				SipSession ss = (SipSession) sessions.next();
 				logger.info(ss.getId() + " " + ss.getState().toString());
@@ -60,8 +55,10 @@ public class TerminateCall extends CallStateHandler {
 						case EARLY:
 						case CONFIRMED:
 						default:
-							if (false==ss.getRemoteParty().getURI().toString().equals(user)) {
-								ss.createRequest("BYE").send();
+							if (false == ss.getRemoteParty().getURI().toString().equals(user)) {
+								SipServletRequest bye = ss.createRequest("BYE");
+								bye.send();
+								this.printOutboundMessage(bye);
 								ss.setAttribute(CALL_STATE_HANDLER, this);
 								logger.fine("\t sending BYE");
 							}
@@ -77,9 +74,10 @@ public class TerminateCall extends CallStateHandler {
 
 			}
 		} else {
-			
-			//Does this code even work?
-			
+
+			// Does this code even work?
+			// I guess it does.
+
 			response.getSession().invalidate();
 			boolean invalidate = true;
 			SipSession ss;

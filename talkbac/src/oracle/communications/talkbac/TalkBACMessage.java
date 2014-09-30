@@ -2,6 +2,7 @@ package oracle.communications.talkbac;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.sip.Address;
@@ -80,13 +81,15 @@ public class TalkBACMessage {
 
 	public void printOutboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
 
-		if (message instanceof SipServletRequest) {
-			SipServletRequest rqst = (SipServletRequest) message;
-			logger.fine(" <== " + this.getClass().getSimpleName() + " " + rqst.getMethod() + " " + rqst.getTo());
+		if (logger.getLevel() == Level.FINE) {
+			if (message instanceof SipServletRequest) {
+				SipServletRequest rqst = (SipServletRequest) message;
+				System.out.println("<-- " + this.getClass().getSimpleName() + " " + rqst.getMethod() + " " + rqst.getTo());
 
-		} else {
-			SipServletResponse rspn = (SipServletResponse) message;
-			logger.fine(" <== " + this.getClass().getSimpleName() + " " + rspn.getMethod() + rspn.getReasonPhrase() + rspn.getTo());
+			} else {
+				SipServletResponse rspn = (SipServletResponse) message;
+				System.out.println("<-- " + this.getClass().getSimpleName() + " " + rspn.getMethod() + rspn.getReasonPhrase() + rspn.getTo());
+			}
 		}
 
 	}

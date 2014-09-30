@@ -68,6 +68,7 @@ public class DtmfRelay extends CallStateHandler {
 			
 			
 			digitRequest.send();
+			this.printOutboundMessage(digitRequest);
 
 			state = 2;
 			digitRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
@@ -87,6 +88,7 @@ public class DtmfRelay extends CallStateHandler {
 			digitRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			digitRequest.setContent(encodeRFC2833(digit, true, 500), "audio/telephone-event");
 			digitRequest.send();
+			this.printOutboundMessage(digitRequest);
 
 			if (digits.length() > 0) {
 				state = 3;
@@ -112,6 +114,7 @@ public class DtmfRelay extends CallStateHandler {
 			digitRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			digitRequest.setContent(encodeRFC2833(digit, false, 500), "audio/telephone-event");
 			digitRequest.send();
+			this.printOutboundMessage(digitRequest);
 
 			state = 2;
 			digitRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);

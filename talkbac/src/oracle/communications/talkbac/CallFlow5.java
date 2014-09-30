@@ -44,6 +44,7 @@ import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
 
 public class CallFlow5 extends CallStateHandler {
 	private Address origin;
@@ -147,8 +148,19 @@ public class CallFlow5 extends CallStateHandler {
 		case 5: // send REFER
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 			Address self = (Address) TalkBACSipServlet.talkBACAddress.clone();
-			self.getURI().setParameter("rqst", requestId);
-			refer.setAddressHeader("Refer-To", self);
+			//self.getURI().setParameter("rqst", requestId);
+
+			if (TalkBACSipServlet.managedRefer == true) {
+				refer.setAddressHeader("Refer-To", self);
+			} else {
+				//hack for version 8.5 of CUCM.
+				String user = ((SipURI)self.getURI()).getUser();
+				String host = ((SipURI)destination.getURI()).getHost();		
+				Address hackDest = TalkBACSipServlet.factory.createAddress("<sip:" + user + "@" + host + ">");
+				//hackDest.getURI().setParameter("rqst", requestId);
+				refer.setAddressHeader("Refer-To", hackDest);
+			}
+
 			refer.setAddressHeader("Referred-By", self);
 			refer.send();
 			this.printOutboundMessage(refer);
@@ -234,10 +246,10 @@ public class CallFlow5 extends CallStateHandler {
 				msg.send();
 
 				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
-				
-				//Launch Keep Alive Timer
+
+				// Launch Keep Alive Timer
 				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
-				ka.processEvent(request, response, timer);	
+				ka.processEvent(request, response, timer);
 			}
 
 			break;

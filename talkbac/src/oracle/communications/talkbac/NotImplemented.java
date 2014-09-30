@@ -10,7 +10,9 @@ public class NotImplemented extends CallStateHandler {
 	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		if (request.getMethod().equals("ACK") || request.getMethod().equals("PRACK")) {
 		} else {
-			request.createResponse(501).send();
+			SipServletResponse rqst = request.createResponse(501);
+			rqst.send();
+			this.printOutboundMessage(rqst);
 		}
 	}
 
