@@ -13,25 +13,21 @@
  *             |<---------------------|                      |
  *             |(6) 202 Accepted      |                      |
  *             |--------------------->|                      |
- *             | NOTIFY               |                      |
- *             |--------------------->|                      |
- *             | 200 OK               |                      |
+ *             |(7) BYE               |                      |
  *             |<---------------------|                      |
- *             |(7) INVITE w/SDP      |                      |
+ *             |(8) 200 OK            |                      |
  *             |--------------------->|                      |
- *             |                      |(8) INVITE            |
+ *             |(9) INVITE w/SDP      |                      |
+ *             |--------------------->|                      |
+ *             |                      |(10) INVITE           |
  *             |                      |--------------------->|
- *             |                      |(9a) 180 Ringing      |
+ *             |                      |(11) 180 / 200 OK     |
  *             |                      |<---------------------|
- *             |(10a) 180 Ringing     |                      |
+ *             |(12) 180 / 200        |                      |
  *             |<---------------------|                      |
- *             |                      |(9b) 200 OK           |
- *             |                      |<---------------------|
- *             |(10b) 200 OK          |                      |
- *             |<---------------------|                      |
- *             |(11) ACK              |                      |
+ *             |(13) ACK              |                      |
  *             |--------------------->|                      |
- *             |                      |(12) ACK              |
+ *             |                      |(14) ACK              |
  *             |                      |--------------------->|
  *             |.............................................|
  *
@@ -60,7 +56,20 @@ public class CallFlow5 extends CallStateHandler {
 	SipServletRequest originInviteRequest;
 	SipServletResponse originInviteResponse;
 
+	CallFlow5(CallFlow5 that) {
+		this.origin = that.origin;
+		this.destination = that.destination;
+		this.requestId = that.requestId;
+		this.destinationRequest = that.destinationRequest;
+		this.destinationResponse = that.destinationResponse;
+		this.originRequest = that.originRequest;
+		this.originResponse = that.originResponse;
+		this.originInviteRequest = that.originInviteRequest;
+		this.originInviteResponse = that.originInviteResponse;
+	}
+
 	CallFlow5(String requestId, Address origin, Address destination) {
+
 		this.requestId = requestId;
 		this.origin = origin;
 		this.destination = destination;
@@ -95,6 +104,8 @@ public class CallFlow5 extends CallStateHandler {
 
 			msg = new TalkBACMessage(appSession, "call_created");
 			msg.send();
+
+			appSession.setInvalidateWhenReady(false);
 
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
@@ -147,21 +158,20 @@ public class CallFlow5 extends CallStateHandler {
 		case 4: // receive timeout
 		case 5: // send REFER
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
-			Address self = (Address) TalkBACSipServlet.talkBACAddress.clone();
-			//self.getURI().setParameter("rqst", requestId);
 
-			if (TalkBACSipServlet.managedRefer == true) {
-				refer.setAddressHeader("Refer-To", self);
+			Address refer_to;
+			Address referred_by;
+			referred_by = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress
+					+ "?Replaces=" + requestId + ">");
+			if (TalkBACSipServlet.appName != null) {
+				refer_to = TalkBACSipServlet.factory.createAddress("<" + TalkBACSipServlet.appName + "?Replaces=" + requestId + ">");
+
 			} else {
-				//hack for version 8.5 of CUCM.
-				String user = ((SipURI)self.getURI()).getUser();
-				String host = ((SipURI)destination.getURI()).getHost();		
-				Address hackDest = TalkBACSipServlet.factory.createAddress("<sip:" + user + "@" + host + ">");
-				//hackDest.getURI().setParameter("rqst", requestId);
-				refer.setAddressHeader("Refer-To", hackDest);
+				refer_to = referred_by;
 			}
 
-			refer.setAddressHeader("Referred-By", self);
+			refer.setAddressHeader("Refer-To", refer_to);
+			refer.setAddressHeader("Referred-By", referred_by);
 			refer.send();
 			this.printOutboundMessage(refer);
 
@@ -169,34 +179,50 @@ public class CallFlow5 extends CallStateHandler {
 			state = 6;
 			refer.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-			// Prepare for that INVITE
-			state = 7;
-			appSession.setAttribute(CALL_STATE_HANDLER, this);
+			// Prepare for the INVITE
+			CallFlow5 cf5 = new CallFlow5(this);
+			cf5.state = 9;
+			appSession.setAttribute(CALL_STATE_HANDLER, cf5);
 
 			break;
 
 		case 6: // receive 202 Accepted
+		case 7: // send BYE
+			if (response.getStatus() == 202) {
+				appSession.setInvalidateWhenReady(true);
+
+				SipServletRequest bye6 = response.getSession().createRequest("BYE");
+				bye6.send();
+				this.printOutboundMessage(bye6);
+				state = 8;
+				bye6.getSession().setAttribute(CALL_STATE_HANDLER, this);
+			}
+
 			break;
 
-		case 7: // receive INVITE
-		case 8: // send INVITE
+		case 8: // receive 200 OK (BYE)
+			// response.getSession().removeAttribute(CALL_STATE_HANDLER);
+			break;
+
+		case 9: // receive INVITE
+		case 10: // send INVITE
 
 			if (request != null && request.getMethod().equals("INVITE")) {
-				request.getApplicationSession().removeAttribute(CALL_STATE_HANDLER);
+				appSession.removeAttribute(CALL_STATE_HANDLER);
 
 				originInviteRequest = request;
 				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
 				printOutboundMessage(destinationRequest);
 
-				state = 9;
+				state = 11;
 				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 			}
 
 			break;
 
-		case 9: // receive 180 / 183 / 200
-		case 10: // send 180 / 183 / 200
+		case 11: // receive 180 / 183 / 200
+		case 12: // send 180 / 183 / 200
 
 			if (response != null) {
 				originInviteResponse = originInviteRequest.createResponse(response.getStatus());
@@ -205,9 +231,10 @@ public class CallFlow5 extends CallStateHandler {
 				this.printOutboundMessage(originInviteResponse);
 
 				if (status == 200) {
+					System.out.println("***Setting Destination Response*****");
 					destinationResponse = response;
 
-					state = 11;
+					state = 13;
 					originInviteResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 					msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
@@ -233,8 +260,8 @@ public class CallFlow5 extends CallStateHandler {
 
 			break;
 
-		case 11:
-		case 12:
+		case 13: // Receive ACK
+		case 14: // Send ACK
 
 			if (request != null && request.getMethod().equals("ACK")) {
 				destinationRequest = destinationResponse.createAck();

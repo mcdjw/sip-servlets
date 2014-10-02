@@ -10,6 +10,7 @@ import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
 
 import weblogic.kernel.KernelLogManager;
 
@@ -43,13 +44,14 @@ public abstract class CallStateHandler implements Serializable {
 			SipServletRequest rqst = (SipServletRequest) message;
 
 			if (logger.isLoggable(Level.FINE)) {
-				System.out.println("<-- " + this.getClass().getSimpleName() + " " + state + " " + rqst.getMethod() + " " + sdp + " " + rqst.getTo());
+				System.out.println(this.getClass().getSimpleName() + " "+state +" "+ ((SipURI) rqst.getTo().getURI()).getUser() + " <-- " + rqst.getMethod() + " "
+						+ sdp);
 			}
 		} else {
 			SipServletResponse rspn = (SipServletResponse) message;
 			if (logger.isLoggable(Level.FINE)) {
-				System.out.println("<-- " + this.getClass().getSimpleName() + " " + state + " " + rspn.getMethod() + " " + rspn.getStatus() + " "
-						+ rspn.getReasonPhrase() + " " + sdp + " " + rspn.getTo());
+				System.out.println(this.getClass().getSimpleName() + " "+state +" "+ ((SipURI) rspn.getFrom().getURI()).getUser() + " <-- " + rspn.getMethod() + " "
+						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " " + sdp);
 			}
 		}
 
@@ -67,13 +69,14 @@ public abstract class CallStateHandler implements Serializable {
 		if (message instanceof SipServletRequest) {
 			SipServletRequest rqst = (SipServletRequest) message;
 			if (logger.isLoggable(Level.FINE)) {
-				System.out.println("--> " + this.getClass().getSimpleName() + " " + state + " " + rqst.getMethod() + " " + sdp + " " + rqst.getTo());
+				System.out.println(this.getClass().getSimpleName() + " "+state +" "+ ((SipURI) rqst.getFrom().getURI()).getUser() + " --> " + rqst.getMethod() + " "
+						+ sdp);
 			}
 		} else {
 			SipServletResponse rspn = (SipServletResponse) message;
 			if (logger.isLoggable(Level.FINE)) {
-				System.out.println("--> " + this.getClass().getSimpleName() + " " + state + " " + rspn.getMethod() + " " + rspn.getStatus() + " "
-						+ rspn.getReasonPhrase() + " " + sdp + " " + rspn.getTo());
+				System.out.println(this.getClass().getSimpleName() + " "+state +" "+ ((SipURI) rspn.getTo().getURI()).getUser() + " --> " + rspn.getMethod() + " "
+						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " " + sdp);
 			}
 		}
 	}

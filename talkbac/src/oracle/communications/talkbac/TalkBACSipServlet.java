@@ -137,19 +137,11 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public static String ldapUserDN = null;
 	public static String ldapFilter = null;
 	public static String ldapLocationParameter = null;
-	public static boolean managedRefer = true;
 
 	public static Hashtable ldapEnv;
 
 	public static long keepAlive;
-
-	// public static DirContext ldapCtx;
-
-	// public enum DTMF_STYLE {
-	// RFC_2833, RFC_2976
-	// };
-
-	// public static DTMF_STYLE dtmf_style;
+	public static String appName = null;
 
 	@Resource
 	public static SipFactory factory;
@@ -161,32 +153,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public static TimerService timer;
 
 	// Good
-	// @SipApplicationKey
-	// public static String sessionKey(SipServletRequest request) {
-	// String key = null;
-	//
-	// try {
-	// if (request.getMethod().equals("MESSAGE")) {
-	// ObjectMapper objectMapper = new ObjectMapper();
-	// JsonNode rootNode =
-	// objectMapper.readTree(request.getContent().toString());
-	// key = rootNode.path(REQUEST_ID).asText();
-	// }
-	//
-	// else if (request.getMethod().equals("INVITE")) {
-	// key = request.getTo().getURI().getParameter("rqst");
-	// } else if (request.getMethod().equals("REGISTER")) {
-	// key = generateKey(request.getTo());
-	// }
-	//
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	//
-	// logger.fine("sessionKey: " + key);
-	// return key;
-	// }
-
 	@SipApplicationKey
 	public static String sessionKey(SipServletRequest request) {
 		String key = null;
@@ -195,17 +161,14 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			if (request.getMethod().equals("MESSAGE")) {
 				ObjectMapper objectMapper = new ObjectMapper();
 				JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
-				// key = rootNode.path(REQUEST_ID).asText();
+				key = rootNode.path(REQUEST_ID).asText();
+			}
 
-				String origin = rootNode.path("origin").asText();
-				key = ((SipURI) factory.createAddress(origin).getURI()).getUser();
-
-			} else if (request.getMethod().equals("INVITE")) {
+			else if (request.getMethod().equals("INVITE")) {
 				// key = request.getTo().getURI().getParameter("rqst");
-				key = ((SipURI) request.getFrom().getURI()).getUser();
+				key = request.getHeader("Replaces");
 			} else if (request.getMethod().equals("REGISTER")) {
 				key = generateKey(request.getTo());
-				// key = ((SipURI)request.getFrom().getURI()).getUser();
 			}
 
 		} catch (Exception e) {
@@ -215,6 +178,37 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		logger.fine("sessionKey: " + key);
 		return key;
 	}
+
+	// Yuck
+	// @SipApplicationKey
+	// public static String sessionKey(SipServletRequest request) {
+	// String key = null;
+	//
+	// try {
+	// if (request.getMethod().equals("MESSAGE")) {
+	// ObjectMapper objectMapper = new ObjectMapper();
+	// JsonNode rootNode =
+	// objectMapper.readTree(request.getContent().toString());
+	// // key = rootNode.path(REQUEST_ID).asText();
+	//
+	// String origin = rootNode.path("origin").asText();
+	// key = ((SipURI) factory.createAddress(origin).getURI()).getUser();
+	//
+	// } else if (request.getMethod().equals("INVITE")) {
+	// // key = request.getTo().getURI().getParameter("rqst");
+	// key = ((SipURI) request.getFrom().getURI()).getUser();
+	// } else if (request.getMethod().equals("REGISTER")) {
+	// key = generateKey(request.getTo());
+	// // key = ((SipURI)request.getFrom().getURI()).getUser();
+	// }
+	//
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	//
+	// logger.fine("sessionKey: " + key);
+	// return key;
+	// }
 
 	public static String generateKey(Address address) {
 		SipURI uri = (SipURI) address.getURI();
@@ -246,9 +240,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			strKeepAlive = (strKeepAlive != null) ? strKeepAlive : event.getServletContext().getInitParameter("keepAlive");
 			keepAlive = Long.parseLong(strKeepAlive) * 1000;
 
-			String strManagedRefer = System.getProperty("managedRefer");
-			managedRefer = (strManagedRefer != null) ? Boolean.parseBoolean(strManagedRefer) : true;
-
 			String strOutboundProxy = System.getProperty("outboundProxy");
 			strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy : event.getServletContext().getInitParameter("outboundProxy");
 			if (strOutboundProxy != null) {
@@ -265,13 +256,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			}
 			logger.info("defaultCallflow: " + defaultCallflow);
 
-			String appName = System.getProperty("appName");
-			if (appName == null) {
-				talkBACAddress = factory.createAddress("<sip:" + servletName + "@" + listenAddress + ">");
-			} else {
-				talkBACAddress = factory.createAddress("<sip:" + appName + "@" + listenAddress + ">");
-			}
-			logger.info("talkBACAddress: " + talkBACAddress);
+			appName = System.getProperty("appName");
+			appName = (appName != null) ? appName : event.getServletContext().getInitParameter("appName");
 
 			String strDisableAuth = System.getProperty("disableAuth");
 			strDisableAuth = (strDisableAuth != null) ? strDisableAuth : event.getServletContext().getInitParameter("disableAuth");
@@ -345,6 +331,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 	@Override
 	protected void doRequest(SipServletRequest request) throws ServletException, IOException {
+		boolean printed = false;
 		SipServletResponse response;
 		CallStateHandler handler = null;
 		TalkBACMessage msg = null;
@@ -354,7 +341,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		try {
 
 			if (request.getMethod().equals("BYE")) {
+
 				handler = new TerminateCall();
+				handler.printInboundMessage(request);
+				printed = true;
 
 				response = request.createResponse(200);
 				response.send();
@@ -383,7 +373,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					cdr.info(request.getContent().toString().replaceAll("[\n\r]", ""));
 					response = request.createResponse(200);
 					response.send();
-					// handler.printOutboundMessage(response);
 
 					ObjectMapper objectMapper = new ObjectMapper();
 					JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
@@ -416,10 +405,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 						Address identity = request.getAddressHeader("P-Asserted-Identity");
 						logger.fine("identity: " + identity.toString());
-						// jwm
 						String originKey = TalkBACSipServlet.generateKey(identity);
-						// String originKey = ((SipURI)
-						// identity.getURI()).getUser();
 
 						SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originKey, false);
 						String pbx = (String) originAppSession.getAttribute("PBX");
@@ -449,7 +435,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						case 5:
 							handler = new CallFlow5(requestId, originAddress, destinationAddress);
 							break;
-
 						}
 
 						break;
@@ -477,7 +462,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						handler = new NotImplemented();
 						response = request.createResponse(200);
 						response.send();
-						handler.printOutboundMessage(response);
 
 						msg = new TalkBACMessage(request.getApplicationSession(), "request_failed");
 						msg.setStatus(500, "Method Not Implemented");
@@ -488,13 +472,20 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 				case REGISTER:
 					handler = new Authentication();
+					handler.printInboundMessage(request);
+					printed = true;
 					break;
 
 				case INVITE:
 					handler = new Reinvite();
+					handler.printInboundMessage(request);
+					printed = true;
 					break;
 				case BYE:
 					handler = new TerminateCall();
+					handler.printInboundMessage(request);
+					printed = true;
+
 					response = request.createResponse(200);
 					response.send();
 					handler.printOutboundMessage(response);
@@ -504,7 +495,11 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 					break;
 				case ACK:
+					handler = new NotImplemented();
+					handler.printInboundMessage(request);
+					printed = true;
 					// do nothing;
+					break;
 
 				case UPDATE:
 				case OPTIONS:
@@ -517,6 +512,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 				case REFER:
 				default:
 					handler = new NotImplemented();
+					handler.printInboundMessage(request);
+					printed = true;
+
 					SipServletResponse ok = request.createResponse(200);
 					ok.send();
 					handler.printOutboundMessage(ok);
@@ -529,7 +527,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 				handler = new NotImplemented();
 			}
 
-			handler.printInboundMessage(request);
+			if (printed == false) {
+				handler.printInboundMessage(request);
+			}
 			handler.processEvent(request, null, null);
 
 		} catch (Exception e) {
@@ -544,7 +544,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 			try {
 				handler = new TerminateCall();
-				handler.printInboundMessage(request);
+				if (printed == false) {
+					handler.printInboundMessage(request);
+				}
 				handler.processEvent(request, null, null);
 			} catch (Exception e2) {
 				e2.printStackTrace();
