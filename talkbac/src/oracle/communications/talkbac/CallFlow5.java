@@ -184,7 +184,6 @@ public class CallFlow5 extends CallStateHandler {
 			refer.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 			// Prepare for that INVITE
-			// Prepare for the INVITE
 			CallFlow5 cf5 = new CallFlow5(this);
 			cf5.state = 7;
 			appSession.setAttribute(CALL_STATE_HANDLER, cf5);
@@ -192,8 +191,6 @@ public class CallFlow5 extends CallStateHandler {
 			break;
 
 		case 6: // receive 202 Accepted
-			break;
-
 		case 7: // receive INVITE
 		case 8: // send INVITE
 
