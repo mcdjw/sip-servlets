@@ -155,6 +155,11 @@ public class CallFlow5 extends CallStateHandler {
 			} else {
 				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress
 						+ "?Request-ID=" + requestId + ">");
+				
+				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress
+						+ "?Replaces="+originResponse.getCallId()+";to-tag="+originResponse.getTo().getParameter("tag")+";from-tag="+originResponse.getFrom().getParameter("tag") +">") ;
+//								+ "DD713380-339C11CC-80BCF308-92BA812C@172.16.195.77;to-tag=A5438-23E4;from-tag=C9122EDB-2408"+">");				
+				
 				// refer_to = TalkBACSipServlet.factory.createAddress("<sip:" +
 				// TalkBACSipServlet.servletName + "@" +
 				// TalkBACSipServlet.listenAddress + ">");
