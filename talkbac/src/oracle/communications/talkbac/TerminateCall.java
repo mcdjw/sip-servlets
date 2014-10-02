@@ -51,10 +51,15 @@ public class TerminateCall extends CallStateHandler {
 					if (ss.isValid() && false == ss.getId().equals(request.getSession().getId())) {
 						switch (ss.getState()) {
 
+						case TERMINATED:
+							// do nothing;
+							break;
+						
 						case INITIAL:
 						case EARLY:
 						case CONFIRMED:
 						default:
+							
 							if (false == ss.getRemoteParty().getURI().toString().equals(user)) {
 								SipServletRequest bye = ss.createRequest("BYE");
 								bye.send();

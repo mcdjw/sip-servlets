@@ -153,33 +153,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public static TimerService timer;
 
 	// Good
-	@SipApplicationKey
-	public static String sessionKey(SipServletRequest request) {
-		String key = null;
-
-		try {
-			if (request.getMethod().equals("MESSAGE")) {
-				ObjectMapper objectMapper = new ObjectMapper();
-				JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
-				key = rootNode.path(REQUEST_ID).asText();
-			}
-
-			else if (request.getMethod().equals("INVITE")) {
-				// key = request.getTo().getURI().getParameter("rqst");
-				key = request.getHeader("Replaces");
-			} else if (request.getMethod().equals("REGISTER")) {
-				key = generateKey(request.getTo());
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		logger.fine("sessionKey: " + key);
-		return key;
-	}
-
-	// Yuck
 	// @SipApplicationKey
 	// public static String sessionKey(SipServletRequest request) {
 	// String key = null;
@@ -189,17 +162,14 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	// ObjectMapper objectMapper = new ObjectMapper();
 	// JsonNode rootNode =
 	// objectMapper.readTree(request.getContent().toString());
-	// // key = rootNode.path(REQUEST_ID).asText();
+	// key = rootNode.path(REQUEST_ID).asText();
+	// }
 	//
-	// String origin = rootNode.path("origin").asText();
-	// key = ((SipURI) factory.createAddress(origin).getURI()).getUser();
-	//
-	// } else if (request.getMethod().equals("INVITE")) {
+	// else if (request.getMethod().equals("INVITE")) {
 	// // key = request.getTo().getURI().getParameter("rqst");
-	// key = ((SipURI) request.getFrom().getURI()).getUser();
+	// key = request.getHeader("Replaces");
 	// } else if (request.getMethod().equals("REGISTER")) {
 	// key = generateKey(request.getTo());
-	// // key = ((SipURI)request.getFrom().getURI()).getUser();
 	// }
 	//
 	// } catch (Exception e) {
@@ -209,6 +179,36 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	// logger.fine("sessionKey: " + key);
 	// return key;
 	// }
+
+	// Yuck1
+	@SipApplicationKey
+	public static String sessionKey(SipServletRequest request) {
+		String key = null;
+
+		try {
+			if (request.getMethod().equals("MESSAGE")) {
+				ObjectMapper objectMapper = new ObjectMapper();
+				JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
+				// key = rootNode.path(REQUEST_ID).asText();
+
+				String origin = rootNode.path("origin").asText();
+				key = ((SipURI) factory.createAddress(origin).getURI()).getUser();
+
+			} else if (request.getMethod().equals("INVITE")) {
+				// key = request.getTo().getURI().getParameter("rqst");
+				key = ((SipURI) request.getFrom().getURI()).getUser();
+			} else if (request.getMethod().equals("REGISTER")) {
+				key = generateKey(request.getTo());
+				// key = ((SipURI)request.getFrom().getURI()).getUser();
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		logger.fine("sessionKey: " + key);
+		return key;
+	}
 
 	public static String generateKey(Address address) {
 		SipURI uri = (SipURI) address.getURI();
@@ -342,17 +342,24 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 			if (request.getMethod().equals("BYE")) {
 
-				handler = new TerminateCall();
-				handler.printInboundMessage(request);
-				printed = true;
+				String ignore_bye = (String) appSession.getAttribute("IGNORE_BYE");
+				System.out.println("ignore_bye=" + ignore_bye + ", call_id=" + request.getCallId());
+				if (ignore_bye != null && ignore_bye.equals(request.getCallId())) {
+					// do nothing;
+					handler = new GenericResponse();
+				} else {
+					handler = new TerminateCall();
+					handler.printInboundMessage(request);
+					printed = true;
 
-				response = request.createResponse(200);
-				response.send();
-				handler.printOutboundMessage(response);
+					response = request.createResponse(200);
+					response.send();
+					handler.printOutboundMessage(response);
 
-				msg = new TalkBACMessage(request.getApplicationSession(), "call_completed");
-				msg.send();
-				// handler.printOutboundMessage(msg);
+					msg = new TalkBACMessage(request.getApplicationSession(), "call_completed");
+					msg.send();
+					// handler.printOutboundMessage(msg);
+				}
 
 			}
 

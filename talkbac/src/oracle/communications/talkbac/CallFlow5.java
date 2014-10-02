@@ -124,6 +124,7 @@ public class CallFlow5 extends CallStateHandler {
 
 			if (status >= 200 && status < 300) {
 				originResponse = response;
+				appSession.setAttribute("IGNORE_BYE", originResponse.getCallId());
 
 				SipServletRequest originAck = response.createAck();
 				originAck.send();
@@ -148,6 +149,9 @@ public class CallFlow5 extends CallStateHandler {
 
 		case 4: // receive timeout
 		case 5: // send REFER
+//			originResponse = response;
+
+			
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 			Address refer_to;
 			Address referred_by;
@@ -159,10 +163,24 @@ public class CallFlow5 extends CallStateHandler {
 //						+ "?Request-ID=" + requestId + ">");
 
 				
+//				String strURL = "sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress;
+//				String strReplaces = "Replaces=" + originResponse.getCallId() + ";to-tag=" + originResponse.getTo().getParameter("tag") + ";from-tag="
+//						+ originResponse.getFrom().getParameter("tag");
+//				refer_to = TalkBACSipServlet.factory.createAddress("<"+strURL+"?"+URLParamEncoder.encode(strReplaces)+">");
+				
+				
+//				String strURL = "sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress;
+//				String strReplaces = "Replaces=" + requestId + ";to-tag=" + originResponse.getTo().getParameter("tag") + ";from-tag="
+//						+ originResponse.getFrom().getParameter("tag");
+//				refer_to = TalkBACSipServlet.factory.createAddress("<"+strURL+"?"+URLParamEncoder.encode(strReplaces)+">");
+
 				String strURL = "sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress;
-				String strReplaces = "Replaces=" + originResponse.getCallId() + ";to-tag=" + originResponse.getTo().getParameter("tag") + ";from-tag="
-						+ originResponse.getFrom().getParameter("tag");
-				refer_to = TalkBACSipServlet.factory.createAddress("<"+strURL+"?"+URLParamEncoder.encode(strReplaces)+">");
+//				String strReplaces = "Replaces=" + requestId + ";to-tag=" + originResponse.getTo().getParameter("tag") + ";from-tag="
+//						+ originResponse.getFrom().getParameter("tag");
+				refer_to = TalkBACSipServlet.factory.createAddress("<"+strURL+">");
+				
+				
+				
 				// +
 				// "DD713380-339C11CC-80BCF308-92BA812C@172.16.195.77;to-tag=A5438-23E4;from-tag=C9122EDB-2408"+">");
 
@@ -176,7 +194,6 @@ public class CallFlow5 extends CallStateHandler {
 			refer.send();
 			this.printOutboundMessage(refer);
 
-			originResponse = response;
 			state = 6;
 			refer.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
