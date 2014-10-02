@@ -343,7 +343,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			if (request.getMethod().equals("BYE")) {
 
 				String ignore_bye = (String) appSession.getAttribute("IGNORE_BYE");
-				System.out.println("ignore_bye=" + ignore_bye + ", call_id=" + request.getCallId());
 				if (ignore_bye != null && ignore_bye.equals(request.getCallId())) {
 					// do nothing;
 					handler = new GenericResponse();

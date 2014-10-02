@@ -149,44 +149,17 @@ public class CallFlow5 extends CallStateHandler {
 
 		case 4: // receive timeout
 		case 5: // send REFER
-//			originResponse = response;
+			originResponse = response;
 
-			
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 			Address refer_to;
 			Address referred_by;
 			referred_by = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress + ">");
 			if (TalkBACSipServlet.appName != null) {
-				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.appName + "?Replaces=" + requestId + ">");
+				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.appName + ">");
 			} else {
-//				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress
-//						+ "?Request-ID=" + requestId + ">");
-
-				
-//				String strURL = "sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress;
-//				String strReplaces = "Replaces=" + originResponse.getCallId() + ";to-tag=" + originResponse.getTo().getParameter("tag") + ";from-tag="
-//						+ originResponse.getFrom().getParameter("tag");
-//				refer_to = TalkBACSipServlet.factory.createAddress("<"+strURL+"?"+URLParamEncoder.encode(strReplaces)+">");
-				
-				
-//				String strURL = "sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress;
-//				String strReplaces = "Replaces=" + requestId + ";to-tag=" + originResponse.getTo().getParameter("tag") + ";from-tag="
-//						+ originResponse.getFrom().getParameter("tag");
-//				refer_to = TalkBACSipServlet.factory.createAddress("<"+strURL+"?"+URLParamEncoder.encode(strReplaces)+">");
-
 				String strURL = "sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress;
-//				String strReplaces = "Replaces=" + requestId + ";to-tag=" + originResponse.getTo().getParameter("tag") + ";from-tag="
-//						+ originResponse.getFrom().getParameter("tag");
-				refer_to = TalkBACSipServlet.factory.createAddress("<"+strURL+">");
-				
-				
-				
-				// +
-				// "DD713380-339C11CC-80BCF308-92BA812C@172.16.195.77;to-tag=A5438-23E4;from-tag=C9122EDB-2408"+">");
-
-				// refer_to = TalkBACSipServlet.factory.createAddress("<sip:" +
-				// TalkBACSipServlet.servletName + "@" +
-				// TalkBACSipServlet.listenAddress + ">");
+				refer_to = TalkBACSipServlet.factory.createAddress("<" + strURL + ">");
 			}
 
 			refer.setAddressHeader("Refer-To", refer_to);
