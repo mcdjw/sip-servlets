@@ -32,52 +32,48 @@ public abstract class CallStateHandler implements Serializable {
 	public abstract void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception;
 
 	public void printOutboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
-		String sdp;
+		if (logger.isLoggable(Level.FINE)) {
+			String sdp;
 
-		if (message.getContent() != null) {
-			sdp = "w/ SDP";
-		} else {
-			sdp = "w/o SDP";
-		}
-
-		if (message instanceof SipServletRequest) {
-			SipServletRequest rqst = (SipServletRequest) message;
-
-			if (logger.isLoggable(Level.FINE)) {
-				System.out.println(this.getClass().getSimpleName() + " "+state +" "+ ((SipURI) rqst.getTo().getURI()).getUser() + " <-- " + rqst.getMethod() + " "
-						+ sdp);
+			if (message.getContent() != null) {
+				sdp = "w/ SDP";
+			} else {
+				sdp = "w/o SDP";
 			}
-		} else {
-			SipServletResponse rspn = (SipServletResponse) message;
-			if (logger.isLoggable(Level.FINE)) {
-				System.out.println(this.getClass().getSimpleName() + " "+state +" "+ ((SipURI) rspn.getFrom().getURI()).getUser() + " <-- " + rspn.getMethod() + " "
-						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " " + sdp);
+
+			if (message instanceof SipServletRequest) {
+				SipServletRequest rqst = (SipServletRequest) message;
+				System.out.println(this.getClass().getSimpleName() + " " + state + " " + ((SipURI) rqst.getTo().getURI()).getUser() + " <-- "
+						+ rqst.getMethod() + " " + sdp + ", [" + rqst.getCallId().hashCode() + "]");
+			} else {
+				SipServletResponse rspn = (SipServletResponse) message;
+				System.out.println(this.getClass().getSimpleName() + " " + state + " " + ((SipURI) rspn.getFrom().getURI()).getUser() + " <-- "
+						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod() + ") " + sdp + ", [" + rspn.getCallId().hashCode() + "]");
 			}
 		}
-
 	}
 
 	public void printInboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
-		String sdp;
+		if (logger.isLoggable(Level.FINE)) {
 
-		if (message.getContent() != null) {
-			sdp = "w/ SDP";
-		} else {
-			sdp = "w/o SDP";
-		}
+			String sdp;
 
-		if (message instanceof SipServletRequest) {
-			SipServletRequest rqst = (SipServletRequest) message;
-			if (logger.isLoggable(Level.FINE)) {
-				System.out.println(this.getClass().getSimpleName() + " "+state +" "+ ((SipURI) rqst.getFrom().getURI()).getUser() + " --> " + rqst.getMethod() + " "
-						+ sdp);
+			if (message.getContent() != null) {
+				sdp = "w/ SDP";
+			} else {
+				sdp = "w/o SDP";
 			}
-		} else {
-			SipServletResponse rspn = (SipServletResponse) message;
-			if (logger.isLoggable(Level.FINE)) {
-				System.out.println(this.getClass().getSimpleName() + " "+state +" "+ ((SipURI) rspn.getTo().getURI()).getUser() + " --> " + rspn.getMethod() + " "
-						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " " + sdp);
+
+			if (message instanceof SipServletRequest) {
+				SipServletRequest rqst = (SipServletRequest) message;
+				System.out.println(this.getClass().getSimpleName() + " " + state + " " + ((SipURI) rqst.getFrom().getURI()).getUser() + " --> "
+						+ rqst.getMethod() + " " + sdp + ", [" + rqst.getCallId().hashCode() + "]");
+			} else {
+				SipServletResponse rspn = (SipServletResponse) message;
+				System.out.println(this.getClass().getSimpleName() + " " + state + " " + ((SipURI) rspn.getFrom().getURI()).getUser() + " --> "
+						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod() + ") " + sdp + ", [" + rspn.getCallId().hashCode() + "]");
 			}
+
 		}
 	}
 
