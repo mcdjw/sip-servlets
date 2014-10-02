@@ -231,7 +231,6 @@ public class CallFlow5 extends CallStateHandler {
 				this.printOutboundMessage(originInviteResponse);
 
 				if (status == 200) {
-					System.out.println("***Setting Destination Response*****");
 					destinationResponse = response;
 
 					state = 13;
