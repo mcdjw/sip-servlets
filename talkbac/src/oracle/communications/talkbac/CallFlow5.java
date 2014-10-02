@@ -165,10 +165,10 @@ public class CallFlow5 extends CallStateHandler {
 			if (TalkBACSipServlet.appName != null) {
 				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.appName + "?Replaces=" + requestId + ">");
 			} else {
-				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress
-						+ "?Request-ID=" + requestId + ">");
+//				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress
+//						+ "?Request-ID=" + requestId + ">");
 
-//				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress + ">");
+				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress + ">");
 			}
 
 			refer.setAddressHeader("Refer-To", refer_to);
