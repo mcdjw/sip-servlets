@@ -65,6 +65,18 @@ public class CallFlow5 extends CallStateHandler {
 		this.origin = origin;
 		this.destination = destination;
 	}
+	
+	CallFlow5(CallFlow5 that) {
+		this.origin = that.origin;
+		this.destination = that.destination;
+		this.requestId = that.requestId;
+		this.destinationRequest = that.destinationRequest;
+		this.destinationResponse = that.destinationResponse;
+		this.originRequest = that.originRequest;
+		this.originResponse = that.originResponse;
+		this.originInviteRequest = that.originInviteRequest;
+		this.originInviteResponse = that.originInviteResponse;
+	}
 
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
@@ -124,7 +136,8 @@ public class CallFlow5 extends CallStateHandler {
 
 			if (status >= 200 && status < 300) {
 				originResponse = response;
-				appSession.setAttribute("IGNORE_BYE", originResponse.getCallId());
+				// appSession.setAttribute("IGNORE_BYE",
+				// originResponse.getCallId());
 
 				SipServletRequest originAck = response.createAck();
 				originAck.send();
@@ -149,7 +162,7 @@ public class CallFlow5 extends CallStateHandler {
 
 		case 4: // receive timeout
 		case 5: // send REFER
-			originResponse = response;
+			//originResponse = response;
 
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 			Address refer_to;
@@ -171,8 +184,10 @@ public class CallFlow5 extends CallStateHandler {
 			refer.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 			// Prepare for that INVITE
-			state = 7;
-			appSession.setAttribute(CALL_STATE_HANDLER, this);
+			// Prepare for the INVITE
+			CallFlow5 cf5 = new CallFlow5(this);
+			cf5.state = 7;
+			appSession.setAttribute(CALL_STATE_HANDLER, cf5);
 
 			break;
 
@@ -184,6 +199,10 @@ public class CallFlow5 extends CallStateHandler {
 
 			if (request != null && request.getMethod().equals("INVITE")) {
 				request.getApplicationSession().removeAttribute(CALL_STATE_HANDLER);
+
+				if (false == request.getCallId().equals(originResponse.getCallId())) {
+					appSession.setAttribute("IGNORE_BYE", originResponse.getCallId());
+				}
 
 				originInviteRequest = request;
 				destinationRequest.setContent(request.getContent(), request.getContentType());
