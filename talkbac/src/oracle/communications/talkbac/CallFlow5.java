@@ -112,7 +112,7 @@ public class CallFlow5 extends CallStateHandler {
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 			if (TalkBACSipServlet.callInfo != null) {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-				destinationRequest.setHeader("Session-Expires", "30;refresher=uac");
+				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
 				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, MESSAGE, PUBLISH");
 			}
 
