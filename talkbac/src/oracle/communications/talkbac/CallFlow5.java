@@ -313,18 +313,18 @@ public class CallFlow5 extends CallStateHandler {
 			+ "a=sendrecv \n";
 
 	static final String blackhole4 = "" + "v=0\r\n"
-	+ "o=CiscoSystemsCCM-SIP 25674 2 IN IP4 192.168.52.207"
-	+ "s=SIP Call"
-	+ "c=IN IP4 0.0.0.0"
-	+ "b=TIAS:64000"
-	+ "b=AS:64"
-	+ "t=0 0"
-	+ "m=audio 26578 RTP/AVP 0 8 101"
-	+ "a=rtpmap:0 PCMU/8000"
-	+ "a=ptime:20"
-	+ "a=rtpmap:8 PCMA/8000"
-	+ "a=ptime:20"
-	+ "a=rtpmap:101 telephone-event/8000"
-	+ "a=fmtp:101 0-15 ";
+	+ "o=CiscoSystemsCCM-SIP 25674 2 IN IP4 192.168.52.207\r\n"
+	+ "s=SIP Call\r\n"
+	+ "c=IN IP4 0.0.0.0\r\n"
+	+ "b=TIAS:64000\r\n"
+	+ "b=AS:64\r\n"
+	+ "t=0 0\r\n"
+	+ "m=audio 26578 RTP/AVP 0 8 101\r\n"
+	+ "a=rtpmap:0 PCMU/8000\r\n"
+	+ "a=ptime:20\r\n"
+	+ "a=rtpmap:8 PCMA/8000\r\n"
+	+ "a=ptime:20\r\n"
+	+ "a=rtpmap:101 telephone-event/8000\r\n"
+	+ "a=fmtp:101 0-15 \r\n";
 
 }
