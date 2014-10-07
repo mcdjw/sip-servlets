@@ -31,6 +31,8 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
 public class KpmlRelay extends CallStateHandler {
+	SipSession originSession;
+	
 
 	private final String kpmlRequest = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 			+ "<kpml-request xmlns=\"urn:ietf:params:xml:ns:kpml-request\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"urn:ietf:params:xml:ns:kpml-request kpml-request.xsd\" version=\"1.0\">"
@@ -41,6 +43,7 @@ public class KpmlRelay extends CallStateHandler {
 	
 	
 	public void subscribe(SipSession session) throws Exception {
+		originSession = session;
 		SipServletRequest subscribe = session.createRequest("SUBSCRIBE");
 		subscribe.setHeader("Event", "kpml");
 		subscribe.setExpires(7200);
@@ -59,7 +62,17 @@ public class KpmlRelay extends CallStateHandler {
 	@Override
 	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 
-		if (response != null) {
+		if (response != null && response.getMethod().equals("SUBSCRIBE")) {
+			
+			String peerSessionId = (String) response.getSession().getAttribute(PEER_SESSION_ID);
+			SipSession peerSession = response.getApplicationSession().getSipSession(peerSessionId);
+
+			
+			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession);
+			keepAlive.state = 2;
+			keepAlive.processEvent(request, response, timer);
+			
+			
 			// receive 200 ok
 			// do nothing;
 		} else {
