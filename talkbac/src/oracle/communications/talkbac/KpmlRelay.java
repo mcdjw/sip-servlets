@@ -41,7 +41,12 @@ public class KpmlRelay extends CallStateHandler {
 
 	public void subscribe(SipSession session) throws Exception {
 		SipServletRequest subscribe = session.createRequest("SUBSCRIBE");
-		subscribe.setHeader("Event", "kpml");
+//		subscribe.setHeader("Event", "kpml");
+		subscribe.setHeader("Event", "telephone/event");
+		
+		
+		
+		
 		subscribe.setExpires(7200);
 		subscribe.send();
 		this.printOutboundMessage(subscribe);
@@ -84,6 +89,9 @@ public class KpmlRelay extends CallStateHandler {
 				SipSession destSession = appSession.getSipSession(destinationSessionId);
 
 				SipServletRequest destRequest = destSession.createRequest("NOTIFY");
+				destRequest.setHeader("Subscription-State", "active");
+				destRequest.setHeader("Event", "telephone-event;rate=1000");
+				destRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 				destRequest.setContent(request.getContent(), request.getContentType());
 				destRequest.send();
 				this.printOutboundMessage(destRequest);
