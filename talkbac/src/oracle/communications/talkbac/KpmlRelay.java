@@ -42,7 +42,7 @@ public class KpmlRelay extends CallStateHandler {
 	public void subscribe(SipSession session) throws Exception {
 		SipServletRequest subscribe = session.createRequest("SUBSCRIBE");
 //		subscribe.setHeader("Event", "kpml");
-		subscribe.setHeader("Event", "telephone/event");
+		subscribe.setHeader("Event", "telephone-event");
 		
 		
 		
