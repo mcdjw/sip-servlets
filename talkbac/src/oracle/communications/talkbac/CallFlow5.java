@@ -267,6 +267,11 @@ public class CallFlow5 extends CallStateHandler {
 				// Launch Keep Alive Timer
 				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
 				ka.processEvent(request, response, timer);
+				
+				// Subscribe for DTMF
+				KpmlRelay kpmlRelay = new KpmlRelay();
+				kpmlRelay.subscribe(request.getSession());
+				
 			}
 
 			break;
