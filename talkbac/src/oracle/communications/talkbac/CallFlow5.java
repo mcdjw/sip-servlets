@@ -114,12 +114,13 @@ public class CallFlow5 extends CallStateHandler {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
 				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, MESSAGE, PUBLISH");
+				destinationRequest.setHeader("Allow-Events", "kpml, telephone-event");
 			}
 
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 
-			originRequest.setContent(blackhole3, "application/sdp");
+			originRequest.setContent(blackhole4, "application/sdp");
 			originRequest.send();
 			this.printOutboundMessage(originRequest);
 
@@ -267,11 +268,11 @@ public class CallFlow5 extends CallStateHandler {
 				// Launch Keep Alive Timer
 				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
 				ka.processEvent(request, response, timer);
-				
+
 				// Subscribe for DTMF
 				KpmlRelay kpmlRelay = new KpmlRelay();
 				kpmlRelay.subscribe(request.getSession());
-				
+
 			}
 
 			break;
@@ -310,5 +311,20 @@ public class CallFlow5 extends CallStateHandler {
 			+ "m=audio 23348 RTP/AVP 0\n"
 			+ "a=rtpmap:0 pcmu/8000\n"
 			+ "a=sendrecv \n";
+
+	static final String blackhole4 = "" + "v=0\r\n"
+	+ "o=CiscoSystemsCCM-SIP 25674 2 IN IP4 192.168.52.207"
+	+ "s=SIP Call"
+	+ "c=IN IP4 0.0.0.0"
+	+ "b=TIAS:64000"
+	+ "b=AS:64"
+	+ "t=0 0"
+	+ "m=audio 26578 RTP/AVP 0 8 101"
+	+ "a=rtpmap:0 PCMU/8000"
+	+ "a=ptime:20"
+	+ "a=rtpmap:8 PCMA/8000"
+	+ "a=ptime:20"
+	+ "a=rtpmap:101 telephone-event/8000"
+	+ "a=fmtp:101 0-15 ";
 
 }
