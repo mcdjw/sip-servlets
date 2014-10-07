@@ -114,7 +114,9 @@ public class CallFlow5 extends CallStateHandler {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
 				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, MESSAGE, PUBLISH");
-				destinationRequest.setHeader("Allow-Events", "kpml, telephone-event");
+
+				
+//				originRequest.setHeader("Allow-Events", "kpml, telephone-event");
 			}
 
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
