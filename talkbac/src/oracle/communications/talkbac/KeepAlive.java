@@ -25,6 +25,14 @@ public class KeepAlive extends CallStateHandler {
 		SipApplicationSession appSession = null;
 		if (request != null) {
 			appSession = request.getApplicationSession();
+
+			if (request.getMethod().equals("NOTIFY")) {
+				SipServletResponse okNotify = request.createResponse(200);
+				okNotify.send();
+				this.printOutboundMessage(okNotify);
+				return;
+			}
+
 		} else if (response != null) {
 			appSession = response.getApplicationSession();
 		} else if (timer != null) {
