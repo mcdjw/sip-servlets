@@ -272,8 +272,8 @@ public class CallFlow5 extends CallStateHandler {
 				ka.processEvent(request, response, timer);
 
 				// Subscribe for DTMF
-				KpmlRelay kpmlRelay = new KpmlRelay();
-				kpmlRelay.subscribe(request.getSession());
+				// KpmlRelay kpmlRelay = new KpmlRelay();
+				// kpmlRelay.subscribe(request.getSession());
 
 			}
 

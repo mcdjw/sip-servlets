@@ -43,7 +43,7 @@ public class KeepAlive extends CallStateHandler {
 		case 1: // set timer
 			state = 2;
 			ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
-			break;
+		//	break;
 		case 2: // receive timeout
 			SipServletRequest invite = originSession.createRequest("INVITE");
 			invite.send();
