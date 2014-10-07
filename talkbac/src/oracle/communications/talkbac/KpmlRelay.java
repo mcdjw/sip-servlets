@@ -43,7 +43,7 @@ public class KpmlRelay extends CallStateHandler {
 		SipServletRequest subscribe = session.createRequest("SUBSCRIBE");
 		subscribe.setHeader("Event", "kpml");
 		subscribe.setExpires(7200);
-		subscribe.setContent(kpmlRequest, "application/kpml-request+xml");
+		subscribe.setContent(kpmlRequest.getBytes(), "application/kpml-request+xml");
 		
 		
 		subscribe.send();
