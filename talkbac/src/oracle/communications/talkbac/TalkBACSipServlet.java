@@ -44,9 +44,7 @@
 package oracle.communications.talkbac;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Hashtable;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
@@ -64,7 +62,6 @@ import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletContextEvent;
 import javax.servlet.sip.SipServletListener;
-import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSessionsUtil;
@@ -127,7 +124,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 	public static Address talkBACAddress = null;
 
-	private int defaultCallflow = 4;
+	private int defaultCallflow = 5;
 
 	public static boolean disableAuth = false;
 
