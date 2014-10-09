@@ -70,7 +70,7 @@ public abstract class CallStateHandler implements Serializable {
 						+ rqst.getMethod() + " " + sdp + ", [" + rqst.getCallId().hashCode() + "]");
 			} else {
 				SipServletResponse rspn = (SipServletResponse) message;
-				System.out.println(this.getClass().getSimpleName() + " " + state + " " + ((SipURI) rspn.getFrom().getURI()).getUser() + " --> "
+				System.out.println(this.getClass().getSimpleName() + " " + state + " " + ((SipURI) rspn.getTo().getURI()).getUser() + " --> "
 						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod() + ") " + sdp + ", [" + rspn.getCallId().hashCode() + "]");
 			}
 

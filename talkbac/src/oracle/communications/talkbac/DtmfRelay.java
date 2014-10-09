@@ -68,6 +68,7 @@ public class DtmfRelay extends CallStateHandler {
 			digitRequest.setHeader("Subscription-State", "active");
 			digitRequest.setHeader("Event", "telephone-event;rate=1000");
 			digitRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
+			digitRequest.setHeader("Session-Expires", "3600;refresher=uac");
 			digitRequest.setContent(encodeRFC2833(digit, false, 500), "audio/telephone-event");
 			
 			

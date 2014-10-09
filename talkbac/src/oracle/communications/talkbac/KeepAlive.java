@@ -10,7 +10,6 @@ public class KeepAlive extends CallStateHandler {
 
 	SipSession originSession;
 	SipSession destinationSession;
-
 	SipServletResponse originResponse;
 
 	KeepAlive(SipSession originSession, SipSession destinationSession) {

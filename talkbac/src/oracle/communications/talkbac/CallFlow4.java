@@ -79,7 +79,7 @@ public class CallFlow4 extends CallStateHandler {
 			if (TalkBACSipServlet.callInfo != null) {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
-				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, MESSAGE, PUBLISH");
+				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, MESSAGE, PUBLISH");
 			}
 
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());

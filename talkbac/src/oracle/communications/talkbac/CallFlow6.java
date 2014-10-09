@@ -13,21 +13,25 @@
  *             |<---------------------|                      |
  *             |(6) 202 Accepted      |                      |
  *             |--------------------->|                      |
- *             |(7) BYE               |                      |
+ *             | NOTIFY               |                      |
+ *             |--------------------->|                      |
+ *             | 200 OK               |                      |
  *             |<---------------------|                      |
- *             |(8) 200 OK            |                      |
+ *             |(7) INVITE w/SDP      |                      |
  *             |--------------------->|                      |
- *             |(9) INVITE w/SDP      |                      |
- *             |--------------------->|                      |
- *             |                      |(10) INVITE           |
+ *             |                      |(8) INVITE            |
  *             |                      |--------------------->|
- *             |                      |(11) 180 / 200 OK     |
+ *             |                      |(9a) 180 Ringing      |
  *             |                      |<---------------------|
- *             |(12) 180 / 200        |                      |
+ *             |(10a) 180 Ringing     |                      |
  *             |<---------------------|                      |
- *             |(13) ACK              |                      |
+ *             |                      |(9b) 200 OK           |
+ *             |                      |<---------------------|
+ *             |(10b) 200 OK          |                      |
+ *             |<---------------------|                      |
+ *             |(11) ACK              |                      |
  *             |--------------------->|                      |
- *             |                      |(14) ACK              |
+ *             |                      |(12) ACK              |
  *             |                      |--------------------->|
  *             |.............................................|
  *
@@ -53,8 +57,14 @@ public class CallFlow6 extends CallStateHandler {
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
 
-	SipServletRequest originInviteRequest;
-	SipServletResponse originInviteResponse;
+	// SipServletRequest originInviteRequest;
+	// SipServletResponse originInviteResponse;
+
+	CallFlow6(String requestId, Address origin, Address destination) {
+		this.requestId = requestId;
+		this.origin = origin;
+		this.destination = destination;
+	}
 
 	CallFlow6(CallFlow6 that) {
 		this.origin = that.origin;
@@ -64,15 +74,8 @@ public class CallFlow6 extends CallStateHandler {
 		this.destinationResponse = that.destinationResponse;
 		this.originRequest = that.originRequest;
 		this.originResponse = that.originResponse;
-		this.originInviteRequest = that.originInviteRequest;
-		this.originInviteResponse = that.originInviteResponse;
-	}
-
-	CallFlow6(String requestId, Address origin, Address destination) {
-
-		this.requestId = requestId;
-		this.origin = origin;
-		this.destination = destination;
+		// this.originInviteRequest = that.originInviteRequest;
+		// this.originInviteResponse = that.originInviteResponse;
 	}
 
 	@Override
@@ -105,8 +108,6 @@ public class CallFlow6 extends CallStateHandler {
 			msg = new TalkBACMessage(appSession, "call_created");
 			msg.send();
 
-			appSession.setInvalidateWhenReady(false);
-
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 			if (TalkBACSipServlet.callInfo != null) {
@@ -134,6 +135,8 @@ public class CallFlow6 extends CallStateHandler {
 		case 3: // send ack
 
 			if (status >= 200 && status < 300) {
+				originResponse = response;
+
 				SipServletRequest originAck = response.createAck();
 				originAck.send();
 				this.printOutboundMessage(originAck);
@@ -157,18 +160,17 @@ public class CallFlow6 extends CallStateHandler {
 
 		case 4: // receive timeout
 		case 5: // send REFER
-			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
+			// originResponse = response;
 
+			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 			Address refer_to;
 			Address referred_by;
 			referred_by = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress + ">");
 			if (TalkBACSipServlet.appName != null) {
-				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.appName + "?Replaces=" + requestId + ">");
+				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.appName + ">");
 			} else {
-//				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress
-//						+ "?Request-ID=" + requestId + ">");
-
-				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress + ">");
+				String strURL = "sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress;
+				refer_to = TalkBACSipServlet.factory.createAddress("<" + strURL + ">");
 			}
 
 			refer.setAddressHeader("Refer-To", refer_to);
@@ -176,66 +178,67 @@ public class CallFlow6 extends CallStateHandler {
 			refer.send();
 			this.printOutboundMessage(refer);
 
-			originResponse = response;
 			state = 6;
 			refer.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-			// Prepare for the INVITE
-			CallFlow6 cf6 = new CallFlow6(this);
-			cf6.state = 9;
-			appSession.setAttribute(CALL_STATE_HANDLER, cf6);
+			// Prepare for that INVITE
+			CallStateHandler csh = new CallFlow6(this);
+			csh.state = 7;
+			appSession.setAttribute(CALL_STATE_HANDLER, csh);
 
 			break;
 
 		case 6: // receive 202 Accepted
-		case 7: // send BYE
-			if (response.getStatus() == 202) {
-				appSession.setInvalidateWhenReady(true);
-
-				SipServletRequest bye6 = response.getSession().createRequest("BYE");
-				bye6.send();
-				this.printOutboundMessage(bye6);
-				state = 8;
-				bye6.getSession().setAttribute(CALL_STATE_HANDLER, this);
-			}
-
-			break;
-
-		case 8: // receive 200 OK (BYE)
-			// response.getSession().removeAttribute(CALL_STATE_HANDLER);
-			break;
-
-		case 9: // receive INVITE
-		case 10: // send INVITE
+		case 7: // receive INVITE
+		case 8: // send INVITE
 
 			if (request != null && request.getMethod().equals("INVITE")) {
-				appSession.removeAttribute(CALL_STATE_HANDLER);
+				request.getApplicationSession().removeAttribute(CALL_STATE_HANDLER);
 
-				originInviteRequest = request;
+				if (false == request.getCallId().equals(originResponse.getCallId())) {
+					appSession.setAttribute("IGNORE_BYE", originResponse.getCallId());
+				}
+
+				// originInviteRequest = request;
+				originRequest = request;
+
+				appSession.setAttribute(ORIGIN_SESSION_ID, request.getSession().getId());
+				request.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
+				destinationRequest.getSession().setAttribute(PEER_SESSION_ID, request.getSession().getId());
+
 				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
 				printOutboundMessage(destinationRequest);
 
-				state = 11;
+				state = 9;
 				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 			}
 
 			break;
 
-		case 11: // receive 180 / 183 / 200
-		case 12: // send 180 / 183 / 200
+		case 9: // receive 180 / 183 / 200
+		case 10: // send 180 / 183 / 200
 
 			if (response != null) {
-				originInviteResponse = originInviteRequest.createResponse(response.getStatus());
-				originInviteResponse.setContent(response.getContent(), response.getContentType());
-				originInviteResponse.send();
-				this.printOutboundMessage(originInviteResponse);
+				// originInviteResponse =
+				// originInviteRequest.createResponse(response.getStatus());
+				// originInviteResponse.setContent(response.getContent(),
+				// response.getContentType());
+				// originInviteResponse.send();
+				// this.printOutboundMessage(originInviteResponse);
+
+				originResponse = originRequest.createResponse(response.getStatus());
+				originResponse.setContent(response.getContent(), response.getContentType());
+				originResponse.send();
+				this.printOutboundMessage(originResponse);
 
 				if (status == 200) {
 					destinationResponse = response;
 
-					state = 13;
-					originInviteResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
+					state = 11;
+					// originInviteResponse.getSession().setAttribute(CALL_STATE_HANDLER,
+					// this);
+					originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 					msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
 					msg.setStatus(response.getStatus(), response.getReasonPhrase());
@@ -245,7 +248,7 @@ public class CallFlow6 extends CallStateHandler {
 				if (status > 300) {
 
 					SipServletRequest bye = originRequest.getSession().createRequest("BYE");
-					originRequest.send();
+					bye.send();
 					this.printOutboundMessage(bye);
 
 					response.getSession().removeAttribute(CALL_STATE_HANDLER);
@@ -260,8 +263,8 @@ public class CallFlow6 extends CallStateHandler {
 
 			break;
 
-		case 13: // Receive ACK
-		case 14: // Send ACK
+		case 11:
+		case 12:
 
 			if (request != null && request.getMethod().equals("ACK")) {
 				destinationRequest = destinationResponse.createAck();
@@ -274,9 +277,14 @@ public class CallFlow6 extends CallStateHandler {
 
 				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
 
+				
+				KpmlRelay kpmlRelay = new KpmlRelay();
+				kpmlRelay.subscribe(originRequest.getSession());
+								
 				// Launch Keep Alive Timer
 				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
 				ka.processEvent(request, response, timer);
+
 			}
 
 			break;
@@ -286,13 +294,49 @@ public class CallFlow6 extends CallStateHandler {
 	}
 
 	// media line has a range of zero ports "4002/0"
-	static final String blackhole = "" + "v=0\n" + "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n" + "s=cpc_med\n" + "c=IN IP4 192.168.1.202\n" + "t=0 0\n"
-			+ "m=audio 4002/0 RTP/AVP 111 110 109 9 0 8 101" + "a=sendrecv\n" + "a=rtpmap:111 OPUS/48000\n"
-			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n" + "a=rtpmap:110 SILK/24000\n" + "a=fmtp:110 useinbandfec=1\n" + "a=rtpmap:109 SILK/16000\n"
-			+ "a=fmtp:109 useinbandfec=1\n" + "a=rtpmap:9 G722/8000\n" + "a=rtpmap:0 PCMU/8000\n" + "a=rtpmap:8 PCMA/8000\n"
-			+ "a=rtpmap:101 telephone-event/8000\n" + "a=fmtp:101 0-16\n";
+	static final String blackhole = ""
+			+ "v=0\n"
+			+ "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n"
+			+ "s=cpc_med\n"
+			+ "c=IN IP4 192.168.1.202\n"
+			+ "t=0 0\n"
+			+ "m=audio 4002/0 RTP/AVP 111 110 109 9 0 8 101"
+			+ "a=sendrecv\n"
+			+ "a=rtpmap:111 OPUS/48000\n"
+			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
+			+ "a=rtpmap:110 SILK/24000\n"
+			+ "a=fmtp:110 useinbandfec=1\n"
+			+ "a=rtpmap:109 SILK/16000\n"
+			+ "a=fmtp:109 useinbandfec=1\n"
+			+ "a=rtpmap:9 G722/8000\n"
+			+ "a=rtpmap:0 PCMU/8000\n"
+			+ "a=rtpmap:8 PCMA/8000\n"
+			+ "a=rtpmap:101 telephone-event/8000\n"
+			+ "a=fmtp:101 0-16\n";
 
-	static final String blackhole3 = "" + "v=0\n" + "o=- 15474517 1 IN IP4 127.0.0.1\n" + "s=cpc_med\n" + "c=IN IP4 0.0.0.0\n" + "t=0 0\n"
-			+ "m=audio 23348 RTP/AVP 0\n" + "a=rtpmap:0 pcmu/8000\n" + "a=sendrecv \n";
+	static final String blackhole3 = ""
+			+ "v=0\n"
+			+ "o=- 15474517 1 IN IP4 127.0.0.1\n"
+			+ "s=cpc_med\n"
+			+ "c=IN IP4 0.0.0.0\n"
+			+ "t=0 0\n"
+			+ "m=audio 23348 RTP/AVP 0\n"
+			+ "a=rtpmap:0 pcmu/8000\n"
+			+ "a=sendrecv \n";
+
+	static final String blackhole4 = "v=0\r\n"
+			+ "o=CiscoSystemsCCM-SIP 25674 2 IN IP4 192.168.52.207\r\n"
+			+ "s=SIP Call\r\n"
+			+ "c=IN IP4 0.0.0.0\r\n"
+			+ "b=TIAS:64000\r\n"
+			+ "b=AS:64\r\n"
+			+ "t=0 0\r\n"
+			+ "m=audio 26578 RTP/AVP 0 8 101\r\n"
+			+ "a=rtpmap:0 PCMU/8000\r\n"
+			+ "a=ptime:20\r\n"
+			+ "a=rtpmap:8 PCMA/8000\r\n"
+			+ "a=ptime:20\r\n"
+			+ "a=rtpmap:101 telephone-event/8000\r\n"
+			+ "a=fmtp:101 0-15 \r\n";
 
 }

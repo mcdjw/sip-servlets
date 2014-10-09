@@ -75,23 +75,23 @@ public class TalkBACMessage {
 
 		message.setContent(objectNode.toString(), "text/plain");
 		message.send();
-		printOutboundMessage(message);
+//		printOutboundMessage(message);
 
 	}
 
-	public void printOutboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
-
-		if (logger.getLevel() == Level.FINE) {
-			if (message instanceof SipServletRequest) {
-				SipServletRequest rqst = (SipServletRequest) message;
-				System.out.println("<-- " + this.getClass().getSimpleName() + " " + rqst.getMethod() + " " + rqst.getTo());
-
-			} else {
-				SipServletResponse rspn = (SipServletResponse) message;
-				System.out.println("<-- " + this.getClass().getSimpleName() + " " + rspn.getMethod() + rspn.getReasonPhrase() + rspn.getTo());
-			}
-		}
-
-	}
+//	public void printOutboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
+//
+//		if (logger.getLevel() == Level.FINE) {
+//			if (message instanceof SipServletRequest) {
+//				SipServletRequest rqst = (SipServletRequest) message;
+//				System.out.println("<-- " + this.getClass().getSimpleName() + " " + rqst.getMethod() + " " + rqst.getTo());
+//
+//			} else {
+//				SipServletResponse rspn = (SipServletResponse) message;
+//				System.out.println("<-- " + this.getClass().getSimpleName() + " " + rspn.getMethod() + rspn.getReasonPhrase() + rspn.getTo());
+//			}
+//		}
+//
+//	}
 
 }

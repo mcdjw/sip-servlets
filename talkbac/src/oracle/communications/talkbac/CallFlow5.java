@@ -57,8 +57,8 @@ public class CallFlow5 extends CallStateHandler {
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
 
-	SipServletRequest originInviteRequest;
-	SipServletResponse originInviteResponse;
+	// SipServletRequest originInviteRequest;
+	// SipServletResponse originInviteResponse;
 
 	CallFlow5(String requestId, Address origin, Address destination) {
 		this.requestId = requestId;
@@ -74,8 +74,8 @@ public class CallFlow5 extends CallStateHandler {
 		this.destinationResponse = that.destinationResponse;
 		this.originRequest = that.originRequest;
 		this.originResponse = that.originResponse;
-		this.originInviteRequest = that.originInviteRequest;
-		this.originInviteResponse = that.originInviteResponse;
+		// this.originInviteRequest = that.originInviteRequest;
+		// this.originInviteResponse = that.originInviteResponse;
 	}
 
 	@Override
@@ -115,14 +115,14 @@ public class CallFlow5 extends CallStateHandler {
 				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
 				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, MESSAGE, PUBLISH");
 
-				
-//				originRequest.setHeader("Allow-Events", "kpml, telephone-event");
+				// originRequest.setHeader("Allow-Events",
+				// "kpml, telephone-event");
 			}
 
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 
-			originRequest.setContent(blackhole4, "application/sdp");
+			originRequest.setContent(blackhole3, "application/sdp");
 			originRequest.send();
 			this.printOutboundMessage(originRequest);
 
@@ -204,7 +204,22 @@ public class CallFlow5 extends CallStateHandler {
 					appSession.setAttribute("IGNORE_BYE", originResponse.getCallId());
 				}
 
-				originInviteRequest = request;
+				// originInviteRequest = request;
+				originRequest = request;
+
+				appSession.setAttribute(ORIGIN_SESSION_ID, request.getSession().getId());
+				request.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
+				destinationRequest.getSession().setAttribute(PEER_SESSION_ID, request.getSession().getId());
+
+				// appSession.setAttribute(DESTINATION_SESSION_ID,
+				// destinationRequest.getSession().getId());
+				// appSession.setAttribute(ORIGIN_SESSION_ID,
+				// originRequest.getSession().getId());
+				// destinationRequest.getSession().setAttribute(PEER_SESSION_ID,
+				// originRequest.getSession().getId());
+				// originRequest.getSession().setAttribute(PEER_SESSION_ID,
+				// destinationRequest.getSession().getId());
+
 				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
 				printOutboundMessage(destinationRequest);
@@ -219,16 +234,25 @@ public class CallFlow5 extends CallStateHandler {
 		case 10: // send 180 / 183 / 200
 
 			if (response != null) {
-				originInviteResponse = originInviteRequest.createResponse(response.getStatus());
-				originInviteResponse.setContent(response.getContent(), response.getContentType());
-				originInviteResponse.send();
-				this.printOutboundMessage(originInviteResponse);
+				// originInviteResponse =
+				// originInviteRequest.createResponse(response.getStatus());
+				// originInviteResponse.setContent(response.getContent(),
+				// response.getContentType());
+				// originInviteResponse.send();
+				// this.printOutboundMessage(originInviteResponse);
+
+				originResponse = originRequest.createResponse(response.getStatus());
+				originResponse.setContent(response.getContent(), response.getContentType());
+				originResponse.send();
+				this.printOutboundMessage(originResponse);
 
 				if (status == 200) {
 					destinationResponse = response;
 
 					state = 11;
-					originInviteResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
+					// originInviteResponse.getSession().setAttribute(CALL_STATE_HANDLER,
+					// this);
+					originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 					msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
 					msg.setStatus(response.getStatus(), response.getReasonPhrase());
@@ -238,7 +262,7 @@ public class CallFlow5 extends CallStateHandler {
 				if (status > 300) {
 
 					SipServletRequest bye = originRequest.getSession().createRequest("BYE");
-					originRequest.send();
+					bye.send();
 					this.printOutboundMessage(bye);
 
 					response.getSession().removeAttribute(CALL_STATE_HANDLER);
@@ -268,12 +292,10 @@ public class CallFlow5 extends CallStateHandler {
 				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
 
 				// Launch Keep Alive Timer
-				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
+				// KeepAlive ka = new KeepAlive(originRequest.getSession(),
+				// destinationRequest.getSession());
+				KeepAlive ka = new KeepAlive(destinationRequest.getSession(), originRequest.getSession());
 				ka.processEvent(request, response, timer);
-
-				// Subscribe for DTMF
-				// KpmlRelay kpmlRelay = new KpmlRelay();
-				// kpmlRelay.subscribe(request.getSession());
 
 			}
 
@@ -314,19 +336,19 @@ public class CallFlow5 extends CallStateHandler {
 			+ "a=rtpmap:0 pcmu/8000\n"
 			+ "a=sendrecv \n";
 
-	static final String blackhole4 = "" + "v=0\r\n"
-	+ "o=CiscoSystemsCCM-SIP 25674 2 IN IP4 192.168.52.207\r\n"
-	+ "s=SIP Call\r\n"
-	+ "c=IN IP4 0.0.0.0\r\n"
-	+ "b=TIAS:64000\r\n"
-	+ "b=AS:64\r\n"
-	+ "t=0 0\r\n"
-	+ "m=audio 26578 RTP/AVP 0 8 101\r\n"
-	+ "a=rtpmap:0 PCMU/8000\r\n"
-	+ "a=ptime:20\r\n"
-	+ "a=rtpmap:8 PCMA/8000\r\n"
-	+ "a=ptime:20\r\n"
-	+ "a=rtpmap:101 telephone-event/8000\r\n"
-	+ "a=fmtp:101 0-15 \r\n";
+	static final String blackhole4 = "v=0\r\n"
+			+ "o=CiscoSystemsCCM-SIP 25674 2 IN IP4 192.168.52.207\r\n"
+			+ "s=SIP Call\r\n"
+			+ "c=IN IP4 0.0.0.0\r\n"
+			+ "b=TIAS:64000\r\n"
+			+ "b=AS:64\r\n"
+			+ "t=0 0\r\n"
+			+ "m=audio 26578 RTP/AVP 0 8 101\r\n"
+			+ "a=rtpmap:0 PCMU/8000\r\n"
+			+ "a=ptime:20\r\n"
+			+ "a=rtpmap:8 PCMA/8000\r\n"
+			+ "a=ptime:20\r\n"
+			+ "a=rtpmap:101 telephone-event/8000\r\n"
+			+ "a=fmtp:101 0-15 \r\n";
 
 }
