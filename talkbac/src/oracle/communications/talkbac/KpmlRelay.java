@@ -58,17 +58,11 @@ public class KpmlRelay extends CallStateHandler {
 
 		if (response != null && response.getMethod().equals("SUBSCRIBE")) {
 
-			// String peerSessionId = (String)
-			// response.getSession().getAttribute(PEER_SESSION_ID);
-			// SipSession peerSession =
-			// response.getApplicationSession().getSipSession(peerSessionId);
-			// KeepAlive keepAlive = new KeepAlive(response.getSession(),
-			// peerSession);
-			// keepAlive.state = 2;
-			// keepAlive.processEvent(request, response, timer);
+			String peerSessionId = (String) response.getSession().getAttribute(PEER_SESSION_ID);
+			SipSession peerSession = response.getApplicationSession().getSipSession(peerSessionId);
+			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession);
+			keepAlive.processEvent(request, response, timer);
 
-			// receive 200 ok
-			// do nothing;
 		} else {
 			if (request != null && request.getMethod().equals("NOTIFY")) {
 				SipApplicationSession appSession = request.getApplicationSession();

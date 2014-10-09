@@ -277,12 +277,12 @@ public class CallFlow6 extends CallStateHandler {
 
 				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
 
-				// KpmlRelay kpmlRelay = new KpmlRelay();
-				// kpmlRelay.subscribe(originRequest.getSession());
+				KpmlRelay kpmlRelay = new KpmlRelay();
+				kpmlRelay.subscribe(originRequest.getSession());
 
 				// Launch Keep Alive Timer
-				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
-				ka.processEvent(request, response, timer);
+				// KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
+				// ka.processEvent(request, response, timer);
 
 			}
 
