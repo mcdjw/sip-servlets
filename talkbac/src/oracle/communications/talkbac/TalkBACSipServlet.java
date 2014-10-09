@@ -513,6 +513,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					if (event != null && event.equalsIgnoreCase("kpml")) {
 						handler = new KpmlRelay();
 						handler.printInboundMessage(request);
+						printed = true;
 						break;
 					}
 					// passthru

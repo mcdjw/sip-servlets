@@ -75,16 +75,24 @@ public class KpmlRelay extends CallStateHandler {
 
 					String kpmlResponse = request.getContent().toString();
 
+					System.out.println("content: " + kpmlResponse);
+
 					String begin = "digits=\"";
 					String end = "\"";
 
 					int beginIndex = kpmlResponse.indexOf(begin) + begin.length();
+					System.out.println("beginIndex: " + beginIndex);
+
 					int endIndex = kpmlResponse.indexOf(end, beginIndex);
+					System.out.println("endIndex: " + endIndex);
 
 					String digits = kpmlResponse.substring(beginIndex, endIndex);
+					System.out.println("digits: " + digits);
 
-					CallStateHandler handler = new DtmfRelay(digits);
-					handler.processEvent(request, response, timer);
+					if (digits != null && digits.length() > 0) {
+						CallStateHandler handler = new DtmfRelay(digits);
+						handler.processEvent(request, response, timer);
+					}
 				}
 
 				// String destinationSessionId = (String)
