@@ -73,7 +73,7 @@ public class KpmlRelay extends CallStateHandler {
 
 				if (request.getContent() != null) {
 
-					String kpmlResponse = request.getContent().toString();
+					String kpmlResponse = new String((byte[]) request.getContent());
 
 					System.out.println("content: " + kpmlResponse);
 
