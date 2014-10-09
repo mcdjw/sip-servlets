@@ -70,9 +70,14 @@ public class KeepAlive extends CallStateHandler {
 				ackRqst.send();
 				this.printOutboundMessage(ackRqst);
 
+				// Cleanup call handlers.
+				ack.getApplicationSession().removeAttribute(CALL_STATE_HANDLER);
+				ack.getSession().removeAttribute(CALL_STATE_HANDLER);
+				ackRqst.getSession().removeAttribute(CALL_STATE_HANDLER);
+
 				state = 1;
 				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
-				
+
 			}
 			break;
 		}
