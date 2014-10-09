@@ -282,8 +282,8 @@ public class CallFlow6 extends CallStateHandler {
 				kpmlRelay.subscribe(originRequest.getSession());
 								
 				// Launch Keep Alive Timer
-				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
-				ka.processEvent(request, response, timer);
+				// KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
+				// ka.processEvent(request, response, timer);
 
 			}
 
