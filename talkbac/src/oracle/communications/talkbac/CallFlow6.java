@@ -119,7 +119,7 @@ public class CallFlow6 extends CallStateHandler {
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 
-			originRequest.setContent(blackhole3, "application/sdp");
+			originRequest.setContent(blackhole4, "application/sdp");
 			originRequest.send();
 			this.printOutboundMessage(originRequest);
 
