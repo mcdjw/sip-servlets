@@ -32,7 +32,6 @@ import javax.servlet.sip.SipSession;
 
 public class KpmlRelay extends CallStateHandler {
 	SipSession originSession;
-	
 
 	private final String kpmlRequest = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n"
 			+ "<kpml-request xmlns=\"urn:ietf:params:xml:ns:kpml-request\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"urn:ietf:params:xml:ns:kpml-request kpml-request.xsd\" version=\"1.0\">\r\n"
@@ -40,8 +39,7 @@ public class KpmlRelay extends CallStateHandler {
 			+ "<regex tag=\"dtmf\">[x*#ABCD]</regex>\r\n"
 			+ "</pattern>\r\n"
 			+ "</kpml-request>";
-	
-	
+
 	public void subscribe(SipSession session) throws Exception {
 		originSession = session;
 		SipServletRequest subscribe = session.createRequest("SUBSCRIBE");
@@ -59,14 +57,16 @@ public class KpmlRelay extends CallStateHandler {
 	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 
 		if (response != null && response.getMethod().equals("SUBSCRIBE")) {
-			
-//			String peerSessionId = (String) response.getSession().getAttribute(PEER_SESSION_ID);
-//			SipSession peerSession = response.getApplicationSession().getSipSession(peerSessionId);
-//			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession);
-//			keepAlive.state = 2;
-//			keepAlive.processEvent(request, response, timer);
-			
-			
+
+			// String peerSessionId = (String)
+			// response.getSession().getAttribute(PEER_SESSION_ID);
+			// SipSession peerSession =
+			// response.getApplicationSession().getSipSession(peerSessionId);
+			// KeepAlive keepAlive = new KeepAlive(response.getSession(),
+			// peerSession);
+			// keepAlive.state = 2;
+			// keepAlive.processEvent(request, response, timer);
+
 			// receive 200 ok
 			// do nothing;
 		} else {
@@ -77,29 +77,38 @@ public class KpmlRelay extends CallStateHandler {
 				ok.send();
 				this.printOutboundMessage(ok);
 
-				String kpmlResponse = request.getContent().toString();
+				if (request.getContent() != null) {
 
-				String begin = "digits=\"";
-				String end = "\"";
+					String kpmlResponse = request.getContent().toString();
 
-				int beginIndex = kpmlResponse.indexOf(begin) + begin.length();
-				int endIndex = kpmlResponse.indexOf(end, beginIndex);
+					String begin = "digits=\"";
+					String end = "\"";
 
-				String digits = kpmlResponse.substring(beginIndex, endIndex);
+					int beginIndex = kpmlResponse.indexOf(begin) + begin.length();
+					int endIndex = kpmlResponse.indexOf(end, beginIndex);
 
-				CallStateHandler handler = new DtmfRelay(digits);
-				handler.processEvent(request, response, timer);
-				
-//				String destinationSessionId = (String) request.getSession().getAttribute(PEER_SESSION_ID);
-//				SipSession destSession = appSession.getSipSession(destinationSessionId);
-//				SipServletRequest destRequest = destSession.createRequest("NOTIFY");
-//				destRequest.setHeader("Subscription-State", "active");
-//				destRequest.setHeader("Event", "telephone-event;rate=1000");
-//				destRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-//				destRequest.setContent(request.getContent(), request.getContentType());
-//				destRequest.send();
-//				this.printOutboundMessage(destRequest);
-//				destRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
+					String digits = kpmlResponse.substring(beginIndex, endIndex);
+
+					CallStateHandler handler = new DtmfRelay(digits);
+					handler.processEvent(request, response, timer);
+				}
+
+				// String destinationSessionId = (String)
+				// request.getSession().getAttribute(PEER_SESSION_ID);
+				// SipSession destSession =
+				// appSession.getSipSession(destinationSessionId);
+				// SipServletRequest destRequest =
+				// destSession.createRequest("NOTIFY");
+				// destRequest.setHeader("Subscription-State", "active");
+				// destRequest.setHeader("Event", "telephone-event;rate=1000");
+				// destRequest.setHeader("Call-Info",
+				// TalkBACSipServlet.callInfo);
+				// destRequest.setContent(request.getContent(),
+				// request.getContentType());
+				// destRequest.send();
+				// this.printOutboundMessage(destRequest);
+				// destRequest.getSession().setAttribute(CALL_STATE_HANDLER,
+				// this);
 			}
 		}
 	}
