@@ -75,19 +75,12 @@ public class KpmlRelay extends CallStateHandler {
 
 					String kpmlResponse = new String((byte[]) request.getContent());
 
-					System.out.println("content: " + kpmlResponse);
-
 					String begin = "digits=\"";
 					String end = "\"";
 
 					int beginIndex = kpmlResponse.indexOf(begin) + begin.length();
-					System.out.println("beginIndex: " + beginIndex);
-
 					int endIndex = kpmlResponse.indexOf(end, beginIndex);
-					System.out.println("endIndex: " + endIndex);
-
 					String digits = kpmlResponse.substring(beginIndex, endIndex);
-					System.out.println("digits: " + digits);
 
 					if (digits != null && digits.length() > 0) {
 						CallStateHandler handler = new DtmfRelay(digits);
@@ -95,22 +88,6 @@ public class KpmlRelay extends CallStateHandler {
 					}
 				}
 
-				// String destinationSessionId = (String)
-				// request.getSession().getAttribute(PEER_SESSION_ID);
-				// SipSession destSession =
-				// appSession.getSipSession(destinationSessionId);
-				// SipServletRequest destRequest =
-				// destSession.createRequest("NOTIFY");
-				// destRequest.setHeader("Subscription-State", "active");
-				// destRequest.setHeader("Event", "telephone-event;rate=1000");
-				// destRequest.setHeader("Call-Info",
-				// TalkBACSipServlet.callInfo);
-				// destRequest.setContent(request.getContent(),
-				// request.getContentType());
-				// destRequest.send();
-				// this.printOutboundMessage(destRequest);
-				// destRequest.getSession().setAttribute(CALL_STATE_HANDLER,
-				// this);
 			}
 		}
 	}
