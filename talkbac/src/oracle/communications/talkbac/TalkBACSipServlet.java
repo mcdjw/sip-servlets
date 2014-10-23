@@ -117,14 +117,14 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 	public static String callInfo = null;
 
-	public static String strOutboundProxy = null;
-	public static Address outboundProxy = null;
+//	public static String strOutboundProxy = null;
+//	public static Address outboundProxy = null;
 	public static String listenAddress = null;
 	public static String servletName = null;
 
 	public static Address talkBACAddress = null;
 
-	private int defaultCallflow = 5;
+	private int defaultCallflow = 6;
 
 	public static boolean disableAuth = false;
 
@@ -237,14 +237,14 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			strKeepAlive = (strKeepAlive != null) ? strKeepAlive : event.getServletContext().getInitParameter("keepAlive");
 			keepAlive = Long.parseLong(strKeepAlive) * 1000;
 
-			String strOutboundProxy = System.getProperty("outboundProxy");
-			strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy : event.getServletContext().getInitParameter("outboundProxy");
-			if (strOutboundProxy != null) {
-				logger.info("Setting Outbound Proxy: " + strOutboundProxy);
-				outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
-				// ((SipURI) outboundProxy.getURI()).setLrParam(true);
-			}
-			logger.info("outboundProxy: " + outboundProxy);
+//			String strOutboundProxy = System.getProperty("outboundProxy");
+//			strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy : event.getServletContext().getInitParameter("outboundProxy");
+//			if (strOutboundProxy != null) {
+//				logger.info("Setting Outbound Proxy: " + strOutboundProxy);
+//				outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
+//				// ((SipURI) outboundProxy.getURI()).setLrParam(true);
+//			}
+//			logger.info("outboundProxy: " + outboundProxy);
 
 			String strDefaultCallflow = System.getProperty("defaultCallflow");
 			strDefaultCallflow = (strDefaultCallflow != null) ? strDefaultCallflow : event.getServletContext().getInitParameter("defaultCallflow");

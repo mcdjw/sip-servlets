@@ -8,13 +8,6 @@
 		<javaee:param-name>keepAlive</javaee:param-name>
 		<javaee:param-value>60</javaee:param-value>
 	</context-param>
- 
- 
-	<context-param>
-		<javaee:param-name>outboundProxy</javaee:param-name>
-		<javaee:param-value>192.168.52.207:5060</javaee:param-value>
-	</context-param>
-
 
 	<context-param>
 		<javaee:param-name>ldapLocationParameter</javaee:param-name>

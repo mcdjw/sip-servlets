@@ -1,5 +1,29 @@
 package oracle.communications.talkbac;
 
+/*
+ * Keep Alive via SIP reINVITE
+ *
+ *             A                 Controller                  B
+ *             | Established RTP      |                      |
+ *             |.............................................|
+ *             | INVITE               |                      |
+ *             |<---------------------|                      |
+ *             | 200 OK               |                      |
+ *             |--------------------->|                      |
+ *             |                      | INVITE               |
+ *             |                      |--------------------->|
+ *             |                      | 200 OK               |
+ *             |                      |<---------------------|
+ *             | 200 OK               |                      |
+ *             |<---------------------|                      |
+ *             | ACK                  |                      |
+ *             |--------------------->|                      |
+ *             |                      | ACK                  |
+ *             |                      |--------------------->|
+ *             |.............................................|
+ *
+ */
+
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;

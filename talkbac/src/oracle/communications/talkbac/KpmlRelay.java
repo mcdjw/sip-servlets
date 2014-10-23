@@ -1,5 +1,5 @@
 /*
- * DTMF Relay w/Unsolicited Notify
+ * KPML/DTMF Relay w/Unsolicited Notify
  * RFC 2833 encoded payload
  *
  *             A                 Controller                  B
