@@ -37,15 +37,17 @@ public class KeepAlive extends CallStateHandler {
 	}
 
 	Style style;
+	long frequency;
 
 	SipSession originSession;
 	SipSession destinationSession;
 	SipServletResponse originResponse;
 
-	KeepAlive(SipSession originSession, SipSession destinationSession, Style style) {
+	KeepAlive(SipSession originSession, SipSession destinationSession, Style style, long frequency) {
 		this.originSession = originSession;
 		this.destinationSession = destinationSession;
 		this.style = style;
+		this.frequency = frequency;
 	}
 
 	public void startTimer(SipApplicationSession appSession) {
@@ -120,8 +122,10 @@ public class KeepAlive extends CallStateHandler {
 				originSession.removeAttribute(CALL_STATE_HANDLER);
 				destinationSession.removeAttribute(CALL_STATE_HANDLER);
 
-				state = 1;
-				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
+				if (frequency > 0) {
+					state = 1;
+					ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, frequency, false, this);
+				}
 			} else {
 				TerminateCall terminate = new TerminateCall();
 				terminate.processEvent(request, response, timer);

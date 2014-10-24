@@ -313,11 +313,11 @@ public class CallFlow6 extends CallStateHandler {
 				// Launch Keep Alive Timer
 				KeepAlive ka;
 				if (update_supported) {
-					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.UPDATE);
+					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.UPDATE, TalkBACSipServlet.keepAlive);
 				} else if (options_supported) {
-					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.OPTIONS);
+					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.OPTIONS, TalkBACSipServlet.keepAlive);
 				} else {
-					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.INVITE);
+					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.INVITE, TalkBACSipServlet.keepAlive);
 				}
 				// ka.processEvent(request, response, timer);
 				ka.startTimer(appSession);

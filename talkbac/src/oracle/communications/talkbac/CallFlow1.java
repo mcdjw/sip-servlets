@@ -139,7 +139,7 @@ public class CallFlow1 extends CallStateHandler {
 				msg.send();
 
 				// Launch Keep Alive Timer
-				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.UPDATE);
+				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.UPDATE, TalkBACSipServlet.keepAlive);
 				//ka.processEvent(request, response, timer);
 				ka.startTimer(response.getApplicationSession());
 
