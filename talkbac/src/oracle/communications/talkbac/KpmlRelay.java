@@ -60,7 +60,10 @@ public class KpmlRelay extends CallStateHandler {
 
 			String peerSessionId = (String) response.getSession().getAttribute(PEER_SESSION_ID);
 			SipSession peerSession = response.getApplicationSession().getSipSession(peerSessionId);
-			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession, KeepAlive.Style.INVITE, TalkBACSipServlet.keepAlive);
+			
+			
+			//Need to re-negotiate SDPs for audio quality. Not sure why?
+			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession, KeepAlive.Style.INVITE, 0);
 			keepAlive.processEvent(request, response, timer);
 
 		} else {
