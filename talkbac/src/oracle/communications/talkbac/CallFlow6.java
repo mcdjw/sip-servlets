@@ -230,7 +230,6 @@ public class CallFlow6 extends CallStateHandler {
 					appSession.setAttribute("IGNORE_BYE", originResponse.getCallId());
 				}
 
-				// originInviteRequest = request;
 				originRequest = request;
 
 				appSession.setAttribute(ORIGIN_SESSION_ID, request.getSession().getId());
@@ -251,36 +250,30 @@ public class CallFlow6 extends CallStateHandler {
 		case 10: // send 180 / 183 / 200
 
 			if (response != null) {
-				// originInviteResponse =
-				// originInviteRequest.createResponse(response.getStatus());
-				// originInviteResponse.setContent(response.getContent(),
-				// response.getContentType());
-				// originInviteResponse.send();
-				// this.printOutboundMessage(originInviteResponse);
 
-				originResponse = originRequest.createResponse(response.getStatus());
-				originResponse.setContent(response.getContent(), response.getContentType());
-				originResponse.send();
-				this.printOutboundMessage(originResponse);
+				if (status < 300) {
+					originResponse = originRequest.createResponse(response.getStatus());
+					originResponse.setContent(response.getContent(), response.getContentType());
+					originResponse.send();
+					this.printOutboundMessage(originResponse);
 
-				if (status == 200) {
-					destinationResponse = response;
+					if (status == 200) {
+						destinationResponse = response;
 
-					state = 11;
-					// originInviteResponse.getSession().setAttribute(CALL_STATE_HANDLER,
-					// this);
-					originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
+						state = 11;
+						originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-					msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
-					msg.setStatus(response.getStatus(), response.getReasonPhrase());
-					msg.send();
-				}
+						msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
+						msg.setStatus(response.getStatus(), response.getReasonPhrase());
+						msg.send();
+					}
 
-				if (status > 300) {
+				} else {
 
-					SipServletRequest bye = originRequest.getSession().createRequest("BYE");
-					bye.send();
-					this.printOutboundMessage(bye);
+					// SipServletRequest bye =
+					// originRequest.getSession().createRequest("BYE");
+					// bye.send();
+					// this.printOutboundMessage(bye);
 
 					response.getSession().removeAttribute(CALL_STATE_HANDLER);
 					originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
@@ -288,6 +281,10 @@ public class CallFlow6 extends CallStateHandler {
 					msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
 					msg.setStatus(response.getStatus(), response.getReasonPhrase());
 					msg.send();
+
+					TerminateCall terminate = new TerminateCall();
+					terminate.processEvent(request, response, timer);
+
 				}
 
 			}

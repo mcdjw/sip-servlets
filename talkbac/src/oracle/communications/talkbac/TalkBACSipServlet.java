@@ -45,6 +45,8 @@ package oracle.communications.talkbac;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
@@ -58,12 +60,15 @@ import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
+import javax.servlet.sip.SipApplicationSessionEvent;
+import javax.servlet.sip.SipApplicationSessionListener;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletContextEvent;
 import javax.servlet.sip.SipServletListener;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipSessionsUtil;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.TimerListener;
@@ -77,7 +82,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import weblogic.kernel.KernelLogManager;
 
 @SipListener
-public class TalkBACSipServlet extends SipServlet implements SipServletListener, TimerListener {
+public class TalkBACSipServlet extends SipServlet implements SipServletListener, TimerListener, SipApplicationSessionListener {
 	static Logger logger;
 	{
 		logger = Logger.getLogger(TalkBACSipServlet.class.getName());
@@ -117,8 +122,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 	public static String callInfo = null;
 
-//	public static String strOutboundProxy = null;
-//	public static Address outboundProxy = null;
+	// public static String strOutboundProxy = null;
+	// public static Address outboundProxy = null;
 	public static String listenAddress = null;
 	public static String servletName = null;
 
@@ -237,14 +242,15 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			strKeepAlive = (strKeepAlive != null) ? strKeepAlive : event.getServletContext().getInitParameter("keepAlive");
 			keepAlive = Long.parseLong(strKeepAlive) * 1000;
 
-//			String strOutboundProxy = System.getProperty("outboundProxy");
-//			strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy : event.getServletContext().getInitParameter("outboundProxy");
-//			if (strOutboundProxy != null) {
-//				logger.info("Setting Outbound Proxy: " + strOutboundProxy);
-//				outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
-//				// ((SipURI) outboundProxy.getURI()).setLrParam(true);
-//			}
-//			logger.info("outboundProxy: " + outboundProxy);
+			// String strOutboundProxy = System.getProperty("outboundProxy");
+			// strOutboundProxy = (strOutboundProxy != null) ? strOutboundProxy
+			// : event.getServletContext().getInitParameter("outboundProxy");
+			// if (strOutboundProxy != null) {
+			// logger.info("Setting Outbound Proxy: " + strOutboundProxy);
+			// outboundProxy = factory.createAddress("sip:" + strOutboundProxy);
+			// // ((SipURI) outboundProxy.getURI()).setLrParam(true);
+			// }
+			// logger.info("outboundProxy: " + outboundProxy);
 
 			String strDefaultCallflow = System.getProperty("defaultCallflow");
 			strDefaultCallflow = (strDefaultCallflow != null) ? strDefaultCallflow : event.getServletContext().getInitParameter("defaultCallflow");
@@ -440,7 +446,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 							break;
 						case 6:
 							handler = new CallFlow6(requestId, originAddress, destinationAddress);
-							break;							
+							break;
 						}
 
 						break;
@@ -487,6 +493,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					handler.printInboundMessage(request);
 					printed = true;
 					break;
+				case CANCEL:
 				case BYE:
 					handler = new TerminateCall();
 					handler.printInboundMessage(request);
@@ -517,10 +524,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						break;
 					}
 					// passthru
+
 				case UPDATE:
 				case OPTIONS:
 				case INFO:
-				case CANCEL:
 				case PRACK:
 				case SUBSCRIBE:
 				case PUBLISH:
@@ -612,6 +619,35 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			} catch (Exception e1) {
 				// do nothing;
 			}
+		}
+	}
+
+	@Override
+	public void sessionCreated(SipApplicationSessionEvent event) {
+		if (logger.isLoggable(Level.FINE)) {
+			System.out.println("ApplicationSession [" + event.getApplicationSession().toString().hashCode() + "] created.");
+		}
+
+	}
+
+	@Override
+	public void sessionDestroyed(SipApplicationSessionEvent event) {
+		if (logger.isLoggable(Level.FINE)) {
+			System.out.println("ApplicationSession [" + event.getApplicationSession().toString().hashCode() + "] destroyed.");
+		}
+	}
+
+	@Override
+	public void sessionExpired(SipApplicationSessionEvent event) {
+		if (logger.isLoggable(Level.FINE)) {
+			System.out.println("ApplicationSession [" + event.getApplicationSession().toString().hashCode() + "] expired.");
+		}
+	}
+
+	@Override
+	public void sessionReadyToInvalidate(SipApplicationSessionEvent event) {
+		if (logger.isLoggable(Level.FINE)) {
+			System.out.println("ApplicationSession [" + event.getApplicationSession().toString().hashCode() + "] ready to invalidate.");
 		}
 	}
 

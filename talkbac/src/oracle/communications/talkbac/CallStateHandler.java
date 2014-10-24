@@ -44,11 +44,11 @@ public abstract class CallStateHandler implements Serializable {
 			if (message instanceof SipServletRequest) {
 				SipServletRequest rqst = (SipServletRequest) message;
 				System.out.println(this.getClass().getSimpleName() + " " + state + " " + ((SipURI) rqst.getTo().getURI()).getUser() + " <-- "
-						+ rqst.getMethod() + " " + sdp + ", [" + rqst.getCallId().hashCode() + "]");
+						+ rqst.getMethod() + " " + sdp + ", [" + rqst.getApplicationSession().hashCode()+":"+rqst.getSession().hashCode() + "] " + rqst.getSession().getState().toString());
 			} else {
 				SipServletResponse rspn = (SipServletResponse) message;
 				System.out.println(this.getClass().getSimpleName() + " " + state + " " + ((SipURI) rspn.getFrom().getURI()).getUser() + " <-- "
-						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod() + ") " + sdp + ", [" + rspn.getCallId().hashCode() + "]");
+						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod() + ") " + sdp + ", [" + rspn.getApplicationSession().hashCode()+":"+rspn.getSession().hashCode() + "] "+ rspn.getSession().getState().toString());
 			}
 		}
 	}
@@ -67,11 +67,11 @@ public abstract class CallStateHandler implements Serializable {
 			if (message instanceof SipServletRequest) {
 				SipServletRequest rqst = (SipServletRequest) message;
 				System.out.println(this.getClass().getSimpleName() + " " + state + " " + ((SipURI) rqst.getFrom().getURI()).getUser() + " --> "
-						+ rqst.getMethod() + " " + sdp + ", [" + rqst.getCallId().hashCode() + "]");
+						+ rqst.getMethod() + " " + sdp + ", [" + rqst.getApplicationSession().hashCode()+":"+rqst.getSession().hashCode() + "] "+ rqst.getSession().getState().toString());
 			} else {
 				SipServletResponse rspn = (SipServletResponse) message;
 				System.out.println(this.getClass().getSimpleName() + " " + state + " " + ((SipURI) rspn.getTo().getURI()).getUser() + " --> "
-						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod() + ") " + sdp + ", [" + rspn.getCallId().hashCode() + "]");
+						+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod() + ") " + sdp + ", [" + rspn.getApplicationSession().hashCode()+":"+rspn.getSession().hashCode() + "] "+ rspn.getSession().getState().toString());
 			}
 
 		}

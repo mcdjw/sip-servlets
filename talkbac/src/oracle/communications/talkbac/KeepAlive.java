@@ -107,11 +107,14 @@ public class KeepAlive extends CallStateHandler {
 
 				state = 3;
 				destinationSession.setAttribute(CALL_STATE_HANDLER, this);
+			} else {
+				TerminateCall terminate = new TerminateCall();
+				terminate.processEvent(request, response, timer);
 			}
+
 			break;
 		case 3:
 			if (status == 200) {
-
 				// Cleanup call handlers.
 				originSession.getApplicationSession().removeAttribute(CALL_STATE_HANDLER);
 				originSession.removeAttribute(CALL_STATE_HANDLER);
@@ -119,7 +122,9 @@ public class KeepAlive extends CallStateHandler {
 
 				state = 1;
 				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
-
+			} else {
+				TerminateCall terminate = new TerminateCall();
+				terminate.processEvent(request, response, timer);
 			}
 			break;
 		}
