@@ -40,12 +40,13 @@
 
 package oracle.communications.talkbac;
 
+import java.util.ListIterator;
+
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.SipURI;
 
 public class CallFlow6 extends CallStateHandler {
 	private Address origin;
@@ -58,8 +59,9 @@ public class CallFlow6 extends CallStateHandler {
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
 
-	// SipServletRequest originInviteRequest;
-	// SipServletResponse originInviteResponse;
+	boolean update_supported = false;
+	boolean options_supported = false;
+	boolean kpml_supported = false;
 
 	CallFlow6(String requestId, Address origin, Address destination) {
 		this.requestId = requestId;
@@ -77,6 +79,11 @@ public class CallFlow6 extends CallStateHandler {
 		this.originResponse = that.originResponse;
 		// this.originInviteRequest = that.originInviteRequest;
 		// this.originInviteResponse = that.originInviteResponse;
+
+		this.update_supported = that.update_supported;
+		this.options_supported = that.options_supported;
+		this.kpml_supported = that.kpml_supported;
+
 	}
 
 	@Override
@@ -136,6 +143,29 @@ public class CallFlow6 extends CallStateHandler {
 		case 3: // send ack
 
 			if (status >= 200 && status < 300) {
+
+				// Support for Keep-Alive
+				String allow;
+				ListIterator<String> allows = response.getHeaders("Allow");
+				while (allows.hasNext() && (update_supported == false || options_supported == false)) {
+					allow = allows.next();
+					if (allow.equals("UPDATE")) {
+						update_supported = true;
+					} else if (allow.equals("OPTIONS")) {
+						options_supported = true;
+					}
+				}
+
+				// Support for DTMF
+				String event;
+				ListIterator<String> events = response.getHeaders("Allow-Events");
+				while (events.hasNext()) {
+					event = events.next();
+					if (event.equals("kpml")) {
+						kpml_supported = true;
+					}
+				}
+
 				originResponse = response;
 
 				SipServletRequest originAck = response.createAck();
@@ -278,12 +308,22 @@ public class CallFlow6 extends CallStateHandler {
 
 				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
 
-				KpmlRelay kpmlRelay = new KpmlRelay();
-				kpmlRelay.subscribe(originRequest.getSession());
+				if (kpml_supported) {
+					KpmlRelay kpmlRelay = new KpmlRelay();
+					kpmlRelay.subscribe(originRequest.getSession());
+				}
 
 				// Launch Keep Alive Timer
-				// KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession());
+				KeepAlive ka;
+				if (update_supported) {
+					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.UPDATE);
+				} else if (options_supported) {
+					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.OPTIONS);
+				} else {
+					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.INVITE);
+				}
 				// ka.processEvent(request, response, timer);
+				ka.startTimer(appSession);
 
 			}
 

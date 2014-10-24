@@ -294,8 +294,9 @@ public class CallFlow5 extends CallStateHandler {
 				// Launch Keep Alive Timer
 				// KeepAlive ka = new KeepAlive(originRequest.getSession(),
 				// destinationRequest.getSession());
-				KeepAlive ka = new KeepAlive(destinationRequest.getSession(), originRequest.getSession());
-				ka.processEvent(request, response, timer);
+				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.UPDATE);
+				// ka.processEvent(request, response, timer);
+				ka.startTimer(response.getApplicationSession());
 
 			}
 
