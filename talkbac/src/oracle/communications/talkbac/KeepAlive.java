@@ -176,9 +176,10 @@ public class KeepAlive extends CallStateHandler {
 				originSession.removeAttribute(CALL_STATE_HANDLER);
 				destinationSession.removeAttribute(CALL_STATE_HANDLER);
 
-				state = 1;
-				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
-
+				if (frequency > 0) {
+					state = 1;
+					ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
+				}
 			}
 			break;
 		}
@@ -242,9 +243,10 @@ public class KeepAlive extends CallStateHandler {
 				ack.getSession().removeAttribute(CALL_STATE_HANDLER);
 				ackRqst.getSession().removeAttribute(CALL_STATE_HANDLER);
 
-				state = 1;
-				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
-
+				if (frequency > 0) {
+					state = 1;
+					ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
+				}
 			}
 			break;
 		}
