@@ -19,16 +19,15 @@ public class TerminateCall extends CallStateHandler {
 		logger.setParent(KernelLogManager.getLogger());
 	}
 
-	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	TalkBACMessageUtility msgUtility = new TalkBACMessageUtility();
 
-		SipApplicationSession appSession = null;
+	@Override
+	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+
 		SipSession sipSession = null;
 		if (request != null) {
-			appSession = request.getApplicationSession();
 			sipSession = request.getSession();
 		} else if (response != null) {
-			appSession = response.getApplicationSession();
 			sipSession = response.getSession();
 		}
 
@@ -43,6 +42,9 @@ public class TerminateCall extends CallStateHandler {
 
 		while (sessions.hasNext()) {
 			SipSession ss = (SipSession) sessions.next();
+
+			msgUtility.addClient(ss.getRemoteParty());
+
 			logger.info(ss.getId() + " " + ss.getState().toString());
 
 			ss.removeAttribute(CALL_STATE_HANDLER);
@@ -77,6 +79,9 @@ public class TerminateCall extends CallStateHandler {
 				e.printStackTrace();
 				// do nothing;
 			}
+
+			TalkBACMessage msg = new TalkBACMessage(request.getApplicationSession(), "call_completed");
+			msgUtility.send(msg);
 
 		}
 	}

@@ -24,6 +24,7 @@
 
 package oracle.communications.talkbac;
 
+import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
@@ -32,6 +33,8 @@ import javax.servlet.sip.SipSession;
 
 public class KpmlRelay extends CallStateHandler {
 	SipSession originSession;
+	private TalkBACMessageUtility msgUtility;
+	private Address origin, destination;
 
 	private final String kpmlRequest = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n"
 			+ "<kpml-request xmlns=\"urn:ietf:params:xml:ns:kpml-request\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"urn:ietf:params:xml:ns:kpml-request kpml-request.xsd\" version=\"1.0\">\r\n"
@@ -39,6 +42,11 @@ public class KpmlRelay extends CallStateHandler {
 			+ "<regex tag=\"dtmf\">[x*#ABCD]</regex>\r\n"
 			+ "</pattern>\r\n"
 			+ "</kpml-request>";
+	
+	public KpmlRelay(Address origin, Address destination){
+		this.origin = origin;
+		this.destination = destination;
+	}
 
 	public void subscribe(SipSession session) throws Exception {
 		originSession = session;
@@ -54,7 +62,7 @@ public class KpmlRelay extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 
 		if (response != null && response.getMethod().equals("SUBSCRIBE")) {
 
@@ -63,12 +71,11 @@ public class KpmlRelay extends CallStateHandler {
 			
 			
 			//Need to re-negotiate SDPs for audio quality. Not sure why?
-			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession, KeepAlive.Style.INVITE, 0);
-			keepAlive.processEvent(request, response, timer);
+//			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession, KeepAlive.Style.INVITE, 0);
+//			keepAlive.processEvent(appSession, request, response, timer);
 
 		} else {
 			if (request != null && request.getMethod().equals("NOTIFY")) {
-				SipApplicationSession appSession = request.getApplicationSession();
 
 				SipServletResponse ok = request.createResponse(200);
 				ok.send();
@@ -86,8 +93,8 @@ public class KpmlRelay extends CallStateHandler {
 					String digits = kpmlResponse.substring(beginIndex, endIndex);
 
 					if (digits != null && digits.length() > 0) {
-						CallStateHandler handler = new DtmfRelay(digits);
-						handler.processEvent(request, response, timer);
+						CallStateHandler handler = new DtmfRelay(destination, digits);
+						handler.processEvent(appSession, request, response, timer);
 					}
 				}
 

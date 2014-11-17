@@ -1,44 +1,24 @@
 package oracle.communications.talkbac;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
-import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipServletResponse;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 
-import weblogic.kernel.KernelLogManager;
-
 public class TalkBACMessage {
-	static Logger logger;
-	{
-		logger = Logger.getLogger(Authentication.class.getName());
-		logger.setParent(KernelLogManager.getLogger());
-	}
 
 	ObjectNode objectNode;
 	public SipServletRequest message;
 
 	public TalkBACMessage(SipApplicationSession appSession, String event) {
-		String requestId = (String) appSession.getAttribute(TalkBACSipServlet.REQUEST_ID);
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectNode = objectMapper.createObjectNode();
 
-		setParameter("request_id", requestId);
+		setParameter("request_id", appSession.getId());
 		setParameter("event", event);
 
-		Address client_address = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
-		Address application_address = (Address) appSession.getAttribute(TalkBACSipServlet.APPLICATION_ADDRESS);
-
-		message = TalkBACSipServlet.factory.createRequest(appSession, "MESSAGE", application_address, client_address);
 	}
 
 	public void setStatus(int status, String reason) {
@@ -70,28 +50,9 @@ public class TalkBACMessage {
 		return Integer.parseInt(objectNode.get("reason").asText());
 	}
 
-	public void send() throws IOException {
-		TalkBACSipServlet.cdr.info(objectNode.toString().replaceAll("[\n\r]", ""));
-
-		message.setContent(objectNode.toString(), "text/plain");
-		message.send();
-//		printOutboundMessage(message);
-
+	@Override
+	public String toString() {
+		return objectNode.toString();
 	}
-
-//	public void printOutboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
-//
-//		if (logger.getLevel() == Level.FINE) {
-//			if (message instanceof SipServletRequest) {
-//				SipServletRequest rqst = (SipServletRequest) message;
-//				System.out.println("<-- " + this.getClass().getSimpleName() + " " + rqst.getMethod() + " " + rqst.getTo());
-//
-//			} else {
-//				SipServletResponse rspn = (SipServletResponse) message;
-//				System.out.println("<-- " + this.getClass().getSimpleName() + " " + rspn.getMethod() + rspn.getReasonPhrase() + rspn.getTo());
-//			}
-//		}
-//
-//	}
 
 }

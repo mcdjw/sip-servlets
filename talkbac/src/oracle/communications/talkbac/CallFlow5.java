@@ -1,5 +1,6 @@
 /*
  * Ringback Tone during Blind Transfer
+ * w/DTMF & Keep Alive
  *
  *             A                 Controller                  B
  *             |(1) INVITE w/SDP      |                      |
@@ -39,6 +40,8 @@
 
 package oracle.communications.talkbac;
 
+import java.util.ListIterator;
+
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
@@ -50,6 +53,8 @@ public class CallFlow5 extends CallStateHandler {
 	private Address origin;
 	private Address destination;
 	private String requestId;
+	private String destinationUser;
+	private String originUser;
 
 	SipServletRequest destinationRequest;
 	SipServletResponse destinationResponse;
@@ -57,13 +62,17 @@ public class CallFlow5 extends CallStateHandler {
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
 
-	// SipServletRequest originInviteRequest;
-	// SipServletResponse originInviteResponse;
+	boolean update_supported = false;
+	boolean options_supported = false;
+	boolean kpml_supported = false;
+
+	TalkBACMessageUtility msgUtility;
 
 	CallFlow5(String requestId, Address origin, Address destination) {
 		this.requestId = requestId;
 		this.origin = origin;
 		this.destination = destination;
+		this.msgUtility = new TalkBACMessageUtility();
 	}
 
 	CallFlow5(CallFlow5 that) {
@@ -74,22 +83,18 @@ public class CallFlow5 extends CallStateHandler {
 		this.destinationResponse = that.destinationResponse;
 		this.originRequest = that.originRequest;
 		this.originResponse = that.originResponse;
-		// this.originInviteRequest = that.originInviteRequest;
-		// this.originInviteResponse = that.originInviteResponse;
+
+		this.update_supported = that.update_supported;
+		this.options_supported = that.options_supported;
+		this.kpml_supported = that.kpml_supported;
+
+		this.msgUtility = that.msgUtility;
+
 	}
 
 	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
-
-		SipApplicationSession appSession = null;
-		if (request != null) {
-			appSession = request.getApplicationSession();
-		} else if (response != null) {
-			appSession = response.getApplicationSession();
-		} else if (timer != null) {
-			appSession = timer.getApplicationSession();
-		}
 
 		TalkBACMessage msg;
 
@@ -105,24 +110,43 @@ public class CallFlow5 extends CallStateHandler {
 		switch (state) {
 		case 1: // send INVITE
 
+			msgUtility.addClient(origin);
+			msgUtility.addClient(destination);
+
 			msg = new TalkBACMessage(appSession, "call_created");
-			msg.send();
+			msg.setParameter("origin", origin.getURI().toString());
+			msg.setParameter("destination", destination.getURI().toString());
+			msgUtility.send(msg);
 
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
+
+			this.destinationUser = ((SipURI) destination.getURI()).getUser();
+			this.originUser = ((SipURI) origin.getURI()).getUser();
+			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originUser, true);
+			originAppSession.setAttribute("DESTINATION", destination);
+
+			String gateway = (String) request.getApplicationSession().getAttribute(TalkBACSipServlet.GATEWAY);
+			if (gateway != null) {
+				Address originAddress = TalkBACSipServlet.factory.createAddress("<sip:" + originUser + "@" + gateway + ">");
+				((SipURI) originAddress.getURI()).setLrParam(true);
+				originRequest.pushRoute(originAddress);
+
+				Address destinationAddress = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + gateway + ">");
+				((SipURI) destinationAddress.getURI()).setLrParam(true);
+				destinationRequest.pushRoute(destinationAddress);
+			}
+
 			if (TalkBACSipServlet.callInfo != null) {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
 				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, MESSAGE, PUBLISH");
-
-				// originRequest.setHeader("Allow-Events",
-				// "kpml, telephone-event");
 			}
 
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 
-			originRequest.setContent(blackhole3, "application/sdp");
+			originRequest.setContent(blackhole, "application/sdp");
 			originRequest.send();
 			this.printOutboundMessage(originRequest);
 
@@ -138,9 +162,30 @@ public class CallFlow5 extends CallStateHandler {
 		case 3: // send ack
 
 			if (status >= 200 && status < 300) {
+
+				// Support for Keep-Alive
+				String allow;
+				ListIterator<String> allows = response.getHeaders("Allow");
+				while (allows.hasNext() && (update_supported == false || options_supported == false)) {
+					allow = allows.next();
+					if (allow.equals("UPDATE")) {
+						update_supported = true;
+					} else if (allow.equals("OPTIONS")) {
+						options_supported = true;
+					}
+				}
+
+				// Support for DTMF
+				String event;
+				ListIterator<String> events = response.getHeaders("Allow-Events");
+				while (events.hasNext()) {
+					event = events.next();
+					if (event.equals("kpml")) {
+						kpml_supported = true;
+					}
+				}
+
 				originResponse = response;
-				// appSession.setAttribute("IGNORE_BYE",
-				// originResponse.getCallId());
 
 				SipServletRequest originAck = response.createAck();
 				originAck.send();
@@ -151,35 +196,29 @@ public class CallFlow5 extends CallStateHandler {
 				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, 250, false, this);
 
 				msg = new TalkBACMessage(response.getApplicationSession(), "source_connected");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(183, "Session Progress");
-				msg.send();
+				msgUtility.send(msg);
 
 			}
 
 			if (status >= 300) {
 				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msg.send();
+				msgUtility.send(msg);
 			}
 			break;
 
 		case 4: // receive timeout
 		case 5: // send REFER
-			// originResponse = response;
 
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
-			Address refer_to;
-			Address referred_by;
-			referred_by = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress + ">");
-			if (TalkBACSipServlet.appName != null) {
-				refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + TalkBACSipServlet.appName + ">");
-			} else {
-				String strURL = "sip:" + TalkBACSipServlet.servletName + "@" + TalkBACSipServlet.listenAddress;
-				refer_to = TalkBACSipServlet.factory.createAddress("<" + strURL + ">");
-			}
 
+			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress + ">");
+			appSession.encodeURI(refer_to.getURI());
 			refer.setAddressHeader("Refer-To", refer_to);
-			refer.setAddressHeader("Referred-By", referred_by);
+			refer.setAddressHeader("Referred-By", TalkBACSipServlet.talkBACAddress);
 			refer.send();
 			this.printOutboundMessage(refer);
 
@@ -187,9 +226,9 @@ public class CallFlow5 extends CallStateHandler {
 			refer.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 			// Prepare for that INVITE
-			CallFlow5 cf5 = new CallFlow5(this);
-			cf5.state = 7;
-			appSession.setAttribute(CALL_STATE_HANDLER, cf5);
+			CallStateHandler csh = new CallFlow5(this);
+			csh.state = 7;
+			appSession.setAttribute(CALL_STATE_HANDLER, csh);
 
 			break;
 
@@ -204,21 +243,11 @@ public class CallFlow5 extends CallStateHandler {
 					appSession.setAttribute("IGNORE_BYE", originResponse.getCallId());
 				}
 
-				// originInviteRequest = request;
 				originRequest = request;
 
 				appSession.setAttribute(ORIGIN_SESSION_ID, request.getSession().getId());
 				request.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 				destinationRequest.getSession().setAttribute(PEER_SESSION_ID, request.getSession().getId());
-
-				// appSession.setAttribute(DESTINATION_SESSION_ID,
-				// destinationRequest.getSession().getId());
-				// appSession.setAttribute(ORIGIN_SESSION_ID,
-				// originRequest.getSession().getId());
-				// destinationRequest.getSession().setAttribute(PEER_SESSION_ID,
-				// originRequest.getSession().getId());
-				// originRequest.getSession().setAttribute(PEER_SESSION_ID,
-				// destinationRequest.getSession().getId());
 
 				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
@@ -234,51 +263,47 @@ public class CallFlow5 extends CallStateHandler {
 		case 10: // send 180 / 183 / 200
 
 			if (response != null) {
-				// originInviteResponse =
-				// originInviteRequest.createResponse(response.getStatus());
-				// originInviteResponse.setContent(response.getContent(),
-				// response.getContentType());
-				// originInviteResponse.send();
-				// this.printOutboundMessage(originInviteResponse);
 
-				originResponse = originRequest.createResponse(response.getStatus());
-				originResponse.setContent(response.getContent(), response.getContentType());
-				originResponse.send();
-				this.printOutboundMessage(originResponse);
+				if (status < 300) {
+					originResponse = originRequest.createResponse(response.getStatus());
+					originResponse.setContent(response.getContent(), response.getContentType());
+					originResponse.send();
+					this.printOutboundMessage(originResponse);
 
-				if (status == 200) {
-					destinationResponse = response;
+					if (status == 200) {
+						destinationResponse = response;
 
-					state = 11;
-					// originInviteResponse.getSession().setAttribute(CALL_STATE_HANDLER,
-					// this);
-					originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
+						state = 11;
+						originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-					msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
-					msg.setStatus(response.getStatus(), response.getReasonPhrase());
-					msg.send();
-				}
+						msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
+						msg.setStatus(response.getStatus(), response.getReasonPhrase());
+						msg.setParameter("origin", origin.getURI().toString());
+						msg.setParameter("destination", destination.getURI().toString());						
+						msgUtility.send(msg);
+					}
 
-				if (status > 300) {
-
-					SipServletRequest bye = originRequest.getSession().createRequest("BYE");
-					bye.send();
-					this.printOutboundMessage(bye);
+				} else {
 
 					response.getSession().removeAttribute(CALL_STATE_HANDLER);
 					originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
 
 					msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
+					msg.setParameter("origin", origin.getURI().toString());
+					msg.setParameter("destination", destination.getURI().toString());
 					msg.setStatus(response.getStatus(), response.getReasonPhrase());
-					msg.send();
+					msgUtility.send(msg);
+
+					TerminateCall terminate = new TerminateCall();
+					terminate.processEvent(appSession, request, response, timer);
 				}
 
 			}
 
 			break;
 
-		case 11:
-		case 12:
+		case 11: // receive ACK
+		case 12: // send ACK
 
 			if (request != null && request.getMethod().equals("ACK")) {
 				destinationRequest = destinationResponse.createAck();
@@ -287,16 +312,26 @@ public class CallFlow5 extends CallStateHandler {
 				this.printOutboundMessage(destinationRequest);
 
 				msg = new TalkBACMessage(request.getApplicationSession(), "call_connected");
-				msg.send();
+				msgUtility.send(msg);
 
 				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
 
+				if (kpml_supported) {
+					KpmlRelay kpmlRelay = new KpmlRelay(origin, destination);
+					kpmlRelay.subscribe(originRequest.getSession());
+				}
+
 				// Launch Keep Alive Timer
-				// KeepAlive ka = new KeepAlive(originRequest.getSession(),
-				// destinationRequest.getSession());
-				KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.UPDATE, TalkBACSipServlet.keepAlive);
+				KeepAlive ka;
+				if (update_supported) {
+					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.UPDATE, TalkBACSipServlet.keepAlive);
+				} else if (options_supported) {
+					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.OPTIONS, TalkBACSipServlet.keepAlive);
+				} else {
+					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.INVITE, TalkBACSipServlet.keepAlive);
+				}
 				// ka.processEvent(request, response, timer);
-				ka.startTimer(response.getApplicationSession());
+				ka.startTimer(appSession);
 
 			}
 
@@ -306,50 +341,14 @@ public class CallFlow5 extends CallStateHandler {
 
 	}
 
-	// media line has a range of zero ports "4002/0"
 	static final String blackhole = ""
-			+ "v=0\n"
-			+ "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n"
-			+ "s=cpc_med\n"
-			+ "c=IN IP4 192.168.1.202\n"
-			+ "t=0 0\n"
-			+ "m=audio 4002/0 RTP/AVP 111 110 109 9 0 8 101"
-			+ "a=sendrecv\n"
-			+ "a=rtpmap:111 OPUS/48000\n"
-			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
-			+ "a=rtpmap:110 SILK/24000\n"
-			+ "a=fmtp:110 useinbandfec=1\n"
-			+ "a=rtpmap:109 SILK/16000\n"
-			+ "a=fmtp:109 useinbandfec=1\n"
-			+ "a=rtpmap:9 G722/8000\n"
-			+ "a=rtpmap:0 PCMU/8000\n"
-			+ "a=rtpmap:8 PCMA/8000\n"
-			+ "a=rtpmap:101 telephone-event/8000\n"
-			+ "a=fmtp:101 0-16\n";
-
-	static final String blackhole3 = ""
-			+ "v=0\n"
-			+ "o=- 15474517 1 IN IP4 127.0.0.1\n"
-			+ "s=cpc_med\n"
-			+ "c=IN IP4 0.0.0.0\n"
-			+ "t=0 0\n"
-			+ "m=audio 23348 RTP/AVP 0\n"
-			+ "a=rtpmap:0 pcmu/8000\n"
-			+ "a=sendrecv \n";
-
-	static final String blackhole4 = "v=0\r\n"
-			+ "o=CiscoSystemsCCM-SIP 25674 2 IN IP4 192.168.52.207\r\n"
-			+ "s=SIP Call\r\n"
+			+ "v=0\r\n"
+			+ "o=- 15474517 1 IN IP4 127.0.0.1\r\n"
+			+ "s=cpc_med\r\n"
 			+ "c=IN IP4 0.0.0.0\r\n"
-			+ "b=TIAS:64000\r\n"
-			+ "b=AS:64\r\n"
 			+ "t=0 0\r\n"
-			+ "m=audio 26578 RTP/AVP 0 8 101\r\n"
-			+ "a=rtpmap:0 PCMU/8000\r\n"
-			+ "a=ptime:20\r\n"
-			+ "a=rtpmap:8 PCMA/8000\r\n"
-			+ "a=ptime:20\r\n"
-			+ "a=rtpmap:101 telephone-event/8000\r\n"
-			+ "a=fmtp:101 0-15 \r\n";
+			+ "m=audio 23348 RTP/AVP 0\r\n"
+			+ "a=rtpmap:0 pcmu/8000\r\n"
+			+ "a=inactive\r\n";
 
 }

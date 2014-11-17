@@ -56,7 +56,7 @@ public class KeepAlive extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 
 		if (request != null && request.getMethod().equals("NOTIFY")) {
 			SipServletResponse okNotify = request.createResponse(200);
@@ -67,28 +67,20 @@ public class KeepAlive extends CallStateHandler {
 
 		switch (style) {
 		case UPDATE:
-			processEventUpdate(request, response, timer);
+			processEventUpdate(appSession, request, response, timer);
 			break;
 		case OPTIONS:
-			processEventOptions(request, response, timer);
+			processEventOptions(appSession, request, response, timer);
 			break;
 		case INVITE:
-			processEventInvite(request, response, timer);
+			processEventInvite(appSession, request, response, timer);
 			break;
 		}
 	}
 
-	public void processEventUpdate(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEventUpdate(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer)
+			throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
-
-		SipApplicationSession appSession = null;
-		if (request != null) {
-			appSession = request.getApplicationSession();
-		} else if (response != null) {
-			appSession = response.getApplicationSession();
-		} else if (timer != null) {
-			appSession = timer.getApplicationSession();
-		}
 
 		switch (state) {
 		case 1: // receive timeout
@@ -111,7 +103,7 @@ public class KeepAlive extends CallStateHandler {
 				destinationSession.setAttribute(CALL_STATE_HANDLER, this);
 			} else {
 				TerminateCall terminate = new TerminateCall();
-				terminate.processEvent(request, response, timer);
+				terminate.processEvent(appSession, request, response, timer);
 			}
 
 			break;
@@ -128,24 +120,16 @@ public class KeepAlive extends CallStateHandler {
 				}
 			} else {
 				TerminateCall terminate = new TerminateCall();
-				terminate.processEvent(request, response, timer);
+				terminate.processEvent(appSession, request, response, timer);
 			}
 			break;
 		}
 
 	}
 
-	public void processEventOptions(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEventOptions(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer)
+			throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
-
-		SipApplicationSession appSession = null;
-		if (request != null) {
-			appSession = request.getApplicationSession();
-		} else if (response != null) {
-			appSession = response.getApplicationSession();
-		} else if (timer != null) {
-			appSession = timer.getApplicationSession();
-		}
 
 		switch (state) {
 		case 1: // receive timeout
@@ -186,24 +170,15 @@ public class KeepAlive extends CallStateHandler {
 
 	}
 
-	public void processEventInvite(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEventInvite(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer)
+			throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
-		SipApplicationSession appSession = null;
-		if (request != null) {
-			appSession = request.getApplicationSession();
-
-			if (request.getMethod().equals("NOTIFY")) {
-				SipServletResponse okNotify = request.createResponse(200);
-				okNotify.send();
-				this.printOutboundMessage(okNotify);
-				return;
-			}
-
-		} else if (response != null) {
-			appSession = response.getApplicationSession();
-		} else if (timer != null) {
-			appSession = timer.getApplicationSession();
+		if (request != null && request.getMethod().equals("NOTIFY")) {
+			SipServletResponse okNotify = request.createResponse(200);
+			okNotify.send();
+			this.printOutboundMessage(okNotify);
+			return;
 		}
 
 		switch (state) {

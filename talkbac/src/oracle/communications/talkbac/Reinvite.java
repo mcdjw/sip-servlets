@@ -34,14 +34,14 @@ public class Reinvite extends CallStateHandler {
 	
 	
 	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		
 		int status = (null != response) ? response.getStatus() : 0;
 
 		switch (state) {
 		case 1:
 		case 2:
-			SipApplicationSession appSession = request.getApplicationSession();
+//			SipApplicationSession appSession = request.getApplicationSession();
 			String peerSessionId = (String) request.getSession().getAttribute(PEER_SESSION_ID);
 			SipSession peerSession = appSession.getSipSession(peerSessionId);
 			SipServletRequest reinvite = peerSession.createRequest(request.getMethod());

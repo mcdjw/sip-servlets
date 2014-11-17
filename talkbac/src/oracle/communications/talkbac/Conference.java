@@ -1,26 +1,21 @@
 /*
  *
  *  A              Controller               B                   C
- *  | RTP               |                   |                   |
- *  |.......................................|                   |
+ *  |..RTP..................................|                   |
  *  |                   | (1) INVITE        |                   |
  *  |                   |-------------------------------------->|
  *  |                   | (2) 200 OK        |                   |
  *  |                   |<--------------------------------------|
- *  |                   | (3) INVITE        |                   |
- *  |                   |------------------>|                   |
- *  |                   | (4) 200 OK        |                   |
- *  |                   |<------------------|                   |
- *  |                   | (5) ACK           |                   |
- *  |                   |------------------>|                   |
+ *  | (3) INVITE        |                   |                   |
+ *  |<------------------|                   |                   |
+ *  | (4) 200 OK        |                   |                   |
+ *  |------------------>|                   |                   |
+ *  | (5) ACK           |                   |                   |
+ *  |<------------------|                   |                   |
  *  |                   | (6) ACK           |                   |
  *  |                   |-------------------------------------->|
- *  | (7) BYE           |                   |                   |
- *  |<------------------|                   |                   |
- *  | (8) 200 OK        |                   |                   |
- *  |------------------>|                   |                   |
- *  |                   |                   | RTP               |
- *  |                   |                   |...................|
+ *  |..RTP......................................................|
+ *  |..RTP..................................|                   |
  *
  */
 
@@ -33,18 +28,15 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
-public class Transfer extends CallStateHandler {
+public class Conference extends CallStateHandler {
 	Address origin;
-	Address destination;
 	Address target;
 	SipServletResponse targetResponse;
 	SipServletResponse destinationResponse;
-	SipSession destinationSession;
 	SipSession originSession;
 
-	public Transfer(Address origin, Address destination, Address target) {
+	public Conference(Address origin, Address target) {
 		this.origin = origin;
-		this.destination = destination;
 		this.target = target;
 	}
 
@@ -54,10 +46,9 @@ public class Transfer extends CallStateHandler {
 
 		switch (state) {
 		case 1: // Send INVITE
-			this.destinationSession = this.findSession(appSession, destination);
 			this.originSession = this.findSession(appSession, origin);
 
-			SipServletRequest targetRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, target);
+			SipServletRequest targetRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, target);
 			targetRequest.send();
 
 			state = 2;
@@ -69,19 +60,19 @@ public class Transfer extends CallStateHandler {
 
 			if (status == 200) {
 				targetResponse = response;
-				SipServletRequest destinationRequest = destinationSession.createRequest("INVITE");
-				destinationRequest.setContent(targetResponse.getContent(), targetResponse.getContentType());
-				destinationRequest.send();
+				
+				SipServletRequest originRequest = TalkBACSipServlet.factory.createRequest(appSession,  "INVITE", target, origin);				
+				originRequest.setContent(targetResponse.getContent(), targetResponse.getContentType());
+				originRequest.send();
 
 				state = 4;
-				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
+				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 			}
 
 			break;
 		case 4: // 200 OK
 		case 5: // ACK
 		case 6: // ACK
-		case 7: // BYE
 			if (status == 200) {
 				destinationResponse = response;
 
@@ -94,23 +85,11 @@ public class Transfer extends CallStateHandler {
 				targetAck.send();
 				this.printOutboundMessage(targetAck);
 
-				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
+				originSession.removeAttribute(CALL_STATE_HANDLER);
 				targetAck.getSession().removeAttribute(CALL_STATE_HANDLER);
-
-				SipServletRequest byeRequest = originSession.createRequest("BYE");
-				byeRequest.send();
-				this.printOutboundMessage(byeRequest);
-
-				state = 8;
-				byeRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 			}
 			break;
-		case 8:
-			response.getSession().removeAttribute(CALL_STATE_HANDLER);
-			break;
-
 		}
-
 	}
 }

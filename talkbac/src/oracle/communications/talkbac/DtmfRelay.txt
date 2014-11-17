@@ -5,28 +5,24 @@
  *             A                 Controller                  B
  *             | Established RTP      |                      |
  *             |.............................................|
- *             | SUBSCRIBE            |                      |
- *             |<---------------------|                      |
- *             | 200 OK               |                      |
- *             |--------------------->|                      |
- *             | NOTIFY               |                      |
- *             |--------------------->|                      |
- *             |                      | NOTIFY               |
+ *             |                      | NOTIFY (begin)       |
  *             |                      |--------------------->|
  *             |                      | 200 OK               |
  *             |                      |<---------------------|
- *             | 200 OK               |                      |
- *             |<---------------------|                      |
+ *             |                      | NOTIFY (end)         |
+ *             |                      |--------------------->|
+ *             |                      | 200 OK               |
+ *             |                      |<---------------------|
  *             |           (repeat until finished)           |
  *             |.............................................|
  *
  */
 
+
 package oracle.communications.talkbac;
 
 import java.nio.ByteBuffer;
 
-import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
@@ -34,19 +30,17 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
 public class DtmfRelay extends CallStateHandler {
-	private Address destination;
 	private String digits = null;
 	private char digit;
 	private boolean ended = false;
-	private TalkBACMessageUtility msgUtility;
 
-	DtmfRelay(Address destination, String digits) {
-		this.destination = destination;
+	DtmfRelay(String digits) {
 		this.digits = digits;
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+		SipApplicationSession appSession = null;
 		SipSession sipSession = null;
 		SipServletRequest digitRequest = null;
 
@@ -54,13 +48,11 @@ public class DtmfRelay extends CallStateHandler {
 
 		switch (state) {
 		case 1:
-			msgUtility = new TalkBACMessageUtility();
-			msgUtility.addClient(destination);
 
-			msg = new TalkBACMessage(appSession, "dial_created");
-			msg.setParameter("destination", destination.getURI().toString());
-			msgUtility.send(msg);
-
+			msg = new TalkBACMessage(request.getApplicationSession(), "dial_created");
+			msg.send();
+			
+			appSession = request.getApplicationSession();
 			String dsi = (String) request.getApplicationSession().getAttribute(DESTINATION_SESSION_ID);
 			sipSession = appSession.getSipSession(dsi);
 
@@ -72,9 +64,9 @@ public class DtmfRelay extends CallStateHandler {
 			digitRequest.setHeader("Subscription-State", "active");
 			digitRequest.setHeader("Event", "telephone-event;rate=1000");
 			digitRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-			digitRequest.setHeader("Session-Expires", "3600;refresher=uac");
 			digitRequest.setContent(encodeRFC2833(digit, false, 500), "audio/telephone-event");
-
+			
+			
 			digitRequest.send();
 			this.printOutboundMessage(digitRequest);
 
@@ -83,11 +75,10 @@ public class DtmfRelay extends CallStateHandler {
 			break;
 
 		case 2: // send 'end' bit
-			// msg = new TalkBACMessage(response.getApplicationSession(),
-			// "digit_dialed");
-			// msg.setStatus(response.getStatus(), response.getReasonPhrase());
-			// msg.setParameter("digit", digit);
-			// msg.send();
+			msg = new TalkBACMessage(response.getApplicationSession(), "digit_dialed");
+			msg.setStatus(response.getStatus(), response.getReasonPhrase());
+			msg.setParameter("digit", digit);
+			msg.send();
 
 			sipSession = response.getSession();
 
@@ -111,6 +102,7 @@ public class DtmfRelay extends CallStateHandler {
 		case 3:
 			// send next digit
 
+
 			digit = digits.charAt(0);
 			digits = digits.substring(1);
 
@@ -129,9 +121,10 @@ public class DtmfRelay extends CallStateHandler {
 			break;
 
 		case 4:
-			msg = new TalkBACMessage(appSession, "dial_complete");
-			msg.setParameter("destination", destination.getURI().toString());
-			msgUtility.send(msg);
+			// send message back to client
+			msg = new TalkBACMessage(response.getApplicationSession(), "dial_complete");
+			msg.setStatus(response.getStatus(), response.getReasonPhrase());
+			msg.send();
 
 			sipSession = response.getSession();
 			sipSession.removeAttribute(CALL_STATE_HANDLER);
