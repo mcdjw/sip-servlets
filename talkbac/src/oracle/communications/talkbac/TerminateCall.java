@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
@@ -43,7 +44,10 @@ public class TerminateCall extends CallStateHandler {
 		while (sessions.hasNext()) {
 			SipSession ss = (SipSession) sessions.next();
 
-			msgUtility.addClient(ss.getRemoteParty());
+			Address remoteParty = ss.getRemoteParty();
+			if (remoteParty != null) {
+				msgUtility.addClient(ss.getRemoteParty());
+			}
 
 			logger.info(ss.getId() + " " + ss.getState().toString());
 
