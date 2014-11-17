@@ -205,6 +205,8 @@ public class CallFlow5 extends CallStateHandler {
 
 			if (status >= 300) {
 				msg = new TalkBACMessage(appSession, "call_failed");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
 			}
@@ -277,9 +279,9 @@ public class CallFlow5 extends CallStateHandler {
 						originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 						msg = new TalkBACMessage(appSession, "destination_connected");
-						msg.setStatus(response.getStatus(), response.getReasonPhrase());
 						msg.setParameter("origin", origin.getURI().toString());
 						msg.setParameter("destination", destination.getURI().toString());						
+						msg.setStatus(response.getStatus(), response.getReasonPhrase());
 						msgUtility.send(msg);
 					}
 
@@ -312,6 +314,8 @@ public class CallFlow5 extends CallStateHandler {
 				this.printOutboundMessage(destinationRequest);
 
 				msg = new TalkBACMessage(appSession, "call_connected");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
 				msgUtility.send(msg);
 
 				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
