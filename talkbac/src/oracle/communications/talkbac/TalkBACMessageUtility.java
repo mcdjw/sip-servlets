@@ -1,6 +1,7 @@
 package oracle.communications.talkbac;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.LinkedList;
 
 import javax.servlet.sip.Address;
@@ -8,7 +9,7 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipURI;
 
-public class TalkBACMessageUtility {
+public class TalkBACMessageUtility implements Serializable{
 
 	private LinkedList<SipApplicationSession> list = new LinkedList<SipApplicationSession>();
 
