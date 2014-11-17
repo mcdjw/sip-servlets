@@ -32,14 +32,14 @@ public class TerminateCall extends CallStateHandler {
 		}
 
 		Collection<ServletTimer> timers = appSession.getTimers();
-		for (ServletTimer t : timers) {
-			t.cancel();
+		if (timers != null) {
+			for (ServletTimer t : timers) {
+				t.cancel();
+			}
 		}
 
-		Iterator<?> sessions = appSession.getSessions("SIP");
-
 		String user = (String) appSession.getAttribute("USER");
-
+		Iterator<?> sessions = appSession.getSessions("SIP");
 		while (sessions.hasNext()) {
 			SipSession ss = (SipSession) sessions.next();
 

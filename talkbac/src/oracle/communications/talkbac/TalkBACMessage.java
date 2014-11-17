@@ -12,13 +12,10 @@ public class TalkBACMessage {
 	public SipServletRequest message;
 
 	public TalkBACMessage(SipApplicationSession appSession, String event) {
-
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectNode = objectMapper.createObjectNode();
-
 		setParameter("request_id", appSession.getId());
 		setParameter("event", event);
-
 	}
 
 	public void setStatus(int status, String reason) {
