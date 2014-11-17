@@ -80,7 +80,7 @@ public class TerminateCall extends CallStateHandler {
 				// do nothing;
 			}
 
-			TalkBACMessage msg = new TalkBACMessage(request.getApplicationSession(), "call_completed");
+			TalkBACMessage msg = new TalkBACMessage(appSession, "call_completed");
 			msgUtility.send(msg);
 
 		}

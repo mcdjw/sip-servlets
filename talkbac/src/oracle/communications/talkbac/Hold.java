@@ -64,7 +64,7 @@ public class Hold extends CallStateHandler {
 				ack.getSession().removeAttribute(CALL_STATE_HANDLER);
 			}
 
-			TalkBACMessage msg = new TalkBACMessage(request.getApplicationSession(), "call_on_hold");
+			TalkBACMessage msg = new TalkBACMessage(appSession, "call_on_hold");
 			msg.setParameter("destination", destination.getURI().toString());
 			msgUtility.send(msg);
 

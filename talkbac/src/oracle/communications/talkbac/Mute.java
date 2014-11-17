@@ -38,6 +38,7 @@ public class Mute extends CallStateHandler {
 	SipSession destinationSession = null;
 	SipServletResponse destinationResponse;
 	SipServletResponse originResponse;
+	TalkBACMessageUtility msgUtility;
 
 	Mute(Address origin, Address destination) {
 		this.origin = origin;
@@ -50,6 +51,9 @@ public class Mute extends CallStateHandler {
 
 		switch (state) {
 		case 1: // send INVITE
+			msgUtility = new TalkBACMessageUtility();
+			msgUtility.addClient(origin);
+			msgUtility.addClient(destination);
 
 			this.originSession = findSession(appSession, origin);
 			this.destinationSession = findSession(appSession, destination);
@@ -70,7 +74,7 @@ public class Mute extends CallStateHandler {
 				this.destinationResponse = response;
 
 				SipServletRequest originRequest = originSession.createRequest("INVITE");
-				
+
 				String content = destinationResponse.getContent().toString();
 				content = content.replace("sendrecv", "recvonly");
 				originRequest.setContent(content, destinationResponse.getContentType());
@@ -88,7 +92,7 @@ public class Mute extends CallStateHandler {
 		case 5: // send ACK
 		case 6: // send ACK
 
-			if (status == 200) {
+			if (status >= 200) {
 				this.originResponse = response;
 
 				SipServletRequest originAck = originResponse.createAck();
@@ -102,7 +106,13 @@ public class Mute extends CallStateHandler {
 
 				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
+
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_muted");
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msgUtility.send(msg);
 			}
+
 
 			break;
 		}

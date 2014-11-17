@@ -36,9 +36,8 @@ public class Resume extends CallStateHandler {
 	SipSession destinationSession = null;
 	SipServletResponse destinationResponse;
 	SipServletResponse originResponse;
-	
-	TalkBACMessageUtility msgUtility;
 
+	TalkBACMessageUtility msgUtility;
 
 	Resume(Address origin, Address destination) {
 		this.origin = origin;
@@ -54,7 +53,7 @@ public class Resume extends CallStateHandler {
 			msgUtility = new TalkBACMessageUtility();
 			msgUtility.addClient(origin);
 			msgUtility.addClient(destination);
-			
+
 			this.originSession = findSession(appSession, origin);
 			this.destinationSession = findSession(appSession, destination);
 
@@ -89,7 +88,7 @@ public class Resume extends CallStateHandler {
 		case 5: // send ACK
 		case 6: // send ACK
 
-			if (status == 200) {
+			if (status >= 200) {
 				this.originResponse = response;
 
 				SipServletRequest originAck = originResponse.createAck();
@@ -103,12 +102,13 @@ public class Resume extends CallStateHandler {
 
 				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
-				
-				TalkBACMessage msg = new TalkBACMessage(request.getApplicationSession(), "call_resumed");
+
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_resumed");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msgUtility.send(msg);
 			}
+			
 
 			break;
 		}

@@ -44,7 +44,7 @@ public class AcceptCall extends CallStateHandler {
 
 				msgUtility.addClient(request.getFrom());
 				msgUtility.addClient(request.getTo());
-				TalkBACMessage msg = new TalkBACMessage(request.getApplicationSession(), "call_incoming");
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_incoming");
 				msg.setParameter("origin", request.getFrom().getURI().toString());
 				msg.setParameter("destination", request.getTo().getURI().toString());
 				msgUtility.send(msg);

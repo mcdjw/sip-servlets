@@ -195,7 +195,7 @@ public class CallFlow5 extends CallStateHandler {
 				state = 4;
 				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, 250, false, this);
 
-				msg = new TalkBACMessage(response.getApplicationSession(), "source_connected");
+				msg = new TalkBACMessage(appSession, "source_connected");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(183, "Session Progress");
@@ -204,7 +204,7 @@ public class CallFlow5 extends CallStateHandler {
 			}
 
 			if (status >= 300) {
-				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
+				msg = new TalkBACMessage(appSession, "call_failed");
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
 			}
@@ -276,7 +276,7 @@ public class CallFlow5 extends CallStateHandler {
 						state = 11;
 						originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-						msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
+						msg = new TalkBACMessage(appSession, "destination_connected");
 						msg.setStatus(response.getStatus(), response.getReasonPhrase());
 						msg.setParameter("origin", origin.getURI().toString());
 						msg.setParameter("destination", destination.getURI().toString());						
@@ -288,7 +288,7 @@ public class CallFlow5 extends CallStateHandler {
 					response.getSession().removeAttribute(CALL_STATE_HANDLER);
 					originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
 
-					msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
+					msg = new TalkBACMessage(appSession, "call_failed");
 					msg.setParameter("origin", origin.getURI().toString());
 					msg.setParameter("destination", destination.getURI().toString());
 					msg.setStatus(response.getStatus(), response.getReasonPhrase());
@@ -311,7 +311,7 @@ public class CallFlow5 extends CallStateHandler {
 				destinationRequest.send();
 				this.printOutboundMessage(destinationRequest);
 
-				msg = new TalkBACMessage(request.getApplicationSession(), "call_connected");
+				msg = new TalkBACMessage(appSession, "call_connected");
 				msgUtility.send(msg);
 
 				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);

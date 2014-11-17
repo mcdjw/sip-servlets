@@ -144,14 +144,14 @@ public class MakeCall extends CallStateHandler {
 				state = 4;
 				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, 250, false, this);
 
-				msg = new TalkBACMessage(response.getApplicationSession(), "source_connected");
+				msg = new TalkBACMessage(appSession, "source_connected");
 				msg.setStatus(183, "Session Progress");
 				msgUtility.send(msg);
 
 			}
 
 			if (status >= 300) {
-				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
+				msg = new TalkBACMessage(appSession, "call_failed");
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
 			}
