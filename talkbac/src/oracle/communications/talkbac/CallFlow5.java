@@ -121,8 +121,8 @@ public class CallFlow5 extends CallStateHandler {
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 
-			this.destinationUser = ((SipURI) destination.getURI()).getUser();
-			this.originUser = ((SipURI) origin.getURI()).getUser();
+			this.destinationUser = ((SipURI) destination.getURI()).getUser().toLowerCase();
+			this.originUser = ((SipURI) origin.getURI()).getUser().toLowerCase();
 			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originUser, true);
 			originAppSession.setAttribute("DESTINATION", destination);
 

@@ -205,7 +205,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		switch (SipMethod.valueOf(request.getMethod())) {
 		case MESSAGE:
 		case REGISTER:
-			key = ((SipURI) request.getFrom().getURI()).getUser();
+			key = ((SipURI) request.getFrom().getURI()).getUser().toLowerCase();
 		default:
 		}
 

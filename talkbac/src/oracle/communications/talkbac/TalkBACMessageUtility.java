@@ -15,9 +15,11 @@ public class TalkBACMessageUtility implements Serializable{
 
 	public boolean addClient(Address address) {
 		boolean added = false;
-		String user = ((SipURI) address.getURI()).getUser();
+		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 
+		System.out.println("TalkBACMessageUtility user: "+user);	
 		SipApplicationSession appSession = TalkBACSipServlet.util.getApplicationSessionByKey(user, false);
+		System.out.println("TalkBACMessageUtility user: "+appSession);		
 		if (appSession != null) {
 			added = list.add(appSession);
 		}
