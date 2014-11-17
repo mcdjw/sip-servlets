@@ -71,8 +71,8 @@ public class KpmlRelay extends CallStateHandler {
 			
 			
 			//Need to re-negotiate SDPs for audio quality. Not sure why?
-//			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession, KeepAlive.Style.INVITE, 0);
-//			keepAlive.processEvent(appSession, request, response, timer);
+			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession, KeepAlive.Style.INVITE, 0);
+			keepAlive.processEvent(appSession, request, response, timer);
 
 		} else {
 			if (request != null && request.getMethod().equals("NOTIFY")) {
