@@ -32,7 +32,6 @@ public class AcceptCall extends CallStateHandler {
 
 	SipServletRequest originRequest;
 	SipServletResponse destinationResponse;
-	TalkBACMessageUtility msgUtility = new TalkBACMessageUtility();
 
 	@Override
 	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
@@ -40,10 +39,12 @@ public class AcceptCall extends CallStateHandler {
 
 		if (request != null) {
 			if (request.isInitial()) {
+
+				appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, request.getFrom());
+				appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, request.getTo());
+
 				originRequest = request;
 
-				msgUtility.addClient(request.getFrom());
-				msgUtility.addClient(request.getTo());
 				TalkBACMessage msg = new TalkBACMessage(appSession, "call_incoming");
 				msg.setParameter("origin", request.getFrom().getURI().toString());
 				msg.setParameter("destination", request.getTo().getURI().toString());
@@ -65,6 +66,12 @@ public class AcceptCall extends CallStateHandler {
 					destinationAck.send();
 					this.printOutboundMessage(destinationAck);
 					destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
+
+					// Add Update timer for KeepAlive
+
+					KeepAlive ka = new KeepAlive(originRequest.getSession(), destinationResponse.getSession(), KeepAlive.Style.UPDATE,
+							TalkBACSipServlet.keepAlive);
+					ka.startTimer(appSession);
 
 				} else if (request.getMethod().equals("PRACK")) {
 					SipServletRequest destinationPrack = destinationResponse.createPrack();

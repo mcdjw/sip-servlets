@@ -54,8 +54,6 @@ public class DtmfRelay extends CallStateHandler {
 
 		switch (state) {
 		case 1:
-			msgUtility = new TalkBACMessageUtility();
-			msgUtility.addClient(destination);
 
 			msg = new TalkBACMessage(appSession, "dial_created");
 			msg.setParameter("destination", destination.getURI().toString());

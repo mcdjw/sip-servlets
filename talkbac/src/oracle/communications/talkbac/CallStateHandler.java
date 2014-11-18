@@ -24,7 +24,7 @@ public abstract class CallStateHandler implements Serializable {
 		logger = Logger.getLogger(CallStateHandler.class.getName());
 		logger.setParent(KernelLogManager.getLogger());
 	}
-
+	
 	public final static String CALL_STATE_HANDLER = "CALL_STATE_HANDLER";
 	public final static String PEER_SESSION_ID = "PEER_SESSION_ID";
 	public final static String ORIGIN_SESSION_ID = "ORIGIN_SESSION_ID";
@@ -32,6 +32,7 @@ public abstract class CallStateHandler implements Serializable {
 	public final static String INITIATOR_SESSION_ID = "INITIATOR_SESSION_ID";
 
 	protected int state = 1;
+	public TalkBACMessageUtility msgUtility;
 
 	public abstract void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer)
 			throws Exception;

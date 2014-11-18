@@ -51,10 +51,6 @@ public class Mute extends CallStateHandler {
 
 		switch (state) {
 		case 1: // send INVITE
-			msgUtility = new TalkBACMessageUtility();
-			msgUtility.addClient(origin);
-			msgUtility.addClient(destination);
-
 			this.originSession = findSession(appSession, origin);
 			this.destinationSession = findSession(appSession, destination);
 
@@ -112,7 +108,6 @@ public class Mute extends CallStateHandler {
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
 			}
-
 
 			break;
 		}

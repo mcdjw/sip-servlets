@@ -11,9 +11,13 @@ public class NotImplemented extends CallStateHandler {
 	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		if (request.getMethod().equals("ACK") || request.getMethod().equals("PRACK")) {
 		} else {
-			SipServletResponse rqst = request.createResponse(501);
-			rqst.send();
-			this.printOutboundMessage(rqst);
+			SipServletResponse rspn = request.createResponse(501);
+			rspn.send();
+			this.printOutboundMessage(rspn);
+
+			TalkBACMessage msg = new TalkBACMessage(appSession, "not_implemented");
+			msg.setStatus(rspn.getStatus(), rspn.getReasonPhrase());
+			msgUtility.send(msg);
 		}
 	}
 

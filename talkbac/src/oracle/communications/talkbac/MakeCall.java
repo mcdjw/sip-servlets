@@ -56,7 +56,6 @@ public class MakeCall extends CallStateHandler {
 		this.requestId = requestId;
 		this.origin = origin;
 		this.destination = destination;
-		this.msgUtility = new TalkBACMessageUtility();
 	}
 
 	MakeCall(MakeCall that) {
@@ -85,8 +84,6 @@ public class MakeCall extends CallStateHandler {
 		switch (state) {
 		case 1: // send INVITE
 
-			msgUtility.addClient(origin);
-			// msgUtility.addClient(destination);
 			msg = new TalkBACMessage(appSession, "call_created");
 			msgUtility.send(msg);
 

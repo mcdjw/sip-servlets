@@ -54,6 +54,9 @@ public class Transfer extends CallStateHandler {
 
 		switch (state) {
 		case 1: // Send INVITE
+			appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, destination);
+			appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, target);
+
 			this.destinationSession = this.findSession(appSession, destination);
 			this.originSession = this.findSession(appSession, origin);
 

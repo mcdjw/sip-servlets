@@ -50,9 +50,6 @@ public class Resume extends CallStateHandler {
 
 		switch (state) {
 		case 1: // send INVITE
-			msgUtility = new TalkBACMessageUtility();
-			msgUtility.addClient(origin);
-			msgUtility.addClient(destination);
 
 			this.originSession = findSession(appSession, origin);
 			this.destinationSession = findSession(appSession, destination);
@@ -108,7 +105,6 @@ public class Resume extends CallStateHandler {
 				msg.setParameter("destination", destination.getURI().toString());
 				msgUtility.send(msg);
 			}
-			
 
 			break;
 		}

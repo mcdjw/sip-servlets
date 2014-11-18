@@ -20,8 +20,6 @@ public class TerminateCall extends CallStateHandler {
 		logger.setParent(KernelLogManager.getLogger());
 	}
 
-	TalkBACMessageUtility msgUtility = new TalkBACMessageUtility();
-
 	@Override
 	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 
@@ -44,9 +42,13 @@ public class TerminateCall extends CallStateHandler {
 		while (sessions.hasNext()) {
 			SipSession ss = (SipSession) sessions.next();
 
+			if (msgUtility == null) {
+				msgUtility = new TalkBACMessageUtility(appSession);
+			}
+
 			Address remoteParty = ss.getRemoteParty();
 			if (remoteParty != null) {
-				msgUtility.addClient(ss.getRemoteParty());
+				msgUtility.addEndpoint(ss.getRemoteParty());
 			}
 
 			logger.info(ss.getId() + " " + ss.getState().toString());
@@ -84,10 +86,18 @@ public class TerminateCall extends CallStateHandler {
 				// do nothing;
 			}
 
-			TalkBACMessage msg = new TalkBACMessage(appSession, "call_completed");
-			msgUtility.send(msg);
-
 		}
+		TalkBACMessage msg = new TalkBACMessage(appSession, "call_completed");
+		
+		Address originAddress = (Address) appSession.getAttribute(TalkBACSipServlet.ORIGIN_ADDRESS);
+		Address destinationAddress = (Address) appSession.getAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
+		if(originAddress!=null && destinationAddress!=null){
+			msg.setParameter("origin", originAddress.getURI().toString());
+			msg.setParameter("destination", destinationAddress.getURI().toString());
+		}
+		msgUtility.send(msg);
+		
+		
 	}
 
 }

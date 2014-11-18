@@ -11,9 +11,9 @@ public class GenericResponse extends CallStateHandler {
 	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		if (request.getMethod().equals("ACK") || request.getMethod().equals("PRACK")) {
 		} else {
-			SipServletResponse rqst = request.createResponse(200);
-			rqst.send();
-			this.printOutboundMessage(rqst);
+			SipServletResponse rspn = request.createResponse(200);
+			rspn.send();
+			this.printOutboundMessage(rspn);
 		}
 	}
 

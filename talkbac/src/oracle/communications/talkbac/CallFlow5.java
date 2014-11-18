@@ -52,7 +52,6 @@ import javax.servlet.sip.SipURI;
 public class CallFlow5 extends CallStateHandler {
 	private Address origin;
 	private Address destination;
-	private String requestId;
 	private String destinationUser;
 	private String originUser;
 
@@ -66,19 +65,14 @@ public class CallFlow5 extends CallStateHandler {
 	boolean options_supported = false;
 	boolean kpml_supported = false;
 
-	TalkBACMessageUtility msgUtility;
-
-	CallFlow5(String requestId, Address origin, Address destination) {
-		this.requestId = requestId;
+	CallFlow5(Address origin, Address destination) {
 		this.origin = origin;
 		this.destination = destination;
-		this.msgUtility = new TalkBACMessageUtility();
 	}
 
 	CallFlow5(CallFlow5 that) {
 		this.origin = that.origin;
 		this.destination = that.destination;
-		this.requestId = that.requestId;
 		this.destinationRequest = that.destinationRequest;
 		this.destinationResponse = that.destinationResponse;
 		this.originRequest = that.originRequest;
@@ -88,8 +82,8 @@ public class CallFlow5 extends CallStateHandler {
 		this.options_supported = that.options_supported;
 		this.kpml_supported = that.kpml_supported;
 
+		// from base class
 		this.msgUtility = that.msgUtility;
-
 	}
 
 	@Override
@@ -109,9 +103,8 @@ public class CallFlow5 extends CallStateHandler {
 
 		switch (state) {
 		case 1: // send INVITE
-
-			msgUtility.addClient(origin);
-			msgUtility.addClient(destination);
+			appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, origin);
+			appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destination);
 
 			msg = new TalkBACMessage(appSession, "call_created");
 			msg.setParameter("origin", origin.getURI().toString());
@@ -280,7 +273,7 @@ public class CallFlow5 extends CallStateHandler {
 
 						msg = new TalkBACMessage(appSession, "destination_connected");
 						msg.setParameter("origin", origin.getURI().toString());
-						msg.setParameter("destination", destination.getURI().toString());						
+						msg.setParameter("destination", destination.getURI().toString());
 						msg.setStatus(response.getStatus(), response.getReasonPhrase());
 						msgUtility.send(msg);
 					}

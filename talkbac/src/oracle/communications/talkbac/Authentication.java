@@ -61,6 +61,7 @@ public class Authentication extends CallStateHandler {
 
 	@Override
 	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+		String userId = null;
 		String pbx = null;
 		boolean proxyOn = true;
 		int expires = request.getExpires();
@@ -86,7 +87,7 @@ public class Authentication extends CallStateHandler {
 				int begin = auth.indexOf(strUserId, 0);
 				begin = begin + strUserId.length();
 				int end = auth.indexOf("\"", begin);
-				String userId = auth.substring(begin, end);
+				userId = auth.substring(begin, end);
 
 				if (userId.contains("@")) {
 					userId = userId.substring(0, userId.indexOf("@"));
@@ -138,8 +139,10 @@ public class Authentication extends CallStateHandler {
 					endpoint = itr.next();
 					endpointAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(endpoint, true);
 					endpointAppSession.setAttribute(TalkBACSipServlet.CLIENT_ADDRESS, request.getTo());
+					endpointAppSession.setAttribute(TalkBACSipServlet.USER, ((SipURI) request.getTo().getURI()).getUser());
+
 					if (pbx != null) {
-						endpointAppSession.setAttribute("PBX", pbx);
+						endpointAppSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
 					}
 
 					endpointAppSession.setExpires(request.getExpires());
@@ -151,7 +154,8 @@ public class Authentication extends CallStateHandler {
 					endpointAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(endpoint, false);
 					if (endpointAppSession != null) {
 						endpointAppSession.removeAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
-						endpointAppSession.removeAttribute("PBX");
+						endpointAppSession.removeAttribute(TalkBACSipServlet.USER);
+						endpointAppSession.removeAttribute(TalkBACSipServlet.GATEWAY);
 						endpointAppSession.setInvalidateWhenReady(true);
 					}
 				}
@@ -159,7 +163,6 @@ public class Authentication extends CallStateHandler {
 
 			logger.fine("proxyOn: " + proxyOn);
 			if (proxyOn) {
-
 				appSession.setExpires(expires);
 				if (expires > 0) {
 					appSession.setInvalidateWhenReady(false);

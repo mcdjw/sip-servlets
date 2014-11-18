@@ -39,9 +39,6 @@ public class Hold extends CallStateHandler {
 
 		switch (state) {
 		case 1: // send INVITE
-			msgUtility = new TalkBACMessageUtility();
-			msgUtility.addClient(destination);
-
 			SipSession destinationSession = findSession(appSession, destination);
 
 			SipServletRequest holdRequest = destinationSession.createRequest("INVITE");
