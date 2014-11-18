@@ -232,7 +232,7 @@ public class CallFlow5 extends CallStateHandler {
 		case 8: // send INVITE
 
 			if (request != null && request.getMethod().equals("INVITE")) {
-				request.getApplicationSession().removeAttribute(CALL_STATE_HANDLER);
+				appSession.removeAttribute(CALL_STATE_HANDLER);
 
 				if (false == request.getCallId().equals(originResponse.getCallId())) {
 					appSession.setAttribute("IGNORE_BYE", originResponse.getCallId());

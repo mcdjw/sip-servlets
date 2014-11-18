@@ -315,6 +315,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 				switch (SipMethod.valueOf(request.getMethod())) {
 
 				case MESSAGE:
+					//JWM
+					appSession = factory.createApplicationSession();
 
 					cdr.info(request.getContent().toString().replaceAll("[\n\r]", ""));
 					response = request.createResponse(200);
