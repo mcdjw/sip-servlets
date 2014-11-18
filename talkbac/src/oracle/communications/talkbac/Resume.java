@@ -37,8 +37,6 @@ public class Resume extends CallStateHandler {
 	SipServletResponse destinationResponse;
 	SipServletResponse originResponse;
 
-	TalkBACMessageUtility msgUtility;
-
 	Resume(Address origin, Address destination) {
 		this.origin = origin;
 		this.destination = destination;

@@ -38,7 +38,6 @@ public class Mute extends CallStateHandler {
 	SipSession destinationSession = null;
 	SipServletResponse destinationResponse;
 	SipServletResponse originResponse;
-	TalkBACMessageUtility msgUtility;
 
 	Mute(Address origin, Address destination) {
 		this.origin = origin;

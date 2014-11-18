@@ -40,17 +40,12 @@ public class MakeCall extends CallStateHandler {
 	private String destinationUser;
 	private String originUser;
 
-	// SipServletRequest destinationRequest;
-	// SipServletResponse destinationResponse;
-
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
 
 	boolean update_supported = false;
 	boolean options_supported = false;
 	boolean kpml_supported = false;
-
-	TalkBACMessageUtility msgUtility;
 
 	MakeCall(String requestId, Address origin, Address destination) {
 		this.requestId = requestId;

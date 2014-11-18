@@ -38,7 +38,6 @@ public class DtmfRelay extends CallStateHandler {
 	private String digits = null;
 	private char digit;
 	private boolean ended = false;
-	private TalkBACMessageUtility msgUtility;
 
 	DtmfRelay(Address destination, String digits) {
 		this.destination = destination;

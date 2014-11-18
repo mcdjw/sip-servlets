@@ -32,8 +32,8 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
 public class KpmlRelay extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 	SipSession originSession;
-	private TalkBACMessageUtility msgUtility;
 	private Address origin, destination;
 
 	private final String kpmlRequest = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n"
