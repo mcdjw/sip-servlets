@@ -297,6 +297,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					// msg.send();
 				}
 
+			} else if (request.getMethod().equals("REGISTER")) {
+				handler = new Authentication();
+				handler.printInboundMessage(request);
+				printed = true;
 			}
 
 			if (handler == null) {
