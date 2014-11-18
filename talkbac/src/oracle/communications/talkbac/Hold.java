@@ -27,7 +27,6 @@ import javax.servlet.sip.SipSession;
 public class Hold extends CallStateHandler {
 	private static final long serialVersionUID = 1L;
 	private Address destination;
-	TalkBACMessageUtility msgUtility;
 
 	Hold(Address destination) {
 		this.destination = destination;
@@ -66,7 +65,6 @@ public class Hold extends CallStateHandler {
 			msgUtility.send(msg);
 
 			break;
-
 		}
 
 	}
