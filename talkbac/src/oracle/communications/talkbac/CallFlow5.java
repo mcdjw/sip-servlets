@@ -103,6 +103,14 @@ public class CallFlow5 extends CallStateHandler {
 
 		switch (state) {
 		case 1: // send INVITE
+			System.out.println("AppSessions Match? " + appSession.getId().equals(request.getApplicationSession().getId()));
+
+			// Save this for REFER
+			String key = ((SipURI) origin.getURI()).getUser().toLowerCase();
+			SipApplicationSession tmpAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(key, true);
+			tmpAppSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destination);
+			System.out.println("Setting Destination " + destination + " to appSession: " + tmpAppSession.getId());
+
 			appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, origin);
 			appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destination);
 
@@ -210,9 +218,12 @@ public class CallFlow5 extends CallStateHandler {
 
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 
-			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress + ">");
-			appSession.encodeURI(refer_to.getURI());
-			refer.setAddressHeader("Refer-To", refer_to);
+			// Address refer_to =
+			// TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser
+			// + "@" + TalkBACSipServlet.listenAddress + ">");
+			// appSession.encodeURI(refer_to.getURI());
+			// refer.setAddressHeader("Refer-To", refer_to);
+			refer.setAddressHeader("Refer-To", TalkBACSipServlet.talkBACAddress);
 			refer.setAddressHeader("Referred-By", TalkBACSipServlet.talkBACAddress);
 			refer.send();
 			this.printOutboundMessage(refer);

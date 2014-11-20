@@ -30,8 +30,9 @@ public class TalkBACMessageUtility implements Serializable {
 		SipApplicationSession appSession = TalkBACSipServlet.util.getApplicationSessionByKey(user, false);
 		if (appSession != null) {
 			Address clientAddress = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
-			String userName = (String)appSession.getAttribute(TalkBACSipServlet.USER);
+			String userName = (String) appSession.getAttribute(TalkBACSipServlet.USER);
 			if (clientAddress != null && userName != null) {
+				System.out.println("Add Endpoint: " + userName + ", " + clientAddress);
 				hashmap.put(userName, clientAddress);
 			}
 		}

@@ -22,7 +22,9 @@ public class TerminateCall extends CallStateHandler {
 
 	@Override
 	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
-
+		appSession.removeAttribute(CALL_STATE_HANDLER);
+		
+		
 		SipSession sipSession = null;
 		if (request != null) {
 			sipSession = request.getSession();
@@ -70,7 +72,7 @@ public class TerminateCall extends CallStateHandler {
 					case CONFIRMED:
 					default:
 
-						if (false == ss.getRemoteParty().getURI().toString().equals(user)) {
+						if (ss.isValid() && false == ss.getRemoteParty().getURI().toString().equals(user)) {
 							SipServletRequest bye = ss.createRequest("BYE");
 							bye.send();
 							this.printOutboundMessage(bye);

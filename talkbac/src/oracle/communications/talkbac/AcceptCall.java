@@ -23,10 +23,12 @@
 
 package oracle.communications.talkbac;
 
+import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
 
 public class AcceptCall extends CallStateHandler {
 
@@ -39,19 +41,46 @@ public class AcceptCall extends CallStateHandler {
 
 		if (request != null) {
 			if (request.isInitial()) {
+				Address originAddress = null;
+				Address destinationAddress = null;
 
-				appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, request.getFrom());
-				appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, request.getTo());
+				originAddress = request.getFrom();
+
+				// in case of INVITE due to REFER
+				String key = ((SipURI) originAddress.getURI()).getUser().toString().toLowerCase();
+				SipApplicationSession userAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(key, false);
+				if (userAppSession != null) {
+					destinationAddress = (Address) userAppSession.getAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
+					System.out.println("Getting Destination " + destinationAddress + " from appSession: " + userAppSession.getId());
+
+					if (destinationAddress != null) {
+						userAppSession.removeAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
+						msgUtility.removeEndpoint(request.getTo());
+					}
+				}
+
+				destinationAddress = (destinationAddress != null) ? destinationAddress : request.getTo();
+
+				msgUtility.addEndpoint(destinationAddress);
+				msgUtility.addEndpoint(originAddress);
+
+				appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, originAddress);
+				appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destinationAddress);
 
 				originRequest = request;
 
 				TalkBACMessage msg = new TalkBACMessage(appSession, "call_incoming");
-				msg.setParameter("origin", request.getFrom().getURI().toString());
-				msg.setParameter("destination", request.getTo().getURI().toString());
+				msg.setParameter("origin", originAddress.getURI().toString());
+				msg.setParameter("destination", destinationAddress.getURI().toString());
 				msgUtility.send(msg);
 
-				SipServletRequest destinationRequest = TalkBACSipServlet.factory.createRequest(request.getApplicationSession(), "INVITE", request.getFrom(),
-						request.getTo());
+				// SipServletRequest destinationRequest =
+				// TalkBACSipServlet.factory.createRequest(request.getApplicationSession(),
+				// "INVITE", destinationAddress,
+				// originAddress);
+
+				SipServletRequest destinationRequest = TalkBACSipServlet.factory.createRequest(request.getApplicationSession(), "INVITE", originAddress,
+						destinationAddress);
 
 				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
@@ -113,5 +142,4 @@ public class AcceptCall extends CallStateHandler {
 		}
 
 	}
-
 }

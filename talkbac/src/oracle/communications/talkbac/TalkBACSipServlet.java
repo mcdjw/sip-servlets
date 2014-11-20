@@ -315,8 +315,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 				switch (SipMethod.valueOf(request.getMethod())) {
 
 				case MESSAGE:
-					//JWM
-					appSession = factory.createApplicationSession();
+					// JWM
 
 					cdr.info(request.getContent().toString().replaceAll("[\n\r]", ""));
 					response = request.createResponse(200);
@@ -324,11 +323,19 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 					ObjectMapper objectMapper = new ObjectMapper();
 					JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
-					String requestId = rootNode.path(REQUEST_ID).asText();
 					String cc = rootNode.path(CALL_CONTROL).asText();
+					String requestId = rootNode.path(REQUEST_ID).asText();
+
+					if (requestId != null) {
+						appSession = util.getApplicationSessionById(requestId);
+					} else {
+						appSession = factory.createApplicationSession();
+					}
 
 					appSession.setAttribute(USER, request.getSession().getRemoteParty().getURI().toString());
 
+
+					if(cc!=null){
 					switch (CallControl.valueOf(cc)) {
 					case call: {
 						Address originAddress = factory.createAddress(rootNode.path("origin").asText());
@@ -419,6 +426,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					}
 					}
 					break;
+					}
 
 				case REGISTER: {
 					handler = new Authentication();
