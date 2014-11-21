@@ -8,7 +8,8 @@ import javax.servlet.sip.SipServletResponse;
 public class Options extends CallStateHandler {
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		if (request != null) {
 			SipServletResponse optionsResponse = request.createResponse(200);
 			optionsResponse.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, PRACK, MESSAGE");

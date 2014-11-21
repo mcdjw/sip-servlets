@@ -49,7 +49,8 @@ public class Transfer extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
 		switch (state) {

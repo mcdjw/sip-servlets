@@ -56,7 +56,8 @@ public class KeepAlive extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 
 		if (request != null && request.getMethod().equals("NOTIFY")) {
 			SipServletResponse okNotify = request.createResponse(200);
@@ -67,19 +68,19 @@ public class KeepAlive extends CallStateHandler {
 
 		switch (style) {
 		case UPDATE:
-			processEventUpdate(appSession, request, response, timer);
+			processEventUpdate(appSession, msgUtility, request, response, timer);
 			break;
 		case OPTIONS:
-			processEventOptions(appSession, request, response, timer);
+			processEventOptions(appSession, msgUtility, request, response, timer);
 			break;
 		case INVITE:
-			processEventInvite(appSession, request, response, timer);
+			processEventInvite(appSession, msgUtility, request, response, timer);
 			break;
 		}
 	}
 
-	public void processEventUpdate(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer)
-			throws Exception {
+	public void processEventUpdate(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
 		switch (state) {
@@ -103,7 +104,7 @@ public class KeepAlive extends CallStateHandler {
 				destinationSession.setAttribute(CALL_STATE_HANDLER, this);
 			} else {
 				TerminateCall terminate = new TerminateCall();
-				terminate.processEvent(appSession, request, response, timer);
+				terminate.processEvent(appSession, msgUtility, request, response, timer);
 			}
 
 			break;
@@ -120,15 +121,15 @@ public class KeepAlive extends CallStateHandler {
 				}
 			} else {
 				TerminateCall terminate = new TerminateCall();
-				terminate.processEvent(appSession, request, response, timer);
+				terminate.processEvent(appSession, msgUtility, request, response, timer);
 			}
 			break;
 		}
 
 	}
 
-	public void processEventOptions(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer)
-			throws Exception {
+	public void processEventOptions(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
 		switch (state) {
@@ -170,8 +171,8 @@ public class KeepAlive extends CallStateHandler {
 
 	}
 
-	public void processEventInvite(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer)
-			throws Exception {
+	public void processEventInvite(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
 		if (request != null && request.getMethod().equals("NOTIFY")) {

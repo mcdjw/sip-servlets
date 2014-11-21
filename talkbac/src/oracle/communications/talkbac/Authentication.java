@@ -60,7 +60,7 @@ public class Authentication extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession,  TalkBACMessageUtility msgUtility,SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		String userId = null;
 		String pbx = null;
 		boolean proxyOn = true;

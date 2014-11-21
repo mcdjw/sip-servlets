@@ -14,6 +14,7 @@ import javax.servlet.sip.SipSession;
 import weblogic.kernel.KernelLogManager;
 
 public class TerminateCall extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 	static Logger logger;
 	{
 		logger = Logger.getLogger(TerminateCall.class.getName());
@@ -21,10 +22,10 @@ public class TerminateCall extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		appSession.removeAttribute(CALL_STATE_HANDLER);
-		
-		
+
 		SipSession sipSession = null;
 		if (request != null) {
 			sipSession = request.getSession();
@@ -44,14 +45,14 @@ public class TerminateCall extends CallStateHandler {
 		while (sessions.hasNext()) {
 			SipSession ss = (SipSession) sessions.next();
 
-			if (msgUtility == null) {
-				msgUtility = new TalkBACMessageUtility(appSession);
-			}
+			// if (msgUtility == null) {
+			// msgUtility = new TalkBACMessageUtility(appSession);
+			// }
 
-			Address remoteParty = ss.getRemoteParty();
-			if (remoteParty != null) {
-				msgUtility.addEndpoint(ss.getRemoteParty());
-			}
+			// Address remoteParty = ss.getRemoteParty();
+			// if (remoteParty != null) {
+			// msgUtility.addEndpoint(ss.getRemoteParty());
+			// }
 
 			logger.info(ss.getId() + " " + ss.getState().toString());
 
@@ -89,17 +90,16 @@ public class TerminateCall extends CallStateHandler {
 			}
 
 		}
+
 		TalkBACMessage msg = new TalkBACMessage(appSession, "call_completed");
-		
 		Address originAddress = (Address) appSession.getAttribute(TalkBACSipServlet.ORIGIN_ADDRESS);
 		Address destinationAddress = (Address) appSession.getAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
-		if(originAddress!=null && destinationAddress!=null){
+		if (originAddress != null && destinationAddress != null) {
 			msg.setParameter("origin", originAddress.getURI().toString());
 			msg.setParameter("destination", destinationAddress.getURI().toString());
 		}
 		msgUtility.send(msg);
-		
-		
+
 	}
 
 }

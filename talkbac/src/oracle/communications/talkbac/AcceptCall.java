@@ -36,7 +36,8 @@ public class AcceptCall extends CallStateHandler {
 	SipServletResponse destinationResponse;
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
 		if (request != null) {
@@ -52,24 +53,34 @@ public class AcceptCall extends CallStateHandler {
 				if (userAppSession != null) {
 					destinationAddress = (Address) userAppSession.getAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
 					System.out.println("Getting Destination " + destinationAddress + " from appSession: " + userAppSession.getId());
-
 					if (destinationAddress != null) {
 						userAppSession.removeAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
 						msgUtility.removeEndpoint(request.getTo());
+						// msgUtility.removeEndpoint(originAddress);
 					}
 				}
 
 				destinationAddress = (destinationAddress != null) ? destinationAddress : request.getTo();
 
 				msgUtility.addEndpoint(destinationAddress);
-				msgUtility.addEndpoint(originAddress);
 
 				appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, originAddress);
 				appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destinationAddress);
 
 				originRequest = request;
 
-				TalkBACMessage msg = new TalkBACMessage(appSession, "call_incoming");
+				TalkBACMessage msg;
+				msg = new TalkBACMessage(appSession, "call_created");
+				msg.setParameter("origin", originAddress.getURI().toString());
+				msg.setParameter("destination", destinationAddress.getURI().toString());
+				msgUtility.send(msg);
+
+				msg = new TalkBACMessage(appSession, "origin_connected");
+				msg.setParameter("origin", originAddress.getURI().toString());
+				msg.setParameter("destination", destinationAddress.getURI().toString());
+				msgUtility.send(msg);
+
+				msg = new TalkBACMessage(appSession, "call_incoming");
 				msg.setParameter("origin", originAddress.getURI().toString());
 				msg.setParameter("destination", destinationAddress.getURI().toString());
 				msgUtility.send(msg);
@@ -119,14 +130,40 @@ public class AcceptCall extends CallStateHandler {
 
 		} else {
 			if (response.getStatus() >= 200 && response.getStatus() < 400) {
-				TalkBACMessage msg = new TalkBACMessage(appSession, "call_answered");
+				TalkBACMessage msg;
+				msg = new TalkBACMessage(appSession, "call_answered");
 				msg.setParameter("origin", response.getFrom().getURI().toString());
 				msg.setParameter("destination", response.getTo().getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
-			}
-			if (response.getStatus() >= 400) {
-				TalkBACMessage msg = new TalkBACMessage(appSession, "call_rejected");
+
+				msg = new TalkBACMessage(appSession, "destination_connected");
+				msg.setParameter("origin", response.getFrom().getURI().toString());
+				msg.setParameter("destination", response.getTo().getURI().toString());
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msgUtility.send(msg);
+
+				msg = new TalkBACMessage(appSession, "call_connected");
+				msg.setParameter("origin", response.getFrom().getURI().toString());
+				msg.setParameter("destination", response.getTo().getURI().toString());
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msgUtility.send(msg);
+
+			} else if (response.getStatus() >= 400) {
+				TalkBACMessage msg;
+				msg = new TalkBACMessage(appSession, "call_rejected");
+				msg.setParameter("origin", response.getFrom().getURI().toString());
+				msg.setParameter("destination", response.getTo().getURI().toString());
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msgUtility.send(msg);
+
+				msg = new TalkBACMessage(appSession, "destination_connected");
+				msg.setParameter("origin", response.getFrom().getURI().toString());
+				msg.setParameter("destination", response.getTo().getURI().toString());
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msgUtility.send(msg);
+
+				msg = new TalkBACMessage(appSession, "call_connected");
 				msg.setParameter("origin", response.getFrom().getURI().toString());
 				msg.setParameter("destination", response.getTo().getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());

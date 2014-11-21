@@ -45,7 +45,7 @@ public class DtmfRelay extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession,  TalkBACMessageUtility msgUtility,SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		SipSession sipSession = null;
 		SipServletRequest digitRequest = null;
 

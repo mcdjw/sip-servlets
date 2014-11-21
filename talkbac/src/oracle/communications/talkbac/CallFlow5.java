@@ -82,12 +82,11 @@ public class CallFlow5 extends CallStateHandler {
 		this.options_supported = that.options_supported;
 		this.kpml_supported = that.kpml_supported;
 
-		// from base class
-		this.msgUtility = that.msgUtility;
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
 		TalkBACMessage msg;
@@ -301,7 +300,7 @@ public class CallFlow5 extends CallStateHandler {
 					msgUtility.send(msg);
 
 					TerminateCall terminate = new TerminateCall();
-					terminate.processEvent(appSession, request, response, timer);
+					terminate.processEvent(appSession, msgUtility, request, response, timer);
 				}
 
 			}

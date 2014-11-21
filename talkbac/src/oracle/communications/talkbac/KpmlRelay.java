@@ -42,8 +42,8 @@ public class KpmlRelay extends CallStateHandler {
 			+ "<regex tag=\"dtmf\">[x*#ABCD]</regex>\r\n"
 			+ "</pattern>\r\n"
 			+ "</kpml-request>";
-	
-	public KpmlRelay(Address origin, Address destination){
+
+	public KpmlRelay(Address origin, Address destination) {
 		this.origin = origin;
 		this.destination = destination;
 	}
@@ -62,17 +62,17 @@ public class KpmlRelay extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 
 		if (response != null && response.getMethod().equals("SUBSCRIBE")) {
 
 			String peerSessionId = (String) response.getSession().getAttribute(PEER_SESSION_ID);
 			SipSession peerSession = response.getApplicationSession().getSipSession(peerSessionId);
-			
-			
-			//Need to re-negotiate SDPs for audio quality. Not sure why?
+
+			// Need to re-negotiate SDPs for audio quality. Not sure why?
 			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession, KeepAlive.Style.INVITE, 0);
-			keepAlive.processEvent(appSession, request, response, timer);
+			keepAlive.processEvent(appSession, msgUtility, request, response, timer);
 
 		} else {
 			if (request != null && request.getMethod().equals("NOTIFY")) {
@@ -94,7 +94,7 @@ public class KpmlRelay extends CallStateHandler {
 
 					if (digits != null && digits.length() > 0) {
 						CallStateHandler handler = new DtmfRelay(destination, digits);
-						handler.processEvent(appSession, request, response, timer);
+						handler.processEvent(appSession, msgUtility, request, response, timer);
 					}
 				}
 

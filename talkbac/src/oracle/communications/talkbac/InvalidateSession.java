@@ -9,7 +9,7 @@ import javax.servlet.sip.SipSession;
 public class InvalidateSession extends CallStateHandler {
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession,  TalkBACMessageUtility msgUtility,SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
 		SipSession sipSession = null;
 		if (request != null) {
 			sipSession = request.getSession();

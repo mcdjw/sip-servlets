@@ -23,6 +23,7 @@ public class TalkBACMessageUtility implements Serializable {
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		Address addressWithOutTags = TalkBACSipServlet.factory.createAddress(address.getURI());
 		hashmap.put(user, addressWithOutTags);
+		System.out.println("Adding client " + user + ", " + addressWithOutTags.toString());
 	}
 
 	public void addEndpoint(Address address) {
@@ -32,7 +33,7 @@ public class TalkBACMessageUtility implements Serializable {
 			Address clientAddress = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
 			String userName = (String) appSession.getAttribute(TalkBACSipServlet.USER);
 			if (clientAddress != null && userName != null) {
-				System.out.println("Add Endpoint: " + userName + ", " + clientAddress);
+				System.out.println("Add Endpoint: " + userName + ", " + clientAddress.toString());
 				hashmap.put(userName, clientAddress);
 			}
 		}
@@ -41,6 +42,7 @@ public class TalkBACMessageUtility implements Serializable {
 	public void removeEndpoint(Address address) {
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		hashmap.remove(user);
+		System.out.println("Removing Endpoint " + user);
 	}
 
 	public void send(TalkBACMessage m) {
