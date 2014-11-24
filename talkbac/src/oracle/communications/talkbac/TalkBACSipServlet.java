@@ -79,6 +79,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import weblogic.kernel.KernelLogManager;
 
+/**
+ * @author jeff
+ *
+ */
 @SipListener
 public class TalkBACSipServlet extends SipServlet implements SipServletListener, TimerListener, SipApplicationSessionListener {
 	static Logger logger;
@@ -94,7 +98,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	}
 
 	private enum CallControl {
-		call, terminate, transfer, hold, mute, resume, dial, redirect, accept, reject, conference, release
+		call, terminate, disconnect, transfer, hold, mute, resume, dial, redirect, accept, reject, conference, release, dtmf_subscribe, dtmf_unsubscribe
 	}
 
 	public final static String REQUEST_ID = "request_id";
@@ -148,17 +152,22 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		case MESSAGE:
 		case REGISTER:
 			key = ((SipURI) request.getFrom().getURI()).getUser().toLowerCase();
+//		case INVITE:
+//			key = generateKey(request.getFrom(), request.getTo());
 		default:
 		}
 
 		return key;
 	}
 
-	public static String generateKey(Address address) {
-		SipURI uri = (SipURI) address.getURI();
-		String key = uri.getUser().toLowerCase() + "@" + uri.getHost().toLowerCase();
-		return key;
-	}
+//	//For matching incoming INVITE with outgoing REFER
+//	public static String generateKey(Address orig, Address dest) {
+//		String origUser = ((SipURI)orig.getURI()).getUser().toLowerCase();
+//		String destUser = ((SipURI)dest.getURI()).getUser().toLowerCase();
+//		String str = origUser + destUser;
+//		String key = Integer.toString( Math.abs( str.hashCode() ) );
+//		return key;
+//	}
 
 	public String getParameter(SipServletContextEvent event, String name) {
 		String value = System.getProperty(name);
@@ -280,6 +289,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		appSession = request.getApplicationSession();
 		msgUtility = (TalkBACMessageUtility) appSession.getAttribute(MESSAGE_UTILITY);
 
+		System.out.println("msgUtility from appSession: "+msgUtility);
+		
 		try {
 
 			if (request.getMethod().equals("BYE")) {
@@ -333,7 +344,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					String cc = rootNode.path(CALL_CONTROL).asText();
 					String requestId = rootNode.path(REQUEST_ID).asText();
 
-					if (requestId != null && requestId.length()>0 && requestId.equals("null")==false) {
+					if (requestId != null && requestId.length() > 0 && requestId.equals("null") == false) {
 						appSession = util.getApplicationSessionById(requestId);
 					} else {
 						appSession = factory.createApplicationSession();
@@ -346,21 +357,49 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					if (cc != null) {
 						switch (CallControl.valueOf(cc)) {
 						case call: {
+							int call_flow = 5;
+							String strCallFlow = rootNode.path("call_flow").asText();
+							if (strCallFlow != null) {
+								call_flow = Integer.parseInt(strCallFlow);
+							}
+
 							Address originAddress = factory.createAddress(rootNode.path("origin").asText());
 							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
 
-							// handler = new MakeCall(originAddress,
-							// destinationAddress);
-							// msgUtility.addClient(request.getFrom());
-							// msgUtility.addEndpoint(originAddress);
-							// msgUtility.addEndpoint(destinationAddress);
-
-							handler = new CallFlow5(originAddress, destinationAddress);
 							msgUtility.addClient(request.getFrom());
 							msgUtility.addEndpoint(originAddress);
 							msgUtility.addEndpoint(destinationAddress);
 
+							switch (call_flow) {
+							case 1:
+								handler = new CallFlow1(originAddress, destinationAddress);
+								break;
+							case 2:
+								handler = new CallFlow2(originAddress, destinationAddress);
+								break;
+							case 3:
+								handler = new CallFlow3(originAddress, destinationAddress);
+								break;
+							case 4:
+								handler = new CallFlow4(originAddress, destinationAddress);
+								break;
+							case 5:
+								handler = new CallFlow5(originAddress, destinationAddress);
+								break;
+							case 6:
+								handler = new MakeCall(originAddress, destinationAddress);
+								break;
+							default:
+								handler = new CallFlow5(originAddress, destinationAddress);
+
+							}
+
 							break;
+						}
+						
+						case disconnect:{
+							Address targetAddress = factory.createAddress(rootNode.path("target").asText());
+							handler = new Disconnect(targetAddress);
 						}
 						case terminate: {
 							handler = new TerminateCall();
@@ -372,6 +411,15 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 							handler = new DtmfRelay(destinationAddress, digits);
 							break;
 						}
+						case dtmf_subscribe: {
+							handler = new KpmlRelay(3600);
+							break;
+						}
+						case dtmf_unsubscribe: {
+							handler = new KpmlRelay(0);
+							break;
+						}
+						
 						case hold: {
 							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
 							handler = new Hold(destinationAddress);
@@ -475,7 +523,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					String event;
 					event = request.getHeader("Event");
 					if (event != null && event.equalsIgnoreCase("kpml")) {
-						handler = new KpmlRelay(request.getFrom(), request.getTo());
+//						handler = new KpmlRelay(request.getFrom(), request.getTo());
+						handler = new KpmlRelay(3600);
 						handler.printInboundMessage(request);
 						printed = true;
 						break;

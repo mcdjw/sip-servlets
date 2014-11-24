@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,6 +18,8 @@ import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipURI;
 
 import weblogic.kernel.KernelLogManager;
+
+import com.bea.wcp.sip.engine.server.header.HeaderUtils;
 
 public abstract class CallStateHandler implements Serializable {
 	static Logger logger;
@@ -160,6 +163,23 @@ public abstract class CallStateHandler implements Serializable {
 		}
 
 		return endpointSession;
+	}
+
+	public static void copyHeaders(SipServletRequest origin, SipServletRequest destination) {
+		String headerName, headerValue;
+		Iterator<String> itr = origin.getHeaderNames();
+		while (itr.hasNext()) {
+			headerName = itr.next();
+			if (false == HeaderUtils.isSystemHeader(headerName, true)) {
+				destination.setHeaderForm(origin.getHeaderForm());
+				ListIterator<String> headers = origin.getHeaders(headerName);
+				while (headers.hasNext()) {
+					headerValue = headers.next();
+					destination.setHeader(headerName, headerValue);
+				}
+				break;
+			}
+		}
 	}
 
 }

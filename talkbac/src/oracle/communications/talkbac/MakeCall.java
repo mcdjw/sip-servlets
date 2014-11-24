@@ -24,8 +24,6 @@
 
 package oracle.communications.talkbac;
 
-import java.util.ListIterator;
-
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
@@ -33,7 +31,8 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 
-public class MakeCall extends CallStateHandler {
+public class MakeCall extends CallFlowHandler {
+	private static final long serialVersionUID = 1L;
 	private Address origin;
 	private Address destination;
 	private String destinationUser;
@@ -44,10 +43,6 @@ public class MakeCall extends CallStateHandler {
 
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
-
-	boolean update_supported = false;
-	boolean options_supported = false;
-	boolean kpml_supported = false;
 
 	MakeCall(Address origin, Address destination) {
 		this.origin = origin;
@@ -62,9 +57,6 @@ public class MakeCall extends CallStateHandler {
 		this.originRequest = that.originRequest;
 		this.originResponse = that.originResponse;
 
-		this.update_supported = that.update_supported;
-		this.options_supported = that.options_supported;
-		this.kpml_supported = that.kpml_supported;
 	}
 
 	@Override
@@ -99,8 +91,12 @@ public class MakeCall extends CallStateHandler {
 			msg.setParameter("destination", destination.getURI().toString());
 			msgUtility.send(msg);
 
-			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
-			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
+			// originRequest =
+			// TalkBACSipServlet.factory.createRequest(appSession, "INVITE",
+			// destination, origin);
+			// destinationRequest =
+			// TalkBACSipServlet.factory.createRequest(appSession, "INVITE",
+			// origin, destination);
 
 			this.destinationUser = ((SipURI) destination.getURI()).getUser().toLowerCase();
 			this.originUser = ((SipURI) origin.getURI()).getUser().toLowerCase();
@@ -110,23 +106,36 @@ public class MakeCall extends CallStateHandler {
 			String gateway = (String) request.getApplicationSession().getAttribute(TalkBACSipServlet.GATEWAY);
 			if (gateway != null) {
 				Address originAddress = TalkBACSipServlet.factory.createAddress("<sip:" + originUser + "@" + gateway + ">");
-				((SipURI) originAddress.getURI()).setLrParam(true);
-				originRequest.pushRoute(originAddress);
+				// ((SipURI) originAddress.getURI()).setLrParam(true);
 
 				Address destinationAddress = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + gateway + ">");
-				((SipURI) destinationAddress.getURI()).setLrParam(true);
-				destinationRequest.pushRoute(destinationAddress);
-			}
+				// ((SipURI) destinationAddress.getURI()).setLrParam(true);
 
-			if (TalkBACSipServlet.callInfo != null) {
-				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
-				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, SUBSCRIBE, PRACK, MESSAGE, PUBLISH");
+				originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destinationAddress, originAddress);
+				// originRequest.pushRoute(sipOriginAddress);
+
+				destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", originAddress, destinationAddress);
+				// destinationRequest.pushRoute(sipDestinationAddress);
+
+			} else {
+				originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
+				destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
+
 			}
 
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
+			originRequest.setHeader("Allow-Events", "telephone-event");
 
+			// destinationRequest.setHeader("Call-Info",
+			// TalkBACSipServlet.callInfo);
+			// destinationRequest.setHeader("Allow",
+			// "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, PRACK, UPDATE, REFER, SUBSCRIBE, NOTIFY");
+			// destinationRequest.setHeader("Allow-Events", "telephone-event");
+
+			originRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
+			originRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, REFER, SUBSCRIBE, NOTIFY");
+			originRequest.setHeader("Allow-Events", "telephone-event");
 			originRequest.setContent(blackhole, "application/sdp");
 			originRequest.send();
 			this.printOutboundMessage(originRequest);
@@ -144,37 +153,20 @@ public class MakeCall extends CallStateHandler {
 
 			if (status >= 200 && status < 300) {
 
-				// Support for Keep-Alive
-				String allow;
-				ListIterator<String> allows = response.getHeaders("Allow");
-				while (allows.hasNext() && (update_supported == false || options_supported == false)) {
-					allow = allows.next();
-					if (allow.equals("UPDATE")) {
-						update_supported = true;
-					} else if (allow.equals("OPTIONS")) {
-						options_supported = true;
-					}
-				}
-
-				// Support for DTMF
-				String event;
-				ListIterator<String> events = response.getHeaders("Allow-Events");
-				while (events.hasNext()) {
-					event = events.next();
-					if (event.equals("kpml")) {
-						kpml_supported = true;
-					}
-				}
+				discoverOptions(response);
 
 				originResponse = response;
 
 				SipServletRequest originAck = response.createAck();
+				// String hold = response.getContent().toString();
+				// hold = hold.replaceFirst("c=.*", "c=IN IP4 0.0.0.0");
+				// originAck.setContent(hold, response.getContentType());
 				originAck.send();
 				this.printOutboundMessage(originAck);
 
 				// set timer
 				state = 4;
-				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, 250, false, this);
+				TalkBACSipServlet.timer.createTimer(appSession, 250, false, this);
 
 				msg = new TalkBACMessage(appSession, "source_connected");
 				msg.setParameter("origin", origin.getURI().toString());
@@ -198,13 +190,13 @@ public class MakeCall extends CallStateHandler {
 
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 
-			// Address refer_to =
-			// TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser
-			// + "@" + TalkBACSipServlet.listenAddress + ">");
+			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress + ">");
 			// appSession.encodeURI(refer_to.getURI());
-			// refer.setAddressHeader("Refer-To", refer_to);
-			refer.setAddressHeader("Refer-To", TalkBACSipServlet.talkBACAddress);
-			refer.setAddressHeader("Referred-By", TalkBACSipServlet.talkBACAddress);
+			refer.setAddressHeader("Refer-To", refer_to);
+			// refer.setAddressHeader("Refer-To",
+			// TalkBACSipServlet.talkBACAddress);
+			// refer.setAddressHeader("Referred-By",
+			// TalkBACSipServlet.talkBACAddress);
 			refer.send();
 			this.printOutboundMessage(refer);
 
@@ -226,6 +218,7 @@ public class MakeCall extends CallStateHandler {
 			if (response != null && response.getMethod().equals("REFER")) {
 				// do nothing;
 			} else if (request != null && request.getMethod().equals("INVITE")) {
+
 				appSession.removeAttribute(CALL_STATE_HANDLER);
 
 				if (false == request.getCallId().equals(originResponse.getCallId())) {
@@ -238,7 +231,16 @@ public class MakeCall extends CallStateHandler {
 				request.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 				destinationRequest.getSession().setAttribute(PEER_SESSION_ID, request.getSession().getId());
 
-				destinationRequest.setContent(request.getContent(), request.getContentType());
+				copyHeaders(originRequest, destinationRequest);
+
+				destinationRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, REFER, SUBSCRIBE, NOTIFY");
+				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
+				// destinationRequest.setHeader("Session-Expires",
+				// "3600;refresher=uac");
+
+				// Purposely do not send SDP, because it is muted
+				// destinationRequest.setContent(request.getContent(),
+				// request.getContentType());
 				destinationRequest.send();
 				printOutboundMessage(destinationRequest);
 
@@ -325,34 +327,29 @@ public class MakeCall extends CallStateHandler {
 		case 12: // send ACK
 
 			if (request != null && request.getMethod().equals("ACK")) {
-				destinationRequest = destinationResponse.createAck();
-				destinationRequest.setContent(request.getContent(), request.getContentType());
-				destinationRequest.send();
-				this.printOutboundMessage(destinationRequest);
+				SipServletRequest destAck = destinationResponse.createAck();
+				destAck.setContent(request.getContent(), request.getContentType());
+				destAck.send();
+				this.printOutboundMessage(destAck);
 
 				msg = new TalkBACMessage(appSession, "call_connected");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msgUtility.send(msg);
 
-				destinationRequest.getSession().removeAttribute(CALL_STATE_HANDLER);
+				destAck.getSession().removeAttribute(CALL_STATE_HANDLER);
+				request.getSession().removeAttribute(CALL_STATE_HANDLER);
 
 				if (kpml_supported) {
-					KpmlRelay kpmlRelay = new KpmlRelay(origin, destination);
-					kpmlRelay.subscribe(originRequest.getSession());
+					KpmlRelay kpmlRelay = new KpmlRelay(3600);
+					kpmlRelay.delayedSubscribe(appSession, 3);
 				}
 
 				// Launch Keep Alive Timer
-				KeepAlive ka;
 				if (update_supported) {
-					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.UPDATE, TalkBACSipServlet.keepAlive);
-				} else if (options_supported) {
-					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.OPTIONS, TalkBACSipServlet.keepAlive);
-				} else {
-					ka = new KeepAlive(originRequest.getSession(), destinationRequest.getSession(), KeepAlive.Style.INVITE, TalkBACSipServlet.keepAlive);
+					UpdateKeepAlive ka = new UpdateKeepAlive(60 * 1000);
+					ka.startTimer(appSession);
 				}
-				// ka.processEvent(request, response, timer);
-				ka.startTimer(appSession);
 
 			}
 
@@ -370,6 +367,7 @@ public class MakeCall extends CallStateHandler {
 			+ "t=0 0\r\n"
 			+ "m=audio 23348 RTP/AVP 0\r\n"
 			+ "a=rtpmap:0 pcmu/8000\r\n"
-			+ "a=inactive\r\n";
+			+ "a=rtpmap:101 telephone-event/8000\r\n"
+			+ "a=inactive \r\n";
 
 }

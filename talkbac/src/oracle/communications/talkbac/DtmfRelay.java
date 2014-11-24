@@ -45,7 +45,8 @@ public class DtmfRelay extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession,  TalkBACMessageUtility msgUtility,SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		SipSession sipSession = null;
 		SipServletRequest digitRequest = null;
 
@@ -58,8 +59,7 @@ public class DtmfRelay extends CallStateHandler {
 			msg.setParameter("destination", destination.getURI().toString());
 			msgUtility.send(msg);
 
-			String dsi = (String) request.getApplicationSession().getAttribute(DESTINATION_SESSION_ID);
-			sipSession = appSession.getSipSession(dsi);
+			sipSession = this.findSession(appSession, destination);
 
 			digitRequest = sipSession.createRequest("NOTIFY");
 

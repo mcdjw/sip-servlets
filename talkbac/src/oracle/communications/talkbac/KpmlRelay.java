@@ -1,10 +1,12 @@
 /*
  * KPML/DTMF Relay w/Unsolicited Notify
  * RFC 2833 encoded payload
+ * Periodic timers for refreshing subscription
+ * Delayed start (3 seconds) to account for reINVITE handshaking, etc.
  *
  *             A                 Controller                  B
- *             | Established RTP      |                      |
- *             |.............................................|
+ *             |                      |                      |
+ *             |                  timer(3s)                  |
  *             | (1) SUBSCRIBE        |                      |
  *             |<---------------------|                      |
  *             | (2) 200 OK           |                      |
@@ -24,7 +26,8 @@
 
 package oracle.communications.talkbac;
 
-import javax.servlet.sip.Address;
+import java.util.Iterator;
+
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
@@ -33,8 +36,7 @@ import javax.servlet.sip.SipSession;
 
 public class KpmlRelay extends CallStateHandler {
 	private static final long serialVersionUID = 1L;
-	SipSession originSession;
-	private Address origin, destination;
+	private int period;
 
 	private final String kpmlRequest = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n"
 			+ "<kpml-request xmlns=\"urn:ietf:params:xml:ns:kpml-request\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"urn:ietf:params:xml:ns:kpml-request kpml-request.xsd\" version=\"1.0\">\r\n"
@@ -43,62 +45,103 @@ public class KpmlRelay extends CallStateHandler {
 			+ "</pattern>\r\n"
 			+ "</kpml-request>";
 
-	public KpmlRelay(Address origin, Address destination) {
-		this.origin = origin;
-		this.destination = destination;
+	KpmlRelay(int period) {
+		this.period = period;
 	}
 
-	public void subscribe(SipSession session) throws Exception {
-		originSession = session;
-		SipServletRequest subscribe = session.createRequest("SUBSCRIBE");
-		subscribe.setHeader("Event", "kpml");
-		subscribe.setExpires(7200);
-		subscribe.setHeader("Accept", "application/kpml-response+xml");
-		subscribe.setContent(kpmlRequest.getBytes(), "application/kpml-request+xml");
-		subscribe.send();
-		this.printOutboundMessage(subscribe);
+	public void cancelTimers(SipApplicationSession appSession) {
+		CallStateHandler handler;
+		for (ServletTimer timer : appSession.getTimers()) {
+			handler = (CallStateHandler) timer.getInfo();
+			if (handler instanceof KpmlRelay) {
+				timer.cancel();
+			}
+		}
+	}
 
-		session.setAttribute(CALL_STATE_HANDLER, this);
+	public void delayedSubscribe(SipApplicationSession appSession, int delay) {
+
+		cancelTimers(appSession);
+
+		this.period = period;
+		if (period > 0) {
+			TalkBACSipServlet.timer.createTimer(appSession, delay * 1000, false, this);
+		}
+	}
+
+	public void subscribe(SipApplicationSession appSession) throws Exception {
+		// Cancel any existing timers
+		cancelTimers(appSession);
+
+		SipSession sipSession;
+		SipServletRequest kpmlSubscribe;
+		Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
+		while (itr.hasNext()) {
+			sipSession = itr.next();
+			kpmlSubscribe = sipSession.createRequest("SUBSCRIBE");
+			kpmlSubscribe.setHeader("Event", "kpml");
+			kpmlSubscribe.setExpires(period);
+			kpmlSubscribe.setHeader("Accept", "application/kpml-response+xml");
+			if (period > 0) {
+				kpmlSubscribe.setContent(kpmlRequest.getBytes(), "application/kpml-request+xml");
+			}
+			kpmlSubscribe.send();
+			this.printOutboundMessage(kpmlSubscribe);
+			sipSession.setAttribute(CALL_STATE_HANDLER, this);
+		}
+
+		if (period > 0) {
+			TalkBACSipServlet.timer.createTimer(appSession, period * 1000, false, this);
+		} else {
+			for (ServletTimer timer : appSession.getTimers()) {
+				timer.cancel();
+			}
+		}
 	}
 
 	@Override
 	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 
-		if (response != null && response.getMethod().equals("SUBSCRIBE")) {
+		if (timer != null) {
+			subscribe(appSession);
+		} else if (request != null && request.getMethod().equals("MESSAGE")) {
+			subscribe(appSession);
+		} else if (response != null) {
+			response.getSession().removeAttribute(CALL_STATE_HANDLER);
+		} else if (request != null && request.getMethod().equals("NOTIFY")) {
+			SipServletResponse ok = request.createResponse(200);
+			ok.send();
+			this.printOutboundMessage(ok);
 
-			String peerSessionId = (String) response.getSession().getAttribute(PEER_SESSION_ID);
-			SipSession peerSession = response.getApplicationSession().getSipSession(peerSessionId);
+			SipSession sipSession;
+			Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
+			while (itr.hasNext()) {
+				sipSession = itr.next();
 
-			// Need to re-negotiate SDPs for audio quality. Not sure why?
-			KeepAlive keepAlive = new KeepAlive(response.getSession(), peerSession, KeepAlive.Style.INVITE, 0);
-			keepAlive.processEvent(appSession, msgUtility, request, response, timer);
+				if (sipSession.isValid() && sipSession.getId().equals(request.getSession().getId()) == false) {
+					if (request.getContent() != null) {
 
-		} else {
-			if (request != null && request.getMethod().equals("NOTIFY")) {
+						System.out.println("Sending digits to... " + sipSession.getRemoteParty());
 
-				SipServletResponse ok = request.createResponse(200);
-				ok.send();
-				this.printOutboundMessage(ok);
+						String kpmlResponse = new String((byte[]) request.getContent());
 
-				if (request.getContent() != null) {
+						String begin = "digits=\"";
+						String end = "\"";
 
-					String kpmlResponse = new String((byte[]) request.getContent());
+						int beginIndex = kpmlResponse.indexOf(begin) + begin.length();
+						int endIndex = kpmlResponse.indexOf(end, beginIndex);
+						String digits = kpmlResponse.substring(beginIndex, endIndex);
 
-					String begin = "digits=\"";
-					String end = "\"";
-
-					int beginIndex = kpmlResponse.indexOf(begin) + begin.length();
-					int endIndex = kpmlResponse.indexOf(end, beginIndex);
-					String digits = kpmlResponse.substring(beginIndex, endIndex);
-
-					if (digits != null && digits.length() > 0) {
-						CallStateHandler handler = new DtmfRelay(destination, digits);
-						handler.processEvent(appSession, msgUtility, request, response, timer);
+						if (digits != null && digits.length() > 0) {
+							CallStateHandler handler = new DtmfRelay(sipSession.getRemoteParty(), digits);
+							handler.processEvent(appSession, msgUtility, request, response, timer);
+						}
 					}
 				}
-
 			}
+
 		}
+
 	}
 }

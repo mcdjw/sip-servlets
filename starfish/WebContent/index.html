@@ -68,7 +68,7 @@ select {
 					<ul>
 						<li><a href="#connect">Connect</a></li>
 						<li><a href="#call">Call</a></li>
-						<li><a href="#dial">Dial Digits</a></li>
+						<li><a href="#dial">Dial</a></li>
 						<li><a href="#transfer">Transfer</a></li>
 						<li><a href="#hold">Hold / Mute</a></li>
 						<li><a href="#conference">Conference</a></li>
@@ -142,6 +142,17 @@ select {
 										size="45"></td>
 								</tr>
 								<tr>
+									<td><div align="right">call_flow:</div></td>
+									<td><select name="call_flow">
+											<option value="1">CallFlow1 (Simple)</option>
+											<option value="2">CallFlow2</option>
+											<option value="3">CallFlow3</option>
+											<option value="4">CallFlow4</option>
+											<option value="5">CallFlow5 (Ringback)</option>
+											<option value="6">MakeCall / AcceptCall</option>
+									</select></td>
+								</tr>
+								<tr>
 									<td colspan="2"><div align="center">
 											<table>
 												<tr>
@@ -167,8 +178,15 @@ select {
 					<div id="dial">
 						<form name="dial" method="post" action="" id="dial">
 							<table id="table1">
-
-
+								<tr>
+									<td><div align="right">origin:</div></td>
+									<td><input name="origin" type="text" id="origin" size="45"></td>
+								</tr>
+								<tr>
+									<td><div align="right">destination:</div></td>
+									<td><input name="destination" type="text" id="destination"
+										size="45"></td>
+								</tr>
 								<tr>
 									<td><div align="right">digits:</div></td>
 									<td><input name="digits" type="text" id="digits" size="45"></td>
@@ -178,7 +196,17 @@ select {
 											<table>
 												<tr>
 													<td><div align="center">
-															<input type="button" name="Call" id="Call" value="Dial"
+															<input type="button" name="Subscribe" id="Subscribe"
+																value="Subscribe"
+																onClick="javascript:onSubmit('dtmf_subscribe', this.form)">
+														</div></td>
+													<td><div align="center">
+															<input type="button" name="Unsubscribe" id="Unsubscribe"
+																value="Unsubscribe"
+																onClick="javascript:onSubmit('dtmf_unsubscribe', this.form)">
+														</div></td>
+													<td><div align="center">
+															<input type="button" name="Dial" id="Dial" value="Dial"
 																onClick="javascript:onSubmit('dial', this.form)">
 														</div></td>
 												</tr>
@@ -276,8 +304,7 @@ select {
 								</tr>
 								<tr>
 									<td><div align="right">target:</div></td>
-									<td><input name="target" type="text" id="target"
-										size="45"></td>
+									<td><input name="target" type="text" id="target" size="45"></td>
 								</tr>
 								<tr>
 									<td colspan="2"><div align="center">
@@ -353,7 +380,6 @@ select {
 		this.userName = document.getElementById("userName").value;
 		this.endpoint = document.getElementById("endpoint").value;
 		this.gateway = document.getElementById("gateway").value;
-		
 
 		/* 	localStorage.setItem("webSocket", document.getElementById("webSocket").value);
 		 localStorage.setItem("userName", document.getElementById("userName").value);
