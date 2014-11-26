@@ -97,6 +97,15 @@ public class Transfer extends CallStateHandler {
 		case 6: // ACK
 		case 7: // BYE
 			if (status == 200) {
+				
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_transferred");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setParameter("target", target.getURI().toString());
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msgUtility.send(msg);
+				
+				
 				destinationResponse = response;
 
 				appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, destinationResponse.getSession().getRemoteParty());
@@ -122,9 +131,9 @@ public class Transfer extends CallStateHandler {
 
 				response.getSession().removeAttribute(CALL_STATE_HANDLER);
 
-			}
+			}else 
 
-			if (status >= 200) {
+			if (status >= 400) {
 				TalkBACMessage msg = new TalkBACMessage(appSession, "call_transferred");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
