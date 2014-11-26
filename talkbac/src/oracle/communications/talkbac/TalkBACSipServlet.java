@@ -81,7 +81,7 @@ import weblogic.kernel.KernelLogManager;
 
 /**
  * @author jeff
- *
+ * 
  */
 @SipListener
 public class TalkBACSipServlet extends SipServlet implements SipServletListener, TimerListener, SipApplicationSessionListener {
@@ -152,22 +152,22 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		case MESSAGE:
 		case REGISTER:
 			key = ((SipURI) request.getFrom().getURI()).getUser().toLowerCase();
-//		case INVITE:
-//			key = generateKey(request.getFrom(), request.getTo());
+			// case INVITE:
+			// key = generateKey(request.getFrom(), request.getTo());
 		default:
 		}
 
 		return key;
 	}
 
-//	//For matching incoming INVITE with outgoing REFER
-//	public static String generateKey(Address orig, Address dest) {
-//		String origUser = ((SipURI)orig.getURI()).getUser().toLowerCase();
-//		String destUser = ((SipURI)dest.getURI()).getUser().toLowerCase();
-//		String str = origUser + destUser;
-//		String key = Integer.toString( Math.abs( str.hashCode() ) );
-//		return key;
-//	}
+	// //For matching incoming INVITE with outgoing REFER
+	// public static String generateKey(Address orig, Address dest) {
+	// String origUser = ((SipURI)orig.getURI()).getUser().toLowerCase();
+	// String destUser = ((SipURI)dest.getURI()).getUser().toLowerCase();
+	// String str = origUser + destUser;
+	// String key = Integer.toString( Math.abs( str.hashCode() ) );
+	// return key;
+	// }
 
 	public String getParameter(SipServletContextEvent event, String name) {
 		String value = System.getProperty(name);
@@ -289,8 +289,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		appSession = request.getApplicationSession();
 		msgUtility = (TalkBACMessageUtility) appSession.getAttribute(MESSAGE_UTILITY);
 
-		System.out.println("msgUtility from appSession: "+msgUtility);
-		
+		System.out.println("msgUtility from appSession: " + msgUtility);
+
 		try {
 
 			if (request.getMethod().equals("BYE")) {
@@ -396,8 +396,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 							break;
 						}
-						
-						case disconnect:{
+
+						case disconnect: {
 							Address targetAddress = factory.createAddress(rootNode.path("target").asText());
 							handler = new Disconnect(targetAddress);
 						}
@@ -419,7 +419,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 							handler = new KpmlRelay(0);
 							break;
 						}
-						
+
 						case hold: {
 							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
 							handler = new Hold(destinationAddress);
@@ -523,7 +523,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					String event;
 					event = request.getHeader("Event");
 					if (event != null && event.equalsIgnoreCase("kpml")) {
-//						handler = new KpmlRelay(request.getFrom(), request.getTo());
+						// handler = new KpmlRelay(request.getFrom(),
+						// request.getTo());
 						handler = new KpmlRelay(3600);
 						handler.printInboundMessage(request);
 						printed = true;
@@ -551,21 +552,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 		} catch (Exception e) {
 			e.printStackTrace();
-
-			try {
-				handler = new TerminateCall();
-				if (printed == false) {
-					handler.printInboundMessage(request);
-				}
-				handler.processEvent(appSession, msgUtility, request, null, null);
-				if (msgUtility != null) {
-					appSession.setAttribute(MESSAGE_UTILITY, msgUtility);
-				}
-
-			} catch (Exception e2) {
-				e2.printStackTrace();
-			}
-
 		}
 
 	}
@@ -592,17 +578,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			handler = new TerminateCall();
-			try {
-				handler.printInboundMessage(response);
-				handler.processEvent(appSession, msgUtility, null, response, null);
-				if (msgUtility != null) {
-					appSession.setAttribute(MESSAGE_UTILITY, msgUtility);
-				}
-
-			} catch (Exception e1) {
-				// do nothing;
-			}
 		}
 
 	}
@@ -624,15 +599,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			handler = new TerminateCall();
-			try {
-				handler.processEvent(appSession, msgUtility, null, null, timer);
-				if (msgUtility != null) {
-					appSession.setAttribute(MESSAGE_UTILITY, msgUtility);
-				}
-			} catch (Exception e1) {
-				// do nothing;
-			}
 		}
 	}
 

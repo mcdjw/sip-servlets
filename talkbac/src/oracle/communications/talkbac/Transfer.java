@@ -89,6 +89,9 @@ public class Transfer extends CallStateHandler {
 			if (status == 200) {
 				destinationResponse = response;
 
+				appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, destinationResponse.getSession().getRemoteParty());
+				appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, targetResponse.getSession().getRemoteParty());
+
 				SipServletRequest destinationAck = destinationResponse.createAck();
 				destinationAck.send();
 				this.printOutboundMessage(destinationAck);
@@ -104,14 +107,12 @@ public class Transfer extends CallStateHandler {
 				SipServletRequest byeRequest = originSession.createRequest("BYE");
 				byeRequest.send();
 				this.printOutboundMessage(byeRequest);
+				msgUtility.removeEndpoint(originSession.getRemoteParty());
+				byeRequest.getSession().setAttribute(CALL_STATE_HANDLER, new InvalidateSession());
 
-				state = 8;
-				byeRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
+				response.getSession().removeAttribute(CALL_STATE_HANDLER);
 
 			}
-			break;
-		case 8:
-			response.getSession().removeAttribute(CALL_STATE_HANDLER);
 			break;
 
 		}

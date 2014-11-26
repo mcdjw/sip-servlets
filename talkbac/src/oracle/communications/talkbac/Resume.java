@@ -69,7 +69,15 @@ public class Resume extends CallStateHandler {
 				this.destinationResponse = response;
 
 				SipServletRequest originRequest = originSession.createRequest("INVITE");
-				originRequest.setContent(destinationResponse.getContent(), destinationResponse.getContentType());
+				String content = destinationResponse.getContent().toString();
+
+//				if (content.contains("a=sendonly")) {
+//					content = content.replace("sendonly", "sendrecv");
+//				} else {
+//					content = content.concat("a=sendrecv\r\n");
+//				}
+
+				originRequest.setContent(content, destinationResponse.getContentType());
 				originRequest.send();
 				this.printOutboundMessage(originRequest);
 
@@ -92,7 +100,15 @@ public class Resume extends CallStateHandler {
 				this.printOutboundMessage(originAck);
 
 				SipServletRequest destinationAck = destinationResponse.createAck();
-				destinationAck.setContent(originResponse.getContent(), originResponse.getContentType());
+
+				String content = originResponse.getContent().toString();
+//				if (content.contains("a=sendonly")) {
+//					content = content.replace("sendonly", "sendrecv");
+//				} else {
+//					content = content.concat("a=sendrecv\r\n");
+//				}
+
+				destinationAck.setContent(content, originResponse.getContentType());
 				destinationAck.send();
 				this.printOutboundMessage(destinationAck);
 

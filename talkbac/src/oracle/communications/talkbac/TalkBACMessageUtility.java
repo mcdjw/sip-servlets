@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
@@ -19,13 +20,28 @@ public class TalkBACMessageUtility implements Serializable {
 		this.appSession = appSession;
 	}
 
+	public void printContents() {
+		System.out.println("\tTalkBACMessageUtility...");
+		for (Entry<String, Address> entry : hashmap.entrySet()) {
+			System.out.println("\t\t" + entry.getKey() + ", " + entry.getValue());
+		}
+	}
+
 	public void addClient(Address address) {
+		System.out.println("Adding client... " + address.toString());
+		printContents();
+
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		Address addressWithOutTags = TalkBACSipServlet.factory.createAddress(address.getURI());
 		hashmap.put(user, addressWithOutTags);
+
+		printContents();
 	}
 
 	public void addEndpoint(Address address) {
+		System.out.println("Adding endpoint... " + address.toString());
+		printContents();
+
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		SipApplicationSession appSession = TalkBACSipServlet.util.getApplicationSessionByKey(user, false);
 		if (appSession != null) {
@@ -35,11 +51,34 @@ public class TalkBACMessageUtility implements Serializable {
 				hashmap.put(userName, clientAddress);
 			}
 		}
+
+		printContents();
+	}
+
+	public void removeClient(Address address) {
+		System.out.println("Removing client... " + address.toString());
+		printContents();
+
+		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
+		hashmap.remove(user);
+
+		printContents();
 	}
 
 	public void removeEndpoint(Address address) {
+		System.out.println("Removing endpoint... " + address.toString());
+		printContents();
+
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
-		hashmap.remove(user);
+		SipApplicationSession appSession = TalkBACSipServlet.util.getApplicationSessionByKey(user, false);
+		if (appSession != null) {
+			String userName = (String) appSession.getAttribute(TalkBACSipServlet.USER);
+			if (userName != null) {
+				hashmap.remove(userName);
+			}
+		}
+
+		printContents();
 	}
 
 	public void send(TalkBACMessage m) {

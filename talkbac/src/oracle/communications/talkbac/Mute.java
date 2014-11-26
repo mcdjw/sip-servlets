@@ -72,7 +72,12 @@ public class Mute extends CallStateHandler {
 				SipServletRequest originRequest = originSession.createRequest("INVITE");
 
 				String content = destinationResponse.getContent().toString();
-				content = content.replace("sendrecv", "recvonly");
+				if(content.contains("a=sendrecv")){
+					content = content.replace("sendrecv", "sendonly");
+				}else{
+					content = content.concat("a=sendonly\r\n");					
+				}
+
 				originRequest.setContent(content, destinationResponse.getContentType());
 				originRequest.send();
 				this.printOutboundMessage(originRequest);
@@ -104,7 +109,7 @@ public class Mute extends CallStateHandler {
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 
 				TalkBACMessage msg = new TalkBACMessage(appSession, "call_muted");
-				msg.setParameter("destination", destination.getURI().toString());
+				msg.setParameter("destination", destinationAck.getSession().getRemoteParty().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
 			}
@@ -113,15 +118,5 @@ public class Mute extends CallStateHandler {
 		}
 
 	}
-
-	static final String blackhole = ""
-			+ "v=0\r\n"
-			+ "o=- 15474517 1 IN IP4 127.0.0.1\r\n"
-			+ "s=cpc_med\r\n"
-			+ "c=IN IP4 0.0.0.0\r\n"
-			+ "t=0 0\r\n"
-			+ "m=audio 23348 RTP/AVP 0\r\n"
-			+ "a=rtpmap:0 pcmu/8000\r\n"
-			+ "a=inactive\r\n";
 
 }

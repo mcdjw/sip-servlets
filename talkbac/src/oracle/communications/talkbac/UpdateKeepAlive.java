@@ -68,10 +68,16 @@ public class UpdateKeepAlive extends CallStateHandler {
 			while (itr.hasNext()) {
 				sipSession = itr.next();
 				if (sipSession.isValid()) {
-					update = sipSession.createRequest("UPDATE");
-					update.send();
-					this.printOutboundMessage(update);
-					sipSession.setAttribute(CALL_STATE_HANDLER, this);
+
+					// do not invoke keep alive in the middle of a existing call
+					// flow, try again next time
+					if (null == sipSession.getAttribute(CALL_STATE_HANDLER)) {
+						update = sipSession.createRequest("UPDATE");
+						update.send();
+						this.printOutboundMessage(update);
+						sipSession.setAttribute(CALL_STATE_HANDLER, this);
+					}
+
 				}
 			}
 			startTimer(appSession);
