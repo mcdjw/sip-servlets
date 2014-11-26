@@ -463,6 +463,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						case release: {
 							Address targetAddress = factory.createAddress(rootNode.path("target").asText());
 							handler = new Release(targetAddress);
+							break;
 						}
 
 						case redirect:
