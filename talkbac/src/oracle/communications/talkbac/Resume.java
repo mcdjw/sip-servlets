@@ -53,7 +53,13 @@ public class Resume extends CallStateHandler {
 			this.originSession = findSession(appSession, origin);
 			this.destinationSession = findSession(appSession, destination);
 
-			SipServletRequest destinationRequest = destinationSession.createRequest("INVITE");
+			SipServletRequest destinationRequest;
+			if (destinationSession != null) {
+				destinationRequest = destinationSession.createRequest("INVITE");
+			} else {
+				destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
+				this.destinationSession = destinationRequest.getSession();
+			}
 			destinationRequest.send();
 			this.printOutboundMessage(destinationRequest);
 
@@ -71,11 +77,11 @@ public class Resume extends CallStateHandler {
 				SipServletRequest originRequest = originSession.createRequest("INVITE");
 				String content = destinationResponse.getContent().toString();
 
-//				if (content.contains("a=sendonly")) {
-//					content = content.replace("sendonly", "sendrecv");
-//				} else {
-//					content = content.concat("a=sendrecv\r\n");
-//				}
+				// if (content.contains("a=sendonly")) {
+				// content = content.replace("sendonly", "sendrecv");
+				// } else {
+				// content = content.concat("a=sendrecv\r\n");
+				// }
 
 				originRequest.setContent(content, destinationResponse.getContentType());
 				originRequest.send();
@@ -85,15 +91,14 @@ public class Resume extends CallStateHandler {
 				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 			}
-			
-			if(status>400){
+
+			if (status > 400) {
 				TalkBACMessage msg = new TalkBACMessage(appSession, "call_resumed");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
 			}
-			
 
 			break;
 
@@ -111,11 +116,11 @@ public class Resume extends CallStateHandler {
 				SipServletRequest destinationAck = destinationResponse.createAck();
 
 				String content = originResponse.getContent().toString();
-//				if (content.contains("a=sendonly")) {
-//					content = content.replace("sendonly", "sendrecv");
-//				} else {
-//					content = content.concat("a=sendrecv\r\n");
-//				}
+				// if (content.contains("a=sendonly")) {
+				// content = content.replace("sendonly", "sendrecv");
+				// } else {
+				// content = content.concat("a=sendrecv\r\n");
+				// }
 
 				destinationAck.setContent(content, originResponse.getContentType());
 				destinationAck.send();
