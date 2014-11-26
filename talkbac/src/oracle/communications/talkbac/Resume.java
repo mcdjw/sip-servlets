@@ -85,6 +85,15 @@ public class Resume extends CallStateHandler {
 				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 			}
+			
+			if(status>400){
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_resumed");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setStatus(originResponse.getStatus(), originResponse.getReasonPhrase());
+				msgUtility.send(msg);
+			}
+			
 
 			break;
 
@@ -118,6 +127,7 @@ public class Resume extends CallStateHandler {
 				TalkBACMessage msg = new TalkBACMessage(appSession, "call_resumed");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
+				msg.setStatus(originResponse.getStatus(), originResponse.getReasonPhrase());
 				msgUtility.send(msg);
 			}
 

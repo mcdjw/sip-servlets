@@ -89,7 +89,7 @@ public class TalkBACMessageUtility implements Serializable {
 		SipServletRequest msg;
 
 		// TalkBACSipServlet.cdr.info(m.toString().replaceAll("[\n\r]", ""));
-		TalkBACSipServlet.cdr.info(m.toString());
+		TalkBACSipServlet.cdr.info(m.toString().replaceAll("\r\n", ""));
 
 		try {
 			for (Address clientAddress : hashmap.values()) {

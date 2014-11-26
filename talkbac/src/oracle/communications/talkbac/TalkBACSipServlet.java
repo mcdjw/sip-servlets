@@ -98,7 +98,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	}
 
 	private enum CallControl {
-		call, terminate, disconnect, transfer, hold, mute, resume, dial, redirect, accept, reject, conference, release, dtmf_subscribe, dtmf_unsubscribe
+		call, terminate, disconnect, transfer, hold, mute, unmute, resume, dial, redirect, accept, reject, conference, release, dtmf_subscribe, dtmf_unsubscribe
 	}
 
 	public final static String REQUEST_ID = "request_id";
@@ -335,7 +335,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 				case MESSAGE:
 					// JWM
 
-					cdr.info(request.getContent().toString().replaceAll("[\n\r]", ""));
+					//cdr.info(request.getContent().toString().replaceAll("[\n\r]", ""));
 					response = request.createResponse(200);
 					response.send();
 
@@ -425,6 +425,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 							handler = new Hold(destinationAddress);
 							break;
 						}
+						case unmute:
 						case resume: {
 							Address originAddress = factory.createAddress(rootNode.path("origin").asText());
 							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
