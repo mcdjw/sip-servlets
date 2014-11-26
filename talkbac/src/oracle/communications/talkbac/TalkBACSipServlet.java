@@ -335,7 +335,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 				case MESSAGE:
 					// JWM
 
-					//cdr.info(request.getContent().toString().replaceAll("[\n\r]", ""));
+					// cdr.info(request.getContent().toString().replaceAll("[\n\r]",
+					// ""));
 					response = request.createResponse(200);
 					response.send();
 
@@ -425,7 +426,12 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 							handler = new Hold(destinationAddress);
 							break;
 						}
-						case unmute:
+						case unmute: {
+							Address originAddress = factory.createAddress(rootNode.path("origin").asText());
+							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
+							handler = new Unmute(originAddress, destinationAddress);
+							break;
+						}
 						case resume: {
 							Address originAddress = factory.createAddress(rootNode.path("origin").asText());
 							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
