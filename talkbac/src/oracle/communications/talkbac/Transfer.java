@@ -80,6 +80,16 @@ public class Transfer extends CallStateHandler {
 				state = 4;
 				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 			}
+			
+			if (status >= 400) {
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_transferred");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setParameter("target", target.getURI().toString());
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msgUtility.send(msg);
+			}
+			
 
 			break;
 		case 4: // 200 OK
@@ -113,6 +123,16 @@ public class Transfer extends CallStateHandler {
 				response.getSession().removeAttribute(CALL_STATE_HANDLER);
 
 			}
+
+			if (status >= 200) {
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_transferred");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setParameter("target", target.getURI().toString());
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msgUtility.send(msg);
+			}
+
 			break;
 
 		}
