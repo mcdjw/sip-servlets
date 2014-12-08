@@ -1,44 +1,10 @@
 /*
- *
- * WSC                             Controller               3pcc
- *  | MESSAGE "call"                   |                      |
- *  |--------------------------------->|                      |
- *  | 200 OK                           |                      |
- *  |<---------------------------------|                      |
- *  | MESSAGE "call_created"           |                      |
- *  |<---------------------------------|                      |
- *  | 200 OK                           |                      |
- *  |--------------------------------->|                      |
- *  |                                  | INVITE               |
- *  |                                  |--------------------->|
- *  |                                  | 180 Ringing          |
- *  |                                  |<---------------------|
- *  |                                  | 183 Session Progress |
- *  |                                  |<---------------------|
- *  | MESSAGE "source_connected"       |                      |
- *  |<---------------------------------|                      |
- *  | 200 OK                           |                      |
- *  |--------------------------------->|                      |
- *  |                                  | 200 OK               |
- *  |                                  |<---------------------|
- *  | MESSAGE "destination_connected"  |                      |
- *  |<---------------------------------|                      |
- *  | 200 OK                           |                      |
- *  |--------------------------------->|                      |
- *  |                                  | ACK                  |
- *  |                                  |--------------------->|
- *  | MESSAGE "call_connected"         |                      |
- *  |<---------------------------------|                      |
- *  | 200 OK                           |                      |
- *  |--------------------------------->|                      |
- *  |                                  | BYE                  |
- *  |                                  |<---------------------|
- *  | MESSAGE "call_completed"         |                      |
- *  |<---------------------------------|                      |
- *  | 200 OK                           |                      |
- *  |--------------------------------->|                      |
- *  |                                  |                      |
- *
+ * This SIP Servlet is the main event listener.
+ * The incoming message can either be a response or a new request.
+ * If it is a new request, this Servlet will decide which CallStateHandler to use.
+ * If it is a response (or non-initial request), it will use the CallStateHandler
+ * serialized in the SipSession object.
+ * 
  */
 
 package oracle.communications.talkbac;
@@ -149,6 +115,13 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		String key = null;
 
 		switch (SipMethod.valueOf(request.getMethod())) {
+		case INVITE:
+			// This is to cover the complexity of the REFER (ringback-tone) call flow.
+			// When the INVITE caused by the REFER comes in, it may not have the same Call-ID
+			String from_user = ((SipURI) request.getFrom().getURI()).getUser().toLowerCase();
+			String to_user = ((SipURI) request.getTo().getURI()).getUser().toLowerCase();
+			key = from_user + ":" + to_user;
+			break;
 		case MESSAGE:
 		case REGISTER:
 			key = ((SipURI) request.getFrom().getURI()).getUser().toLowerCase();
@@ -289,8 +262,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		appSession = request.getApplicationSession();
 		msgUtility = (TalkBACMessageUtility) appSession.getAttribute(MESSAGE_UTILITY);
 
-		System.out.println("msgUtility from appSession: " + msgUtility);
-
 		try {
 
 			if (request.getMethod().equals("BYE")) {
@@ -348,7 +319,14 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					if (requestId != null && requestId.length() > 0 && requestId.equals("null") == false) {
 						appSession = util.getApplicationSessionById(requestId);
 					} else {
-						appSession = factory.createApplicationSession();
+						// appSession = factory.createApplicationSession();
+						String key;
+						Address tmpOriginAddress = factory.createAddress(rootNode.path("origin").asText());
+						String origin = ((SipURI) tmpOriginAddress.getURI()).getUser().toLowerCase();
+						Address tmpDestinationAddress = factory.createAddress(rootNode.path("destination").asText());
+						String destination = ((SipURI) tmpDestinationAddress.getURI()).getUser().toLowerCase();
+						key = origin + ":" + destination;
+						appSession = util.getApplicationSessionByKey(key, true);
 					}
 
 					appSession.setAttribute(USER, request.getSession().getRemoteParty().getURI().toString());
@@ -493,7 +471,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						msgUtility.addEndpoint(request.getTo());
 						handler.printInboundMessage(request);
 					} else {
-						handler = new Reinvite();
+						handler = (CallStateHandler) appSession.getAttribute(CallStateHandler.CALL_STATE_HANDLER);
+						if (handler == null) {
+							handler = new Reinvite();
+						}
 						handler.printInboundMessage(request);
 					}
 
@@ -559,7 +540,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 				handler.printInboundMessage(request);
 			}
 			handler.processEvent(appSession, msgUtility, request, null, null);
-			if (msgUtility != null) {
+			if (msgUtility != null && appSession.isValid()) {
 				appSession.setAttribute(MESSAGE_UTILITY, msgUtility);
 			}
 

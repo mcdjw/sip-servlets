@@ -20,7 +20,7 @@
  *             |<---------------------|                      |
  *             |(7) INVITE w/SDP      |                      |
  *             |--------------------->|                      |
- *             |                      |(8) INVITE            |
+ *             |                      |(8) INVITE w/o SDP    |
  *             |                      |--------------------->|
  *             |                      |(9a) 180 Ringing      |
  *             |                      |<---------------------|
@@ -34,7 +34,8 @@
  *             |--------------------->|                      |
  *             |                      |(12) ACK              |
  *             |                      |--------------------->|
- *             |.............................................|
+ *             |.............................................|    
+ *                                ReINVITE
  *
  */
 
@@ -174,9 +175,6 @@ public class CallFlow5 extends CallFlowHandler {
 				originResponse = response;
 
 				SipServletRequest originAck = response.createAck();
-				// String hold = response.getContent().toString();
-				// hold = hold.replaceFirst("c=.*", "c=IN IP4 0.0.0.0");
-				// originAck.setContent(hold, response.getContentType());
 				originAck.send();
 				this.printOutboundMessage(originAck);
 
@@ -207,12 +205,8 @@ public class CallFlow5 extends CallFlowHandler {
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 
 			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress + ">");
-			// appSession.encodeURI(refer_to.getURI());
 			refer.setAddressHeader("Refer-To", refer_to);
-			// refer.setAddressHeader("Refer-To",
-			// TalkBACSipServlet.talkBACAddress);
-			// refer.setAddressHeader("Referred-By",
-			// TalkBACSipServlet.talkBACAddress);
+			refer.setAddressHeader("Referred-By", TalkBACSipServlet.talkBACAddress);
 			refer.send();
 			this.printOutboundMessage(refer);
 
@@ -224,7 +218,6 @@ public class CallFlow5 extends CallFlowHandler {
 			csh.state = 7;
 			appSession.setAttribute(CALL_STATE_HANDLER, csh);
 			appSession.setAttribute(TalkBACSipServlet.MESSAGE_UTILITY, msgUtility);
-
 			break;
 
 		case 6: // receive 202 Accepted
@@ -251,12 +244,9 @@ public class CallFlow5 extends CallFlowHandler {
 
 				destinationRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, REFER, SUBSCRIBE, NOTIFY");
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-				// destinationRequest.setHeader("Session-Expires",
-				// "3600;refresher=uac");
 
 				// Purposely do not send SDP, because it is muted
-				// destinationRequest.setContent(request.getContent(),
-				// request.getContentType());
+				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
 				printOutboundMessage(destinationRequest);
 
@@ -266,32 +256,6 @@ public class CallFlow5 extends CallFlowHandler {
 				SipServletResponse rsp = request.createResponse(200);
 				rsp.send();
 				this.printOutboundMessage(rsp);
-
-				// String sipFrag = new String((byte[]) request.getContent());
-				// System.out.println("SipFrag: " + sipFrag);
-				//
-				// if (sipFrag.contains("200")) {
-				// int sipFragStatus = Integer.parseInt(sipFrag.substring(8,
-				// 11));
-				// String sipFragReason = sipFrag.substring(12).replace("\r\n",
-				// "");
-				//
-				// msg = new TalkBACMessage(appSession,
-				// "destination_connected");
-				// msg.setParameter("origin", origin.getURI().toString());
-				// msg.setParameter("destination",
-				// destination.getURI().toString());
-				// msg.setStatus(sipFragStatus, sipFragReason);
-				// msgUtility.send(msg);
-				//
-				// msg = new TalkBACMessage(appSession, "call_connected");
-				// msg.setParameter("origin", origin.getURI().toString());
-				// msg.setParameter("destination",
-				// destination.getURI().toString());
-				// msg.setStatus(sipFragStatus, sipFragReason);
-				// msgUtility.send(msg);
-				// }
-
 			}
 
 			break;
@@ -383,7 +347,7 @@ public class CallFlow5 extends CallFlowHandler {
 			+ "t=0 0\r\n"
 			+ "m=audio 23348 RTP/AVP 0\r\n"
 			+ "a=rtpmap:0 pcmu/8000\r\n"
-			+ "a=rtpmap:101 telephone-event/8000\r\n"
-			+ "a=inactive \r\n";
+			+ "a=rtpmap:101 telephone-event/8000\r\n";
+	// + "a=inactive \r\n";
 
 }

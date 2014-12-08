@@ -1,8 +1,4 @@
 /*
- * http://tools.ietf.org/html/rfc3725
- *
- * 4.1.  Flow I
- *
  *  A              Controller               B
  *  |(1) INVITE         |                   |
  *  |------------------>|                   |

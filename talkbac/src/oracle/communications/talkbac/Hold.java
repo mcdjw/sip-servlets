@@ -1,7 +1,4 @@
 /*
- * Ringback Tone during Blind Transfer
- * w/DTMF & Keep Alive
- *
  *             A                 Controller                  B
  *             |......................|......................|
  *             |                      |(1) INVITE (bh)       |

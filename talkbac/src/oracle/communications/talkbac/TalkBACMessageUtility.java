@@ -20,27 +20,24 @@ public class TalkBACMessageUtility implements Serializable {
 		this.appSession = appSession;
 	}
 
-	public void printContents() {
-		System.out.println("\tTalkBACMessageUtility...");
-		for (Entry<String, Address> entry : hashmap.entrySet()) {
-			System.out.println("\t\t" + entry.getKey() + ", " + entry.getValue());
-		}
-	}
+//	public void printContents() {
+//		for (Entry<String, Address> entry : hashmap.entrySet()) {
+//			System.out.println("\t\t" + entry.getKey() + ", " + entry.getValue());
+//		}
+//	}
 
 	public void addClient(Address address) {
-		System.out.println("Adding client... " + address.toString());
-		printContents();
+//		printContents();
 
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		Address addressWithOutTags = TalkBACSipServlet.factory.createAddress(address.getURI());
 		hashmap.put(user, addressWithOutTags);
 
-		printContents();
+//		printContents();
 	}
 
 	public void addEndpoint(Address address) {
-		System.out.println("Adding endpoint... " + address.toString());
-		printContents();
+//		printContents();
 
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		SipApplicationSession appSession = TalkBACSipServlet.util.getApplicationSessionByKey(user, false);
@@ -52,22 +49,20 @@ public class TalkBACMessageUtility implements Serializable {
 			}
 		}
 
-		printContents();
+//		printContents();
 	}
 
 	public void removeClient(Address address) {
-		System.out.println("Removing client... " + address.toString());
-		printContents();
+//		printContents();
 
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		hashmap.remove(user);
 
-		printContents();
+//		printContents();
 	}
 
 	public void removeEndpoint(Address address) {
-		System.out.println("Removing endpoint... " + address.toString());
-		printContents();
+		//		printContents();
 
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		SipApplicationSession appSession = TalkBACSipServlet.util.getApplicationSessionByKey(user, false);
@@ -78,7 +73,7 @@ public class TalkBACMessageUtility implements Serializable {
 			}
 		}
 
-		printContents();
+//		printContents();
 	}
 
 	public void send(TalkBACMessage m) {
