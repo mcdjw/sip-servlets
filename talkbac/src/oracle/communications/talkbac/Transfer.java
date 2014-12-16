@@ -126,7 +126,7 @@ public class Transfer extends CallStateHandler {
 				SipServletRequest byeRequest = originSession.createRequest("BYE");
 				byeRequest.send();
 				this.printOutboundMessage(byeRequest);
-				msgUtility.removeEndpoint(originSession.getRemoteParty());
+				msgUtility.removeClient(originSession.getRemoteParty());
 				byeRequest.getSession().setAttribute(CALL_STATE_HANDLER, new InvalidateSession());
 
 				response.getSession().removeAttribute(CALL_STATE_HANDLER);

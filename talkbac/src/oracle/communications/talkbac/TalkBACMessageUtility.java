@@ -3,94 +3,75 @@ package oracle.communications.talkbac;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipURI;
 
+import weblogic.kernel.KernelLogManager;
+
 public class TalkBACMessageUtility implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private SipApplicationSession appSession;
-	private HashMap<String, Address> hashmap = new HashMap<String, Address>();
-
-	TalkBACMessageUtility(SipApplicationSession appSession) {
-		this.appSession = appSession;
+	static Logger logger;
+	{
+		logger = Logger.getLogger(CallStateHandler.class.getName());
+		logger.setParent(KernelLogManager.getLogger());
 	}
 
-//	public void printContents() {
-//		for (Entry<String, Address> entry : hashmap.entrySet()) {
-//			System.out.println("\t\t" + entry.getKey() + ", " + entry.getValue());
-//		}
-//	}
+	private HashMap<String, SipApplicationSession> hashmap = new HashMap<String, SipApplicationSession>();
 
 	public void addClient(Address address) {
-//		printContents();
-
-		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
-		Address addressWithOutTags = TalkBACSipServlet.factory.createAddress(address.getURI());
-		hashmap.put(user, addressWithOutTags);
-
-//		printContents();
-	}
-
-	public void addEndpoint(Address address) {
-//		printContents();
-
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		SipApplicationSession appSession = TalkBACSipServlet.util.getApplicationSessionByKey(user, false);
 		if (appSession != null) {
-			Address clientAddress = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
-			String userName = (String) appSession.getAttribute(TalkBACSipServlet.USER);
-			if (clientAddress != null && userName != null) {
-				hashmap.put(userName, clientAddress);
-			}
+			hashmap.put(user, appSession);
 		}
-
-//		printContents();
 	}
 
 	public void removeClient(Address address) {
-//		printContents();
-
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		hashmap.remove(user);
-
-//		printContents();
-	}
-
-	public void removeEndpoint(Address address) {
-		//		printContents();
-
-		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
-		SipApplicationSession appSession = TalkBACSipServlet.util.getApplicationSessionByKey(user, false);
-		if (appSession != null) {
-			String userName = (String) appSession.getAttribute(TalkBACSipServlet.USER);
-			if (userName != null) {
-				hashmap.remove(userName);
-			}
-		}
-
-//		printContents();
 	}
 
 	public void send(TalkBACMessage m) {
-
-		for (Entry<String, Address> entry : hashmap.entrySet()) {
-		}
-
-		SipServletRequest msg;
-
-		// TalkBACSipServlet.cdr.info(m.toString().replaceAll("[\n\r]", ""));
 		TalkBACSipServlet.cdr.info(m.toString().replaceAll("\r\n", ""));
 
 		try {
-			for (Address clientAddress : hashmap.values()) {
-				msg = TalkBACSipServlet.factory.createRequest(appSession, "MESSAGE", TalkBACSipServlet.talkBACAddress, clientAddress);
-				msg.setContent(m.toString(), "text/plain");
-				msg.send();
+			SipServletRequest msg;
+
+			for (SipApplicationSession appSession : hashmap.values()) {
+				if (appSession.isValid()) {
+					Address address = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
+					if (address != null) {
+						msg = TalkBACSipServlet.factory.createRequest(appSession, "MESSAGE", TalkBACSipServlet.talkBACAddress, address);
+						msg.setContent(m.toString(), "text/plain");
+						msg.send();
+
+						if (logger.isLoggable(Level.FINE)) {
+							int state = 1;
+
+							System.out.println(this.getClass().getSimpleName()
+									+ " "
+									+ state
+									+ " "
+									+ ((SipURI) msg.getTo().getURI()).getUser()
+									+ " <-- "
+									+ msg.getMethod()
+									+ " "
+									+ m.getParameter("event")
+									+ ", ["
+									+ msg.getApplicationSession().hashCode()
+									+ ":"
+									+ msg.getSession().hashCode()
+									+ "] "
+									+ msg.getSession().getState().toString());
+						}
+
+					}
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -49,19 +49,16 @@ public class Disconnect extends CallStateHandler {
 				}
 			}
 
-
-
 			if (count >= 3) {
 				bye = sipSession.createRequest("BYE");
 				bye.send();
 				this.printOutboundMessage(bye);
 
-				
 				TalkBACMessage msg = new TalkBACMessage(appSession, "disconnected");
 				msg.setParameter("target", sipSession.getRemoteParty().toString());
-				msgUtility.send(msg);				
-				
-				msgUtility.removeEndpoint(sipSession.getRemoteParty());
+				msgUtility.send(msg);
+
+				msgUtility.removeClient(sipSession.getRemoteParty());
 
 				state = 2;
 				sipSession.setAttribute(CALL_STATE_HANDLER, this);
@@ -73,7 +70,7 @@ public class Disconnect extends CallStateHandler {
 					tmpSession = itr2.next();
 					if (tmpSession.isValid()) {
 
-						msgUtility.removeEndpoint(tmpSession.getRemoteParty());
+						msgUtility.removeClient(tmpSession.getRemoteParty());
 
 						bye = sipSession.createRequest("BYE");
 						bye.send();

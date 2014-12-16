@@ -51,14 +51,14 @@ public class AcceptCall extends CallStateHandler {
 					System.out.println("Getting Destination " + destinationAddress + " from appSession: " + userAppSession.getId());
 					if (destinationAddress != null) {
 						userAppSession.removeAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
-						msgUtility.removeEndpoint(request.getTo());
+						msgUtility.removeClient(request.getTo());
 						// msgUtility.removeEndpoint(originAddress);
 					}
 				}
 
 				destinationAddress = (destinationAddress != null) ? destinationAddress : request.getTo();
 
-				msgUtility.addEndpoint(destinationAddress);
+				msgUtility.removeClient(destinationAddress);
 
 				appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, originAddress);
 				appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destinationAddress);

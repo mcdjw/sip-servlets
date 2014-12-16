@@ -51,10 +51,10 @@ public class Release extends CallStateHandler {
 			msg.setParameter("target", target.getURI().toString());
 			msg.setStatus(response.getStatus(), response.getReasonPhrase());
 			msgUtility.send(msg);
-			
+
 			response.getSession().removeAttribute(CALL_STATE_HANDLER);
 
-			msgUtility.removeEndpoint(response.getSession().getRemoteParty());
+			msgUtility.removeClient(response.getSession().getRemoteParty());
 			break;
 		}
 

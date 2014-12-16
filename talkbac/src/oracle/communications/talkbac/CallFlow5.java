@@ -95,6 +95,9 @@ public class CallFlow5 extends CallFlowHandler {
 		switch (state) {
 		case 1: // send INVITE
 
+			// TEST!!!
+			// appSession.setInvalidateWhenReady(false);
+
 			// Save this for REFER
 			String key = ((SipURI) origin.getURI()).getUser().toLowerCase();
 			SipApplicationSession tmpAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(key, true);
