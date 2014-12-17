@@ -311,6 +311,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 					ObjectMapper objectMapper = new ObjectMapper();
 					JsonNode rootNode = objectMapper.readTree(request.getContent().toString());
+
 					String cc = rootNode.path(CALL_CONTROL).asText();
 					String requestId = rootNode.path(REQUEST_ID).asText();
 
@@ -325,6 +326,17 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						String destination = ((SipURI) tmpDestinationAddress.getURI()).getUser().toLowerCase();
 						key = origin + ":" + destination;
 						appSession = util.getApplicationSessionByKey(key, true);
+					}
+
+					if (appSession == null) {
+						msgUtility = new TalkBACMessageUtility();
+						msgUtility.addClient(request.getFrom());
+						msg = new TalkBACMessage();
+						msg.setParameter("event", "error");
+						msg.setParameter("request_id", requestId);
+						msg.setStatus(500, "Invalid request_id");
+						msgUtility.send(msg);
+						return;
 					}
 
 					appSession.setAttribute(USER, request.getSession().getRemoteParty().getURI().toString());

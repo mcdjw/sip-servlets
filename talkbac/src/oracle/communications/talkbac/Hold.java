@@ -50,7 +50,7 @@ public class Hold extends CallStateHandler {
 		case 2: // receive 200 OK
 		case 3: // send ack
 
-			if (status >= 200) {
+			if (status >= 200 && status < 300) {
 				SipServletRequest ack = response.createAck();
 				ack.send();
 				this.printOutboundMessage(ack);

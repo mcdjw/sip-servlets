@@ -2,6 +2,7 @@ package oracle.communications.talkbac;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,13 +28,28 @@ public class TalkBACMessageUtility implements Serializable {
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		SipApplicationSession appSession = TalkBACSipServlet.util.getApplicationSessionByKey(user, false);
 		if (appSession != null) {
-			hashmap.put(user, appSession);
+			Address client_address = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
+			if (client_address != null) {
+				String client_user = ((SipURI) client_address.getURI()).getUser().toLowerCase();
+				hashmap.put(client_user, appSession);
+			}
 		}
+
 	}
 
 	public void removeClient(Address address) {
 		String user = ((SipURI) address.getURI()).getUser().toLowerCase();
 		hashmap.remove(user);
+
+		SipApplicationSession appSession = TalkBACSipServlet.util.getApplicationSessionByKey(user, false);
+		if (appSession != null) {
+			Address client_address = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
+			if (client_address != null) {
+				String client_user = ((SipURI) client_address.getURI()).getUser().toLowerCase();
+				hashmap.remove(client_user);
+			}
+		}
+
 	}
 
 	public void send(TalkBACMessage m) {
@@ -43,8 +59,10 @@ public class TalkBACMessageUtility implements Serializable {
 			SipServletRequest msg;
 
 			for (SipApplicationSession appSession : hashmap.values()) {
+
 				if (appSession.isValid()) {
 					Address address = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
+
 					if (address != null) {
 						msg = TalkBACSipServlet.factory.createRequest(appSession, "MESSAGE", TalkBACSipServlet.talkBACAddress, address);
 						msg.setContent(m.toString(), "text/plain");

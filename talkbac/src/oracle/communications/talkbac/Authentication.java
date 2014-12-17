@@ -163,7 +163,11 @@ public class Authentication extends CallStateHandler {
 
 			logger.fine("proxyOn: " + proxyOn);
 			if (proxyOn) {
+				
 				appSession.setExpires(expires);
+				appSession.setAttribute(TalkBACSipServlet.CLIENT_ADDRESS, request.getTo());
+				appSession.setAttribute(TalkBACSipServlet.USER, ((SipURI) request.getTo().getURI()).getUser());
+				
 				if (expires > 0) {
 					appSession.setInvalidateWhenReady(false);
 				} else {

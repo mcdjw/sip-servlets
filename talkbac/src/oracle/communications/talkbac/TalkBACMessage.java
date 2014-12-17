@@ -11,6 +11,12 @@ public class TalkBACMessage {
 	ObjectNode objectNode;
 	public SipServletRequest message;
 
+	public TalkBACMessage(){
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectNode = objectMapper.createObjectNode();
+	}
+	
+	
 	public TalkBACMessage(SipApplicationSession appSession, String event) {
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectNode = objectMapper.createObjectNode();
