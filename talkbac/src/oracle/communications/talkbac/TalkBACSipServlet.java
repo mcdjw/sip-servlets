@@ -354,7 +354,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					Address targetAddress = null;
 
 					String origin = rootNode.path("origin").asText();
-					if (origin != null) {
+					if (origin != null && origin.length() > 0 && false == origin.equals("null")) {
 						originAddress = factory.createAddress(origin);
 						if (gateway != null) {
 							String originUser = ((SipURI) originAddress.getURI()).getUser().toLowerCase();
@@ -363,7 +363,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					}
 
 					String destination = rootNode.path("destination").asText();
-					if (destination != null) {
+					if (destination != null && destination.length() > 0 && false == destination.equals("null")) {
 						destinationAddress = factory.createAddress(destination);
 						if (gateway != null) {
 							String destinationUser = ((SipURI) destinationAddress.getURI()).getUser().toLowerCase();
@@ -372,7 +372,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					}
 
 					String target = rootNode.path("target").asText();
-					if (target != null) {
+					if (target != null && target.length() > 0 && false == target.equals("null")) {
 						targetAddress = factory.createAddress(target);
 						if (gateway != null) {
 							String targetUser = ((SipURI) targetAddress.getURI()).getUser().toLowerCase();
