@@ -30,7 +30,8 @@ public class Hold extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession,  TalkBACMessageUtility msgUtility,SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
 		switch (state) {
@@ -50,16 +51,21 @@ public class Hold extends CallStateHandler {
 		case 2: // receive 200 OK
 		case 3: // send ack
 
-			if (status >= 200 && status < 300) {
-				SipServletRequest ack = response.createAck();
-				ack.send();
-				this.printOutboundMessage(ack);
-				ack.getSession().removeAttribute(CALL_STATE_HANDLER);
-			}
+			if (status >= 200) {
 
-			TalkBACMessage msg = new TalkBACMessage(appSession, "call_on_hold");
-			msg.setParameter("destination", destination.getURI().toString());
-			msgUtility.send(msg);
+				if (status < 300) {
+					SipServletRequest ack = response.createAck();
+					ack.send();
+					this.printOutboundMessage(ack);
+					ack.getSession().removeAttribute(CALL_STATE_HANDLER);
+				}
+
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_on_hold");
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				msgUtility.send(msg);
+
+			}
 
 			break;
 		}
