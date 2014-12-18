@@ -66,6 +66,8 @@ public class CallFlow1 extends CallFlowHandler {
 		case 1:
 
 			msg = new TalkBACMessage(appSession, "call_created");
+			msg.setParameter("origin", origin.getURI().toString());
+			msg.setParameter("destination", destination.getURI().toString());
 			msgUtility.send(msg);
 
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
@@ -110,14 +112,18 @@ public class CallFlow1 extends CallFlowHandler {
 				originResponse = response;
 				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-				msg = new TalkBACMessage(response.getApplicationSession(), "source_connected");
+				msg = new TalkBACMessage(appSession, "source_connected");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(183, "Session Progress");
 				msgUtility.send(msg);
 
 			}
 
 			if (status >= 300) {
-				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
+				msg = new TalkBACMessage(appSession, "call_failed");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
 			}
@@ -140,11 +146,15 @@ public class CallFlow1 extends CallFlowHandler {
 				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 
-				msg = new TalkBACMessage(response.getApplicationSession(), "destination_connected");
+				msg = new TalkBACMessage(appSession, "destination_connected");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
 
-				msg = new TalkBACMessage(response.getApplicationSession(), "call_connected");
+				msg = new TalkBACMessage(appSession, "call_connected");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
 				msgUtility.send(msg);
 
 				if (kpml_supported) {
@@ -167,7 +177,9 @@ public class CallFlow1 extends CallFlowHandler {
 				response.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
 
-				msg = new TalkBACMessage(response.getApplicationSession(), "call_failed");
+				msg = new TalkBACMessage(appSession, "call_failed");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
 			}
