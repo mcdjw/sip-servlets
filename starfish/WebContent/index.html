@@ -71,7 +71,6 @@ select {
 						<li><a href="#dial">Dial</a></li>
 						<li><a href="#transfer">Transfer</a></li>
 						<li><a href="#hold">Hold / Mute</a></li>
-						<li><a href="#conference">Conference</a></li>
 					</ul>
 					<div id="connect">
 						<!-- ------------------------------ -->
@@ -131,13 +130,6 @@ select {
 								</tr>
 							-->
 
-								<tr>
-									<td><div align="right">request_id:</div></td>
-									<td>
-										<select name="request_ids">
-										</select>
-									</td>
-								</tr>
 								<tr>
 									<td><div align="right">origin:</div></td>
 									<td><input name="origin" type="text" id="origin" size="45"></td>
@@ -250,13 +242,13 @@ select {
 																value="Transfer"
 																onClick="javascript:onSubmit('transfer', this.form)">
 														</div></td>
-														
-														<td><div align="center">
+
+													<td><div align="center">
 															<input type="button" name="Release" id="Release"
 																value="Release"
 																onClick="javascript:onSubmit('release', this.form)">
 														</div></td>
-														
+
 												</tr>
 											</table>
 										</div></td>
@@ -313,46 +305,7 @@ select {
 
 					</div>
 
-		
 
-
-
-
-					
-					<!-- ------------------------------ -->
-					<div id="conference">
-
-						<form name="conference" method="post" action="" id="conference">
-							<table id="table1">
-
-								<tr>
-									<td><div align="right">origin:</div></td>
-									<td><input name="origin" type="text" id="origin" size="45"></td>
-								</tr>
-								<tr>
-									<td><div align="right">target:</div></td>
-									<td><input name="target" type="text" id="target" size="45"></td>
-								</tr>
-								<tr>
-									<td colspan="2"><div align="center">
-											<table>
-												<tr>
-													<td><div align="center">
-															<input type="button" value="Conference"
-																onClick="javascript:onSubmit('conference', this.form)">
-														</div></td>
-													<td><div align="center">
-															<input type="button" value="Release"
-																onClick="javascript:onSubmit('release', this.form)">
-														</div></td>
-												</tr>
-											</table>
-										</div></td>
-								</tr>
-							</table>
-						</form>
-
-					</div>
 
 
 				</div>
@@ -392,25 +345,22 @@ select {
 	var request_id = "";
 
 	var appSessions = [];
-	function addAppSession(appSession){
+	function addAppSession(appSession) {
 		appSessions.push(appSession);
-		
+
 		//document.getElementsByName("acc")
-		
-		
-		
+
 	}
-	
-	function removeAppSession(appSession){
-	
-		for(i=0; i<appSessions.length; i++){
-			if(appSessions[i]==appSession){
+
+	function removeAppSession(appSession) {
+
+		for (i = 0; i < appSessions.length; i++) {
+			if (appSessions[i] == appSession) {
 				appSessions.splice(i, 1);
 			}
 		}
-	
-	}
 
+	}
 
 	$("#tabs").tabs();
 
@@ -557,20 +507,16 @@ select {
 		var jsonTxt = JSON.stringify(json, null, 2);
 
 		request_id = json["request_id"];
-		
+
 		var event = json["event"];
-		if( event == "call_created" ){
+		if (event == "call_created") {
 			addAppSession(request_id);
 			console.log(appSessions)
-		}else if( event == "call_completed" ){
+		} else if (event == "call_completed") {
 			removeAppSession(request_id);
 			console.log(appSessions);
 		}
-		
-		
-		
-		
-		
+
 		console.log("request_id: " + this.request_id);
 
 		document.getElementById("DisplayField").value = document
