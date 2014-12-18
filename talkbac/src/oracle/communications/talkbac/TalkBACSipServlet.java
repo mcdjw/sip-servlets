@@ -254,6 +254,11 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 	@Override
 	protected void doRequest(SipServletRequest request) throws ServletException, IOException {
+		
+		System.out.println("REQUEST: "+request.getHeader("CSeq")+ ", To: "+request.getTo()+", From: "+request.getFrom());
+		
+		
+		
 		boolean printed = false;
 		SipServletResponse response;
 		CallStateHandler handler = null;

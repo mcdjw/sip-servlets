@@ -83,14 +83,12 @@ public class CallFlow5 extends CallFlowHandler {
 
 		TalkBACMessage msg;
 
-		// if (request != null) {
-		// if (request.getMethod().equals("NOTIFY")) {
-		// // I don't want to deal with this in my state machine
-		// SipServletResponse rsp = request.createResponse(200);
-		// rsp.send();
-		// this.printOutboundMessage(rsp);
-		// }
-		// }
+		// I don't want to deal with this in my state machine
+		if (request != null && request.getMethod().equals("NOTIFY")) {
+			SipServletResponse rsp = request.createResponse(200);
+			rsp.send();
+			this.printOutboundMessage(rsp);
+		}
 
 		switch (state) {
 		case 1: // send INVITE
@@ -124,7 +122,7 @@ public class CallFlow5 extends CallFlowHandler {
 			originRequest.setHeader("Allow-Events", "telephone-event");
 
 			originRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-			originRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, REFER, SUBSCRIBE, NOTIFY");
+			originRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, PRACK, UPDATE, REFER, SUBSCRIBE, NOTIFY");
 			originRequest.setHeader("Allow-Events", "telephone-event");
 			originRequest.setContent(blackhole, "application/sdp");
 			originRequest.send();
@@ -180,7 +178,8 @@ public class CallFlow5 extends CallFlowHandler {
 			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress + ">");
 			refer.setAddressHeader("Refer-To", refer_to);
 			// refer.setAddressHeader("Referred-By", TalkBACSipServlet.talkBACAddress);
-			refer.setAddressHeader("Referred-By", refer_to);
+			// refer.setAddressHeader("Referred-By", refer_to);
+			refer.setAddressHeader("Referred-By", destination);
 			refer.send();
 			this.printOutboundMessage(refer);
 
@@ -226,10 +225,6 @@ public class CallFlow5 extends CallFlowHandler {
 
 				state = 9;
 				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
-			} else if (request != null && request.getMethod().equals("NOTIFY")) {
-				SipServletResponse rsp = request.createResponse(200);
-				rsp.send();
-				this.printOutboundMessage(rsp);
 			}
 
 			break;
