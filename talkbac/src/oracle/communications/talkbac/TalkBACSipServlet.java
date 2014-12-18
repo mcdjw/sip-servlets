@@ -383,7 +383,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					if (cc != null) {
 						switch (CallControl.valueOf(cc)) {
 						case call: {
-							int call_flow = 5;
+							int call_flow = defaultCallflow;
 							String strCallFlow = rootNode.path("call_flow").asText();
 							if (strCallFlow != null) {
 								call_flow = Integer.parseInt(strCallFlow);
