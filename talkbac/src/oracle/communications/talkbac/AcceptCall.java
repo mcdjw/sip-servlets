@@ -27,14 +27,13 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 
 public class AcceptCall extends CallStateHandler {
-
+	private static final long serialVersionUID = 1L;
 	SipServletRequest originRequest;
 	SipServletResponse destinationResponse;
 
 	@Override
 	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
-		int status = (null != response) ? response.getStatus() : 0;
 
 		if (request != null) {
 			if (request.isInitial()) {

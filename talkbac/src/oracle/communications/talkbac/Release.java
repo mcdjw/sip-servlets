@@ -10,8 +10,6 @@
 
 package oracle.communications.talkbac;
 
-import java.util.Iterator;
-
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
@@ -30,8 +28,6 @@ public class Release extends CallStateHandler {
 	@Override
 	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
-
-		int status = (null != response) ? response.getStatus() : 0;
 
 		switch (state) {
 		case 1: // Send BYE

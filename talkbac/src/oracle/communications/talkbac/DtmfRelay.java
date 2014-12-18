@@ -34,10 +34,10 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
 public class DtmfRelay extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 	private Address destination;
 	private String digits = null;
 	private char digit;
-	private boolean ended = false;
 
 	DtmfRelay(Address destination, String digits) {
 		this.destination = destination;
@@ -138,7 +138,6 @@ public class DtmfRelay extends CallStateHandler {
 	}
 
 	private byte[] encodeRFC2833(char digit, boolean end, int duration) {
-		int payload = 0;
 		byte tone = 0;
 
 		switch (digit) {

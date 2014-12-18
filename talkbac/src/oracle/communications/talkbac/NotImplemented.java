@@ -6,6 +6,7 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 public class NotImplemented extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 
 	@Override
 	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,

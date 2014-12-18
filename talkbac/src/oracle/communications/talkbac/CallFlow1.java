@@ -34,6 +34,7 @@ import javax.servlet.sip.SipServletResponse;
 import weblogic.kernel.KernelLogManager;
 
 public class CallFlow1 extends CallFlowHandler {
+	private static final long serialVersionUID = 1L;
 	static Logger logger;
 	{
 		logger = Logger.getLogger(CallFlow1.class.getName());

@@ -111,47 +111,17 @@ public class CallFlow5 extends CallFlowHandler {
 			msg.setParameter("destination", destination.getURI().toString());
 			msgUtility.send(msg);
 
-			// originRequest =
-			// TalkBACSipServlet.factory.createRequest(appSession, "INVITE",
-			// destination, origin);
-			// destinationRequest =
-			// TalkBACSipServlet.factory.createRequest(appSession, "INVITE",
-			// origin, destination);
-
 			this.destinationUser = ((SipURI) destination.getURI()).getUser().toLowerCase();
 			this.originUser = ((SipURI) origin.getURI()).getUser().toLowerCase();
 			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originUser, true);
 			originAppSession.setAttribute("DESTINATION", destination);
 
-			String gateway = (String) request.getApplicationSession().getAttribute(TalkBACSipServlet.GATEWAY);
-			if (gateway != null) {
-				Address originAddress = TalkBACSipServlet.factory.createAddress("<sip:" + originUser + "@" + gateway + ">");
-				// ((SipURI) originAddress.getURI()).setLrParam(true);
-
-				Address destinationAddress = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + gateway + ">");
-				// ((SipURI) destinationAddress.getURI()).setLrParam(true);
-
-				originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destinationAddress, originAddress);
-				// originRequest.pushRoute(sipOriginAddress);
-
-				destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", originAddress, destinationAddress);
-				// destinationRequest.pushRoute(sipDestinationAddress);
-
-			} else {
-				originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
-				destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
-
-			}
+			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
+			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 			originRequest.setHeader("Allow-Events", "telephone-event");
-
-			// destinationRequest.setHeader("Call-Info",
-			// TalkBACSipServlet.callInfo);
-			// destinationRequest.setHeader("Allow",
-			// "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, PRACK, UPDATE, REFER, SUBSCRIBE, NOTIFY");
-			// destinationRequest.setHeader("Allow-Events", "telephone-event");
 
 			originRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			originRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, REFER, SUBSCRIBE, NOTIFY");
@@ -209,7 +179,8 @@ public class CallFlow5 extends CallFlowHandler {
 
 			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress + ">");
 			refer.setAddressHeader("Refer-To", refer_to);
-			refer.setAddressHeader("Referred-By", TalkBACSipServlet.talkBACAddress);
+			// refer.setAddressHeader("Referred-By", TalkBACSipServlet.talkBACAddress);
+			refer.setAddressHeader("Referred-By", refer_to);
 			refer.send();
 			this.printOutboundMessage(refer);
 

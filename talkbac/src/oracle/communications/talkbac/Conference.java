@@ -29,6 +29,7 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
 public class Conference extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 	Address origin;
 	Address target;
 	SipServletResponse targetResponse;

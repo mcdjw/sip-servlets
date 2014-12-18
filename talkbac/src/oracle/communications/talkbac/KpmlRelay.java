@@ -63,7 +63,6 @@ public class KpmlRelay extends CallStateHandler {
 
 		cancelTimers(appSession);
 
-		this.period = period;
 		if (period > 0) {
 			TalkBACSipServlet.timer.createTimer(appSession, delay * 1000, false, this);
 		}
@@ -75,6 +74,7 @@ public class KpmlRelay extends CallStateHandler {
 
 		SipSession sipSession;
 		SipServletRequest kpmlSubscribe;
+		@SuppressWarnings("unchecked")
 		Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
 		while (itr.hasNext()) {
 			sipSession = itr.next();
@@ -115,6 +115,7 @@ public class KpmlRelay extends CallStateHandler {
 			this.printOutboundMessage(ok);
 
 			SipSession sipSession;
+			@SuppressWarnings("unchecked")
 			Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
 			while (itr.hasNext()) {
 				sipSession = itr.next();

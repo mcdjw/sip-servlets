@@ -30,9 +30,9 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
-import javax.servlet.sip.SipSession.State;
 
 public class UpdateKeepAlive extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 
 	public enum Style {
 		UPDATE, OPTIONS, INVITE
@@ -46,17 +46,15 @@ public class UpdateKeepAlive extends CallStateHandler {
 	SipServletResponse originResponse;
 
 	UpdateKeepAlive(long frequency) {
-		this.originSession = originSession;
-		this.destinationSession = destinationSession;
-		this.style = style;
 		this.frequency = frequency;
 	}
 
 	public void startTimer(SipApplicationSession appSession) {
 		state = 1;
-		ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
+		TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {

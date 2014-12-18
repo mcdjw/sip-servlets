@@ -34,6 +34,7 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
 public class Transfer extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 	Address origin;
 	Address destination;
 	Address target;

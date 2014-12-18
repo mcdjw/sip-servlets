@@ -8,6 +8,7 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 public abstract class CallFlowHandler extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 	protected boolean update_supported = false;
 	protected boolean options_supported = false;
 	protected boolean kpml_supported = false;

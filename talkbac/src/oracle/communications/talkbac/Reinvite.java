@@ -25,14 +25,13 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
 public class Reinvite extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 	SipServletRequest originalRequest;
 	SipServletResponse peerResponse;
 
 	@Override
 	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
-
-		int status = (null != response) ? response.getStatus() : 0;
 
 		switch (state) {
 		case 1:

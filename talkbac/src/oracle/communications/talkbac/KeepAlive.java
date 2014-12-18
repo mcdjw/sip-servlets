@@ -31,6 +31,7 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
 public class KeepAlive extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 
 	public enum Style {
 		UPDATE, OPTIONS, INVITE
@@ -52,7 +53,7 @@ public class KeepAlive extends CallStateHandler {
 
 	public void startTimer(SipApplicationSession appSession) {
 		state = 1;
-		ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
+		TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
 	}
 
 	@Override
@@ -117,7 +118,7 @@ public class KeepAlive extends CallStateHandler {
 
 				if (frequency > 0) {
 					state = 1;
-					ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, frequency, false, this);
+					TalkBACSipServlet.timer.createTimer(appSession, frequency, false, this);
 				}
 			} else {
 				TerminateCall terminate = new TerminateCall();
@@ -163,7 +164,7 @@ public class KeepAlive extends CallStateHandler {
 
 				if (frequency > 0) {
 					state = 1;
-					ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
+					TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
 				}
 			}
 			break;
@@ -221,7 +222,7 @@ public class KeepAlive extends CallStateHandler {
 
 				if (frequency > 0) {
 					state = 1;
-					ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
+					TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
 				}
 			}
 			break;

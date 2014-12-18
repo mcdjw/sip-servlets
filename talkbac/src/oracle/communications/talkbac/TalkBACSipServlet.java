@@ -51,6 +51,7 @@ import weblogic.kernel.KernelLogManager;
  */
 @SipListener
 public class TalkBACSipServlet extends SipServlet implements SipServletListener, TimerListener, SipApplicationSessionListener {
+	private static final long serialVersionUID = 1L;
 	static Logger logger;
 	{
 		logger = Logger.getLogger(TalkBACSipServlet.class.getName());
@@ -96,6 +97,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public static String ldapFilter = null;
 	public static String ldapLocationParameter = null;
 
+	@SuppressWarnings("rawtypes")
 	public static Hashtable ldapEnv;
 
 	public static long keepAlive;
@@ -146,6 +148,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		return value;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
 		logger.info(event.getSipServlet().getServletName() + " initialized.");
@@ -218,11 +221,13 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		return new InitialDirContext(ldapEnv);
 	}
 
+	@SuppressWarnings("rawtypes")
 	public static void disconnectLdap(DirContext ldapCtx, NamingEnumeration results) throws NamingException {
 		results.close();
 		ldapCtx.close();
 	}
 
+	@SuppressWarnings("rawtypes")
 	public static NamingEnumeration ldapSearch(DirContext ldapCtx, String userId, String objectSid) throws NamingException {
 		NamingEnumeration results = null;
 
@@ -253,7 +258,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 		SipServletResponse response;
 		CallStateHandler handler = null;
 		TalkBACMessage msg = null;
-		int state = 0; // just for printing info
 		TalkBACMessageUtility msgUtility = null;
 		SipApplicationSession appSession;
 
@@ -343,6 +347,39 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					msgUtility = (TalkBACMessageUtility) appSession.getAttribute(MESSAGE_UTILITY);
 					msgUtility = (msgUtility != null) ? msgUtility : new TalkBACMessageUtility();
 
+					String gateway = (String) request.getApplicationSession().getAttribute(GATEWAY);
+
+					Address originAddress = null;
+					Address destinationAddress = null;
+					Address targetAddress = null;
+
+					String origin = rootNode.path("origin").asText();
+					if (origin != null) {
+						originAddress = factory.createAddress(origin);
+						if (gateway != null) {
+							String originUser = ((SipURI) originAddress.getURI()).getUser().toLowerCase();
+							originAddress = TalkBACSipServlet.factory.createAddress("<sip:" + originUser + "@" + gateway + ">");
+						}
+					}
+
+					String destination = rootNode.path("destination").asText();
+					if (destination != null) {
+						destinationAddress = factory.createAddress(destination);
+						if (gateway != null) {
+							String destinationUser = ((SipURI) destinationAddress.getURI()).getUser().toLowerCase();
+							destinationAddress = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + gateway + ">");
+						}
+					}
+
+					String target = rootNode.path("target").asText();
+					if (target != null) {
+						targetAddress = factory.createAddress(target);
+						if (gateway != null) {
+							String targetUser = ((SipURI) targetAddress.getURI()).getUser().toLowerCase();
+							targetAddress = TalkBACSipServlet.factory.createAddress("<sip:" + targetUser + "@" + gateway + ">");
+						}
+					}
+
 					if (cc != null) {
 						switch (CallControl.valueOf(cc)) {
 						case call: {
@@ -351,9 +388,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 							if (strCallFlow != null) {
 								call_flow = Integer.parseInt(strCallFlow);
 							}
-
-							Address originAddress = factory.createAddress(rootNode.path("origin").asText());
-							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
 
 							msgUtility.addClient(request.getFrom());
 							msgUtility.addClient(originAddress);
@@ -387,7 +421,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						}
 
 						case disconnect: {
-							Address targetAddress = factory.createAddress(rootNode.path("target").asText());
 							handler = new Disconnect(targetAddress);
 						}
 						case terminate: {
@@ -396,7 +429,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						}
 						case dial: {
 							String digits = rootNode.path("digits").asText();
-							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
 							handler = new DtmfRelay(destinationAddress, digits);
 							break;
 						}
@@ -410,46 +442,33 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						}
 
 						case hold: {
-							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
 							handler = new Hold(destinationAddress);
 							break;
 						}
 						case unmute: {
-							Address originAddress = factory.createAddress(rootNode.path("origin").asText());
-							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
 							handler = new Unmute(originAddress, destinationAddress);
 							break;
 						}
 						case resume: {
-							Address originAddress = factory.createAddress(rootNode.path("origin").asText());
-							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
 							handler = new Resume(originAddress, destinationAddress);
 							break;
 						}
 						case mute: {
-							Address originAddress = factory.createAddress(rootNode.path("origin").asText());
-							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
 							handler = new Mute(originAddress, destinationAddress);
 							break;
 						}
 						case transfer: {
-							Address originAddress = factory.createAddress(rootNode.path("origin").asText());
-							Address destinationAddress = factory.createAddress(rootNode.path("destination").asText());
-							Address targetAddress = factory.createAddress(rootNode.path("target").asText());
 							handler = new Transfer(originAddress, destinationAddress, targetAddress);
 							msgUtility.addClient(targetAddress);
 							break;
 						}
 						case conference: {
-							Address originAddress = factory.createAddress(rootNode.path("origin").asText());
-							Address targetAddress = factory.createAddress(rootNode.path("target").asText());
 							handler = new Conference(originAddress, targetAddress);
 							msgUtility.addClient(targetAddress);
 							break;
 						}
 
 						case release: {
-							Address targetAddress = factory.createAddress(rootNode.path("target").asText());
 							handler = new Release(targetAddress);
 							break;
 						}

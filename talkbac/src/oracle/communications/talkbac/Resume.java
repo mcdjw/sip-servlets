@@ -18,8 +18,6 @@
 
 package oracle.communications.talkbac;
 
-import java.util.Iterator;
-
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;

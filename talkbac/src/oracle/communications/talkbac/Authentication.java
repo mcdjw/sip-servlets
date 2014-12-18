@@ -53,6 +53,7 @@ import javax.servlet.sip.SipURI;
 import weblogic.kernel.KernelLogManager;
 
 public class Authentication extends CallStateHandler {
+	private static final long serialVersionUID = 1L;
 	static Logger logger;
 	{
 		logger = Logger.getLogger(Authentication.class.getName());
@@ -104,6 +105,7 @@ public class Authentication extends CallStateHandler {
 
 				DirContext ldapCtx = TalkBACSipServlet.connectLdap();
 
+				@SuppressWarnings("rawtypes")
 				NamingEnumeration results = TalkBACSipServlet.ldapSearch(ldapCtx, userId, objectSid);
 				if (results.hasMoreElements()) {
 					SearchResult sr = (SearchResult) results.nextElement();

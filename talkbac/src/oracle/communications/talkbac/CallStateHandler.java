@@ -22,6 +22,7 @@ import weblogic.kernel.KernelLogManager;
 import com.bea.wcp.sip.engine.server.header.HeaderUtils;
 
 public abstract class CallStateHandler implements Serializable {
+	private static final long serialVersionUID = 1L;
 	static Logger logger;
 	{
 		logger = Logger.getLogger(CallStateHandler.class.getName());
@@ -149,6 +150,7 @@ public abstract class CallStateHandler implements Serializable {
 
 		SipSession session = null;
 		SipSession endpointSession = null;
+		@SuppressWarnings("unchecked")
 		Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
 
 		String remoteUser = null;

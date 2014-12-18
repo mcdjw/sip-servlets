@@ -42,6 +42,7 @@ public class Disconnect extends CallStateHandler {
 
 			int count = 0;
 
+			@SuppressWarnings("unchecked")
 			Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
 			while (itr.hasNext()) {
 				if (itr.next().isValid()) {
@@ -65,6 +66,7 @@ public class Disconnect extends CallStateHandler {
 			} else {
 
 				SipSession tmpSession;
+				@SuppressWarnings("unchecked")
 				Iterator<SipSession> itr2 = (Iterator<SipSession>) appSession.getSessions();
 				while (itr2.hasNext()) {
 					tmpSession = itr2.next();
