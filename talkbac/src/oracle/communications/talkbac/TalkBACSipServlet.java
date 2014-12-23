@@ -280,10 +280,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					response = request.createResponse(200);
 					response.send();
 					handler.printOutboundMessage(response);
-
-					// msg = new TalkBACMessage(request.getApplicationSession(),
-					// "call_completed");
-					// msg.send();
 				}
 
 			} else if (request.getMethod().equals("REGISTER")) {
@@ -306,10 +302,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 				switch (SipMethod.valueOf(request.getMethod())) {
 
 				case MESSAGE:
-					// JWM
-
-					// cdr.info(request.getContent().toString().replaceAll("[\n\r]",
-					// ""));
 					response = request.createResponse(200);
 					response.send();
 

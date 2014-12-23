@@ -84,7 +84,7 @@ public class CallFlow5 extends CallFlowHandler {
 		TalkBACMessage msg;
 
 		// I don't want to deal with this in my state machine
-		if (request != null && request.getMethod().equals("NOTIFY")) {
+		if (request != null && ( request.getMethod().equals("NOTIFY") || request.getMethod().equals("UPDATE")) ) {
 			SipServletResponse rsp = request.createResponse(200);
 			rsp.send();
 			this.printOutboundMessage(rsp);
@@ -92,9 +92,6 @@ public class CallFlow5 extends CallFlowHandler {
 
 		switch (state) {
 		case 1: // send INVITE
-
-			// TEST!!!
-			// appSession.setInvalidateWhenReady(false);
 
 			// Save this for REFER
 			String key = ((SipURI) origin.getURI()).getUser().toLowerCase();
