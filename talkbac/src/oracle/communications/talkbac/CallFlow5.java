@@ -41,6 +41,9 @@
 
 package oracle.communications.talkbac;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
@@ -48,7 +51,15 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 
+import weblogic.kernel.KernelLogManager;
+
 public class CallFlow5 extends CallFlowHandler {
+	static Logger logger;
+	{
+		logger = Logger.getLogger(CallFlow5.class.getName());
+		logger.setParent(KernelLogManager.getLogger());
+	}
+	
 	private static final long serialVersionUID = 1L;
 	private Address origin;
 	private Address destination;
@@ -295,6 +306,8 @@ public class CallFlow5 extends CallFlowHandler {
 				if (update_supported) {
 					UpdateKeepAlive ka = new UpdateKeepAlive(60 * 1000);
 					ka.startTimer(appSession);
+					
+					
 				}
 
 			}

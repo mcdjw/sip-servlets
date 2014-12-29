@@ -24,6 +24,7 @@ package oracle.communications.talkbac;
  */
 
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
@@ -31,7 +32,14 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
+import weblogic.kernel.KernelLogManager;
+
 public class UpdateKeepAlive extends CallStateHandler {
+	static Logger logger;
+	{
+		logger = Logger.getLogger(UpdateKeepAlive.class.getName());
+		logger.setParent(KernelLogManager.getLogger());
+	}
 	private static final long serialVersionUID = 1L;
 
 	public enum Style {
@@ -51,18 +59,21 @@ public class UpdateKeepAlive extends CallStateHandler {
 
 	public void startTimer(SipApplicationSession appSession) {
 		state = 1;
-		TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
+		TalkBACSipServlet.timer.createTimer(appSession,
+				TalkBACSipServlet.keepAlive, false, this);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
-			ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession,
+			TalkBACMessageUtility msgUtility, SipServletRequest request,
+			SipServletResponse response, ServletTimer timer) throws Exception {
 
 		if (timer != null) {
 			SipServletRequest update;
 			SipSession sipSession;
-			Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
+			Iterator<SipSession> itr = (Iterator<SipSession>) appSession
+					.getSessions();
 			while (itr.hasNext()) {
 				sipSession = itr.next();
 				if (sipSession.isValid()) {
@@ -82,7 +93,8 @@ public class UpdateKeepAlive extends CallStateHandler {
 		} else if (response != null) {
 			if (response.getStatus() != 200) {
 				CallStateHandler handler = new Disconnect(response.getSession());
-				handler.processEvent(appSession, msgUtility, request, response, timer);
+				handler.processEvent(appSession, msgUtility, request, response,
+						timer);
 			}
 		}
 
