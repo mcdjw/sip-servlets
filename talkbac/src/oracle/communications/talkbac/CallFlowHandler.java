@@ -35,7 +35,7 @@ public abstract class CallFlowHandler extends CallStateHandler {
 		ListIterator<String> events = response.getHeaders("Allow-Events");
 		while (events.hasNext()) {
 			event = events.next();
-			if (event.equals("kpml")) {
+			if (event.equals("kpml") || event.equals("telephone-event")) {
 				kpml_supported = true;
 			}
 		}
