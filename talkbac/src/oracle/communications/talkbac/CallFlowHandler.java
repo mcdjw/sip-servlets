@@ -13,9 +13,9 @@ import weblogic.kernel.KernelLogManager;
 
 public abstract class CallFlowHandler extends CallStateHandler {
 	private static final long serialVersionUID = 1L;
-	protected boolean update_supported = false;
-	protected boolean options_supported = false;
-	protected boolean kpml_supported = false;
+	protected boolean update_supported = true;
+	protected boolean options_supported = true;
+	protected boolean kpml_supported = true;
 
 	static Logger logger;
 	{
@@ -29,26 +29,30 @@ public abstract class CallFlowHandler extends CallStateHandler {
 
 	protected void discoverOptions(SipServletResponse response) {
 		// Support for Keep-Alive
-		String allow;
-		ListIterator<String> allows = response.getHeaders("Allow");
-		while (allows.hasNext()) {
-			allow = allows.next();
-			if (allow.equals("UPDATE")) {
-				update_supported = true;
-			} else if (allow.equals("OPTIONS")) {
-				options_supported = true;
-			}
-		}
+		// String allow;
+		// ListIterator<String> allows = response.getHeaders("Allow");
+		// while (allows.hasNext()) {
+		// allow = allows.next();
+		// if (allow.equals("UPDATE")) {
+		// update_supported = true;
+		// } else if (allow.equals("OPTIONS")) {
+		// options_supported = true;
+		// }
+		// }
+		//
+		// // Support for DTMF
+		// String event;
+		// ListIterator<String> events = response.getHeaders("Allow-Events");
+		// while (events.hasNext()) {
+		// event = events.next();
+		// if (event.equals("kpml")) {
+		// kpml_supported = true;
+		// }
+		// }
 
-		// Support for DTMF
-		String event;
-		ListIterator<String> events = response.getHeaders("Allow-Events");
-		while (events.hasNext()) {
-			event = events.next();
-			if (event.equals("kpml")) {
-				kpml_supported = true;
-			}
-		}
+		kpml_supported = true;
+		update_supported = true;
+		options_supported = true;
 
 	}
 

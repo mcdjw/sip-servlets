@@ -279,15 +279,20 @@ public class CallFlow5 extends CallFlowHandler {
 				this.printOutboundMessage(destAck);
 
 				// Launch KPML Subscribe (wait for SDP to be negotiated)
-				if (kpml_supported) {
+
+				System.out.println("kpml_supported: " + this.kpml_supported);
+				if (this.kpml_supported) {
 					KpmlRelay kpmlRelay = new KpmlRelay(3600);
 					kpmlRelay.delayedSubscribe(appSession, 2);
+					System.out.println("KpmlRelay.delayedSubscribe invoked...");
 				}
 
 				// Launch Keep Alive Timer
-				if (update_supported) {
+				System.out.println("update_supported: " + this.update_supported);
+				if (this.update_supported) {
 					UpdateKeepAlive ka = new UpdateKeepAlive(60 * 1000);
 					ka.startTimer(appSession);
+					System.out.println("UpdateKeepAlive.startTimer invoked...");
 				}
 
 				msg = new TalkBACMessage(appSession, "call_connected");
