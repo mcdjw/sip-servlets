@@ -35,6 +35,7 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
 public class KpmlRelay extends CallStateHandler {
+
 	private static final long serialVersionUID = 1L;
 	private int period;
 
@@ -60,11 +61,9 @@ public class KpmlRelay extends CallStateHandler {
 	}
 
 	public void delayedSubscribe(SipApplicationSession appSession, int delay) {
-
-		cancelTimers(appSession);
-
 		if (period > 0) {
-			TalkBACSipServlet.timer.createTimer(appSession, delay * 1000, false, this);
+			ServletTimer timer = TalkBACSipServlet.timer.createTimer(appSession, delay * 1000, false, this);
+			this.printTimer(timer);
 		}
 	}
 
@@ -91,7 +90,8 @@ public class KpmlRelay extends CallStateHandler {
 		}
 
 		if (period > 0) {
-			TalkBACSipServlet.timer.createTimer(appSession, period * 1000, false, this);
+			ServletTimer timer = TalkBACSipServlet.timer.createTimer(appSession, period * 1000, false, this);
+			this.printTimer(timer);
 		} else {
 			for (ServletTimer timer : appSession.getTimers()) {
 				timer.cancel();
@@ -122,8 +122,6 @@ public class KpmlRelay extends CallStateHandler {
 
 				if (sipSession.isValid() && sipSession.getId().equals(request.getSession().getId()) == false) {
 					if (request.getContent() != null) {
-
-						System.out.println("Sending digits to... " + sipSession.getRemoteParty());
 
 						String kpmlResponse = new String((byte[]) request.getContent());
 

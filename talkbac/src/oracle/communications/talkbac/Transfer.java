@@ -3,25 +3,27 @@
  *  A              Controller               B                   C
  *  | RTP               |                   |                   |
  *  |.......................................|                   |
- *  |                   | (1) INVITE        |                   |
- *  |                   |-------------------------------------->|
- *  |                   | (2) 200 OK        |                   |
- *  |                   |<--------------------------------------|
- *  |                   | (3) INVITE        |                   |
- *  |                   |------------------>|                   |
- *  |                   | (4) 200 OK        |                   |
- *  |                   |<------------------|                   |
- *  |                   | (5) ACK           |                   |
- *  |                   |------------------>|                   |
- *  |                   | (6) ACK           |                   |
- *  |                   |-------------------------------------->|
- *  | (7) BYE           |                   |                   |
+ *  | (1) BYE           |                   |                   |
  *  |<------------------|                   |                   |
- *  | (8) 200 OK        |                   |                   |
+ *  | (2) 200 OK        |                   |                   |
  *  |------------------>|                   |                   |
+ *  |                   | (3) REFER         |                   |
+ *  |                   |------------------>|                   |
+ *  |                   | (4) 202 Accepted  |                   |
+ *  |                   |<------------------|                   |
+ *  |                   | (5) NOTIFY(s)     |                   |
+ *  |                   |<------------------|                   |
+ *  |                   | (6) 200 OK        |                   |
+ *  |                   |------------------>|                   |
+ *  |                   |                   | (7) INVITE        |
+ *  |                   |                   |------------------>|
+ *  |                   |                   | (8) 200 OK        |
+ *  |                   |                   |<------------------|
+ *  |                   |                   | (9) ACK           |
+ *  |                   |                   |------------------>|
  *  |                   |                   | RTP               |
  *  |                   |                   |...................|
- *
+ *  |                   |                   |                   |
  */
 
 package oracle.communications.talkbac;
@@ -38,8 +40,6 @@ public class Transfer extends CallStateHandler {
 	Address origin;
 	Address destination;
 	Address target;
-	SipServletResponse targetResponse;
-	SipServletResponse destinationResponse;
 	SipSession destinationSession;
 	SipSession originSession;
 
@@ -54,97 +54,58 @@ public class Transfer extends CallStateHandler {
 			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
-		switch (state) {
-		case 1: // Send INVITE
-			appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, destination);
-			appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, target);
+		// I don't want NOTIFY in my state machine
+		if (request != null && request.getMethod().equals("NOTIFY")) {
+			SipServletResponse notifyResponse = request.createResponse(200);
+			notifyResponse.send();
+			this.printOutboundMessage(notifyResponse);
+			return;
+		}
 
+		switch (state) {
+		case 1: // Send BYE
 			this.destinationSession = this.findSession(appSession, destination);
 			this.originSession = this.findSession(appSession, origin);
 
-			SipServletRequest targetRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, target);
-			targetRequest.send();
+			SipServletRequest bye = this.originSession.createRequest("BYE");
+			bye.send();
+			this.printOutboundMessage(bye);
 
 			state = 2;
-			targetRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
+			this.originSession.setAttribute(CALL_STATE_HANDLER, this);
 
 			break;
-		case 2: // Receive 200 OK
-		case 3: // Send INVITE
+		case 2: // Receive BYE 200 OK
+		case 3: // Send REFER
 
 			if (status == 200) {
-				targetResponse = response;
-				SipServletRequest destinationRequest = destinationSession.createRequest("INVITE");
-				destinationRequest.setContent(targetResponse.getContent(), targetResponse.getContentType());
-				destinationRequest.send();
+				SipServletRequest refer = this.destinationSession.createRequest("REFER");
+				refer.setAddressHeader("Refer-To", target);
+				refer.setAddressHeader("Referred-By", origin);
+				refer.send();
+				this.printOutboundMessage(refer);
 
 				state = 4;
-				destinationRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
+				destinationSession.setAttribute(CALL_STATE_HANDLER, this);
+				originSession.removeAttribute(CALL_STATE_HANDLER);
 			}
-			
-			if (status >= 400) {
-				TalkBACMessage msg = new TalkBACMessage(appSession, "call_transferred");
-				msg.setParameter("origin", origin.getURI().toString());
-				msg.setParameter("destination", destination.getURI().toString());
-				msg.setParameter("target", target.getURI().toString());
-				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
-			}
-			
+
+			TalkBACMessage msg = new TalkBACMessage(appSession, "call_transferred");
+			msg.setParameter("origin", origin.getURI().toString());
+			msg.setParameter("destination", destination.getURI().toString());
+			msg.setParameter("target", target.getURI().toString());
+			msg.setStatus(status, response.getReasonPhrase());
+			msgUtility.send(msg);
 
 			break;
-		case 4: // 200 OK
-		case 5: // ACK
-		case 6: // ACK
-		case 7: // BYE
-			if (status == 200) {
-				
-				TalkBACMessage msg = new TalkBACMessage(appSession, "call_transferred");
-				msg.setParameter("origin", origin.getURI().toString());
-				msg.setParameter("destination", destination.getURI().toString());
-				msg.setParameter("target", target.getURI().toString());
-				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
-				
-				
-				destinationResponse = response;
+		case 4: // Receive 200 OK
 
-				appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, destinationResponse.getSession().getRemoteParty());
-				appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, targetResponse.getSession().getRemoteParty());
-
-				SipServletRequest destinationAck = destinationResponse.createAck();
-				destinationAck.send();
-				this.printOutboundMessage(destinationAck);
-
-				SipServletRequest targetAck = targetResponse.createAck();
-				targetAck.setContent(destinationResponse.getContent(), destinationResponse.getContentType());
-				targetAck.send();
-				this.printOutboundMessage(targetAck);
-
-				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
-				targetAck.getSession().removeAttribute(CALL_STATE_HANDLER);
-
-				SipServletRequest byeRequest = originSession.createRequest("BYE");
-				byeRequest.send();
-				this.printOutboundMessage(byeRequest);
-				msgUtility.removeClient(originSession.getRemoteParty());
-				byeRequest.getSession().setAttribute(CALL_STATE_HANDLER, new InvalidateSession());
-
-				response.getSession().removeAttribute(CALL_STATE_HANDLER);
-
-			}else 
-
-			if (status >= 400) {
-				TalkBACMessage msg = new TalkBACMessage(appSession, "call_transferred");
-				msg.setParameter("origin", origin.getURI().toString());
-				msg.setParameter("destination", destination.getURI().toString());
-				msg.setParameter("target", target.getURI().toString());
-				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+			for (ServletTimer t : appSession.getTimers()) {
+				t.cancel();
 			}
 
+			appSession.invalidate();
 			break;
-
 		}
 
 	}

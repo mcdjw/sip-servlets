@@ -41,9 +41,6 @@
 
 package oracle.communications.talkbac;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
@@ -51,15 +48,7 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 
-import weblogic.kernel.KernelLogManager;
-
 public class CallFlow5 extends CallFlowHandler {
-	static Logger logger;
-	{
-		logger = Logger.getLogger(CallFlow5.class.getName());
-		logger.setParent(KernelLogManager.getLogger());
-	}
-	
 	private static final long serialVersionUID = 1L;
 	private Address origin;
 	private Address destination;
@@ -95,7 +84,7 @@ public class CallFlow5 extends CallFlowHandler {
 		TalkBACMessage msg;
 
 		// I don't want to deal with this in my state machine
-		if (request != null && ( request.getMethod().equals("NOTIFY") || request.getMethod().equals("UPDATE")) ) {
+		if (request != null && (request.getMethod().equals("NOTIFY") || request.getMethod().equals("UPDATE"))) {
 			SipServletResponse rsp = request.createResponse(200);
 			rsp.send();
 			this.printOutboundMessage(rsp);
@@ -159,7 +148,8 @@ public class CallFlow5 extends CallFlowHandler {
 
 				// set timer
 				state = 4;
-				TalkBACSipServlet.timer.createTimer(appSession, 250, false, this);
+				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, 250, false, this);
+				this.printTimer(t);
 
 				msg = new TalkBACMessage(appSession, "source_connected");
 				msg.setParameter("origin", origin.getURI().toString());
@@ -282,12 +272,23 @@ public class CallFlow5 extends CallFlowHandler {
 
 		case 11: // receive ACK
 		case 12: // send ACK
-
 			if (request != null && request.getMethod().equals("ACK")) {
 				SipServletRequest destAck = destinationResponse.createAck();
 				destAck.setContent(request.getContent(), request.getContentType());
 				destAck.send();
 				this.printOutboundMessage(destAck);
+
+				// Launch KPML Subscribe (wait for SDP to be negotiated)
+				if (kpml_supported) {
+					KpmlRelay kpmlRelay = new KpmlRelay(3600);
+					kpmlRelay.delayedSubscribe(appSession, 2);
+				}
+
+				// Launch Keep Alive Timer
+				if (update_supported) {
+					UpdateKeepAlive ka = new UpdateKeepAlive(60 * 1000);
+					ka.startTimer(appSession);
+				}
 
 				msg = new TalkBACMessage(appSession, "call_connected");
 				msg.setParameter("origin", origin.getURI().toString());
@@ -296,19 +297,6 @@ public class CallFlow5 extends CallFlowHandler {
 
 				destAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				request.getSession().removeAttribute(CALL_STATE_HANDLER);
-
-				if (kpml_supported) {
-					KpmlRelay kpmlRelay = new KpmlRelay(3600);
-					kpmlRelay.delayedSubscribe(appSession, 3);
-				}
-
-				// Launch Keep Alive Timer
-				if (update_supported) {
-					UpdateKeepAlive ka = new UpdateKeepAlive(60 * 1000);
-					ka.startTimer(appSession);
-					
-					
-				}
 
 			}
 

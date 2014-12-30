@@ -42,12 +42,13 @@ public abstract class CallStateHandler implements Serializable {
 
 	public void printOutboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
 		if (logger.isLoggable(Level.FINE)) {
-			String sdp;
 
-			if (message.getContent() != null) {
-				sdp = "w/ SDP";
-			} else {
-				sdp = "w/o SDP";
+			String event = message.getHeader("Event");
+			if (event != null && event.equals("refer")) {
+				event += " " + (byte[]) message.getContent();
+			}
+			if (event == null) {
+				event = (message.getContent() != null) ? "w/ SDP" : "w/o SDP";
 			}
 
 			if (message instanceof SipServletRequest) {
@@ -60,7 +61,7 @@ public abstract class CallStateHandler implements Serializable {
 						+ " <-- "
 						+ rqst.getMethod()
 						+ " "
-						+ sdp
+						+ event
 						+ ", ["
 						+ rqst.getApplicationSession().hashCode()
 						+ ":"
@@ -81,7 +82,7 @@ public abstract class CallStateHandler implements Serializable {
 						+ " ("
 						+ rspn.getMethod()
 						+ ") "
-						+ sdp
+						+ event
 						+ ", ["
 						+ rspn.getApplicationSession().hashCode()
 						+ ":"
@@ -95,12 +96,12 @@ public abstract class CallStateHandler implements Serializable {
 	public void printInboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
 		if (logger.isLoggable(Level.FINE)) {
 
-			String sdp;
-
-			if (message.getContent() != null) {
-				sdp = "w/ SDP";
-			} else {
-				sdp = "w/o SDP";
+			String event = message.getHeader("Event");
+			if (event != null && event.equals("refer")) {
+				event += " " + (byte[]) message.getContent();
+			}
+			if (event == null) {
+				event = (message.getContent() != null) ? "w/ SDP" : "w/o SDP";
 			}
 
 			if (message instanceof SipServletRequest) {
@@ -113,7 +114,7 @@ public abstract class CallStateHandler implements Serializable {
 						+ " --> "
 						+ rqst.getMethod()
 						+ " "
-						+ sdp
+						+ event
 						+ ", ["
 						+ rqst.getApplicationSession().hashCode()
 						+ ":"
@@ -134,7 +135,7 @@ public abstract class CallStateHandler implements Serializable {
 						+ " ("
 						+ rspn.getMethod()
 						+ ") "
-						+ sdp
+						+ event
 						+ ", ["
 						+ rspn.getApplicationSession().hashCode()
 						+ ":"
@@ -143,6 +144,22 @@ public abstract class CallStateHandler implements Serializable {
 						+ rspn.getSession().getState().toString());
 			}
 
+		}
+	}
+
+	public void printTimer(ServletTimer timer) {
+		if (logger.isLoggable(Level.FINE)) {
+			System.out.println(this.getClass().getSimpleName()
+					+ " "
+					+ state
+					+ " timer id: "
+					+ timer.getId()
+					+ ", time remaining: "
+					+ (int) timer.getTimeRemaining()
+					/ 1000
+					+ ", ["
+					+ timer.getApplicationSession().hashCode()
+					+ "]");
 		}
 	}
 

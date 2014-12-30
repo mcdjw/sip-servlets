@@ -59,21 +59,19 @@ public class UpdateKeepAlive extends CallStateHandler {
 
 	public void startTimer(SipApplicationSession appSession) {
 		state = 1;
-		TalkBACSipServlet.timer.createTimer(appSession,
-				TalkBACSipServlet.keepAlive, false, this);
+		ServletTimer timer = TalkBACSipServlet.timer.createTimer(appSession, TalkBACSipServlet.keepAlive, false, this);
+		this.printTimer(timer);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void processEvent(SipApplicationSession appSession,
-			TalkBACMessageUtility msgUtility, SipServletRequest request,
-			SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 
 		if (timer != null) {
 			SipServletRequest update;
 			SipSession sipSession;
-			Iterator<SipSession> itr = (Iterator<SipSession>) appSession
-					.getSessions();
+			Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
 			while (itr.hasNext()) {
 				sipSession = itr.next();
 				if (sipSession.isValid()) {
@@ -93,8 +91,7 @@ public class UpdateKeepAlive extends CallStateHandler {
 		} else if (response != null) {
 			if (response.getStatus() != 200) {
 				CallStateHandler handler = new Disconnect(response.getSession());
-				handler.processEvent(appSession, msgUtility, request, response,
-						timer);
+				handler.processEvent(appSession, msgUtility, request, response, timer);
 			}
 		}
 

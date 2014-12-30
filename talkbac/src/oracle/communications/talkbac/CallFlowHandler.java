@@ -24,8 +24,7 @@ public abstract class CallFlowHandler extends CallStateHandler {
 	}
 
 	@Override
-	public abstract void processEvent(SipApplicationSession appSession,
-			TalkBACMessageUtility msgUtility, SipServletRequest request,
+	public abstract void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request,
 			SipServletResponse response, ServletTimer timer) throws Exception;
 
 	protected void discoverOptions(SipServletResponse response) {
@@ -33,13 +32,7 @@ public abstract class CallFlowHandler extends CallStateHandler {
 		String allow;
 		ListIterator<String> allows = response.getHeaders("Allow");
 		while (allows.hasNext()) {
-
 			allow = allows.next();
-
-			if (logger.isLoggable(Level.FINE)) {
-				System.out.println("Allow: " + allow);
-			}
-
 			if (allow.equals("UPDATE")) {
 				update_supported = true;
 			} else if (allow.equals("OPTIONS")) {
@@ -52,20 +45,9 @@ public abstract class CallFlowHandler extends CallStateHandler {
 		ListIterator<String> events = response.getHeaders("Allow-Events");
 		while (events.hasNext()) {
 			event = events.next();
-
-			if (logger.isLoggable(Level.FINE)) {
-				System.out.println("Allow-Events: " + event);
-			}
-
 			if (event.equals("kpml")) {
 				kpml_supported = true;
 			}
-		}
-
-		if (logger.isLoggable(Level.FINE)) {
-			System.out.println("update_supported: " + update_supported);
-			System.out.println("options_supported: " + options_supported);
-			System.out.println("kpml_supported: " + kpml_supported);
 		}
 
 	}
