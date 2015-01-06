@@ -89,10 +89,13 @@ public class UpdateKeepAlive extends CallStateHandler {
 			}
 			startTimer(appSession);
 		} else if (response != null) {
+			response.getSession().removeAttribute(CALL_STATE_HANDLER);
+
 			if (response.getStatus() != 200) {
 				CallStateHandler handler = new Disconnect(response.getSession());
 				handler.processEvent(appSession, msgUtility, request, response, timer);
 			}
+
 		}
 
 	}
