@@ -34,6 +34,7 @@ public abstract class CallStateHandler implements Serializable {
 	public final static String ORIGIN_SESSION_ID = "ORIGIN_SESSION_ID";
 	public final static String DESTINATION_SESSION_ID = "DESTINATION_SESSION_ID";
 	public final static String INITIATOR_SESSION_ID = "INITIATOR_SESSION_ID";
+	public final static String INITIAL_INVITE_REQUEST = "INITIAL_INVITE_REQUEST";
 
 	protected int state = 1;
 
@@ -63,9 +64,9 @@ public abstract class CallStateHandler implements Serializable {
 						+ " "
 						+ event
 						+ ", ["
-						+ rqst.getApplicationSession().hashCode()
+						+ rqst.getApplicationSession().getId().hashCode()
 						+ ":"
-						+ rqst.getSession().hashCode()
+						+ rqst.getSession().getId().hashCode()
 						+ "] "
 						+ rqst.getSession().getState().toString());
 			} else {
@@ -84,9 +85,9 @@ public abstract class CallStateHandler implements Serializable {
 						+ ") "
 						+ event
 						+ ", ["
-						+ rspn.getApplicationSession().hashCode()
+						+ rspn.getApplicationSession().getId().hashCode()
 						+ ":"
-						+ rspn.getSession().hashCode()
+						+ rspn.getSession().getId().hashCode()
 						+ "] "
 						+ rspn.getSession().getState().toString());
 			}
@@ -116,9 +117,9 @@ public abstract class CallStateHandler implements Serializable {
 						+ " "
 						+ event
 						+ ", ["
-						+ rqst.getApplicationSession().hashCode()
+						+ rqst.getApplicationSession().getId().hashCode()
 						+ ":"
-						+ rqst.getSession().hashCode()
+						+ rqst.getSession().getId().hashCode()
 						+ "] "
 						+ rqst.getSession().getState().toString());
 			} else {
@@ -137,9 +138,9 @@ public abstract class CallStateHandler implements Serializable {
 						+ ") "
 						+ event
 						+ ", ["
-						+ rspn.getApplicationSession().hashCode()
+						+ rspn.getApplicationSession().getId().hashCode()
 						+ ":"
-						+ rspn.getSession().hashCode()
+						+ rspn.getSession().getId().hashCode()
 						+ "] "
 						+ rspn.getSession().getState().toString());
 			}
@@ -158,7 +159,7 @@ public abstract class CallStateHandler implements Serializable {
 					+ (int) timer.getTimeRemaining()
 					/ 1000
 					+ ", ["
-					+ timer.getApplicationSession().hashCode()
+					+ timer.getApplicationSession().getId().hashCode()
 					+ "]");
 		}
 	}

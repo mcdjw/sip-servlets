@@ -71,9 +71,10 @@ public class CallFlow1 extends CallFlowHandler {
 			msgUtility.send(msg);
 
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
+
 			if (TalkBACSipServlet.callInfo != null) {
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-//				destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
+				// destinationRequest.setHeader("Session-Expires", "3600;refresher=uac");
 				destinationRequest.setHeader("Allow", "INVITE, BYE, OPTIONS, CANCEL, ACK, REGISTER, NOTIFY, REFER, MESSAGE");
 				destinationRequest.setHeader("Allow-Events", "telephone-event");
 			}
@@ -94,16 +95,17 @@ public class CallFlow1 extends CallFlowHandler {
 
 			appSession.setAttribute(DESTINATION_SESSION_ID, destinationRequest.getSession().getId());
 			appSession.setAttribute(ORIGIN_SESSION_ID, originRequest.getSession().getId());
-			// appSession.setAttribute(INITIATOR_SESSION_ID,
-			// initiator.getSession().getId());
+
+			destinationRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, destinationRequest);
+			originRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, originRequest);
 
 			break;
 		case 2:
 		case 3: // Response from origin
 			if (status == 200) {
-				
+
 				discoverOptions(response);
-				
+
 				destinationRequest.setContent(response.getContent(), response.getContentType());
 				destinationRequest.send();
 				this.printOutboundMessage(destinationRequest);

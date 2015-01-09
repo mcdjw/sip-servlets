@@ -53,7 +53,7 @@ public class CallFlow5 extends CallFlowHandler {
 	private Address origin;
 	private Address destination;
 	private String destinationUser;
-	private String originUser;
+//	private String originUser;
 
 	SipServletRequest destinationRequest;
 	SipServletResponse destinationResponse;
@@ -94,9 +94,9 @@ public class CallFlow5 extends CallFlowHandler {
 		case 1: // send INVITE
 
 			// Save this for REFER
-			String key = ((SipURI) origin.getURI()).getUser().toLowerCase();
-			SipApplicationSession tmpAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(key, true);
-			tmpAppSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destination);
+//			String key = ((SipURI) origin.getURI()).getUser().toLowerCase();
+//			SipApplicationSession tmpAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(key, true);
+//			tmpAppSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destination);
 
 			appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, origin);
 			appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destination);
@@ -107,17 +107,19 @@ public class CallFlow5 extends CallFlowHandler {
 			msgUtility.send(msg);
 
 			this.destinationUser = ((SipURI) destination.getURI()).getUser().toLowerCase();
-			this.originUser = ((SipURI) origin.getURI()).getUser().toLowerCase();
-			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originUser, true);
-			originAppSession.setAttribute("DESTINATION", destination);
+//			this.originUser = ((SipURI) origin.getURI()).getUser().toLowerCase();
+//			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originUser, true);
+//			originAppSession.setAttribute("DESTINATION", destination);
 
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 
+			destinationRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, destinationRequest);
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 			originRequest.setHeader("Allow-Events", "telephone-event");
 
+			originRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, originRequest);
 			originRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			originRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, PRACK, UPDATE, REFER, SUBSCRIBE, NOTIFY");
 			originRequest.setHeader("Allow-Events", "telephone-event");
@@ -280,19 +282,15 @@ public class CallFlow5 extends CallFlowHandler {
 
 				// Launch KPML Subscribe (wait for SDP to be negotiated)
 
-				System.out.println("kpml_supported: " + this.kpml_supported);
 				if (this.kpml_supported) {
 					KpmlRelay kpmlRelay = new KpmlRelay(3600);
 					kpmlRelay.delayedSubscribe(appSession, 2);
-					System.out.println("KpmlRelay.delayedSubscribe invoked...");
 				}
 
 				// Launch Keep Alive Timer
-				System.out.println("update_supported: " + this.update_supported);
 				if (this.update_supported) {
 					UpdateKeepAlive ka = new UpdateKeepAlive(60 * 1000);
 					ka.startTimer(appSession);
-					System.out.println("UpdateKeepAlive.startTimer invoked...");
 				}
 
 				msg = new TalkBACMessage(appSession, "call_connected");

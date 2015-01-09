@@ -598,6 +598,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 	@Override
 	public void timeout(ServletTimer timer) {
+		if (logger.isLoggable(Level.FINE)) {
+			System.out.println("ApplicationSession [" + timer.getApplicationSession().getId().hashCode() + "] timer expired.");
+		}
+
 		CallStateHandler handler;
 
 		SipApplicationSession appSession = timer.getApplicationSession();
@@ -619,7 +623,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	@Override
 	public void sessionCreated(SipApplicationSessionEvent event) {
 		if (logger.isLoggable(Level.FINE)) {
-			System.out.println("ApplicationSession [" + event.getApplicationSession().hashCode() + "] created.");
+			System.out.println("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] created.");
 		}
 
 	}
@@ -627,21 +631,21 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	@Override
 	public void sessionDestroyed(SipApplicationSessionEvent event) {
 		if (logger.isLoggable(Level.FINE)) {
-			System.out.println("ApplicationSession [" + event.getApplicationSession().hashCode() + "] destroyed.");
+			System.out.println("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] destroyed.");
 		}
 	}
 
 	@Override
 	public void sessionExpired(SipApplicationSessionEvent event) {
 		if (logger.isLoggable(Level.FINE)) {
-			System.out.println("ApplicationSession [" + event.getApplicationSession().hashCode() + "] expired.");
+			System.out.println("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] expired.");
 		}
 	}
 
 	@Override
 	public void sessionReadyToInvalidate(SipApplicationSessionEvent event) {
 		if (logger.isLoggable(Level.FINE)) {
-			System.out.println("ApplicationSession [" + event.getApplicationSession().hashCode() + "] ready to invalidate.");
+			System.out.println("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] ready to invalidate.");
 		}
 	}
 

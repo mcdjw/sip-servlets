@@ -85,8 +85,9 @@ public class CallFlow2 extends CallFlowHandler {
 
 			appSession.setAttribute(DESTINATION_SESSION_ID, destinationRequest.getSession().getId());
 			appSession.setAttribute(ORIGIN_SESSION_ID, originRequest.getSession().getId());
-			// appSession.setAttribute(INITIATOR_SESSION_ID,
-			// initiator.getSession().getId());
+
+			destinationRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, destinationRequest);
+			originRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, originRequest);
 
 		}
 			break;
@@ -98,9 +99,9 @@ public class CallFlow2 extends CallFlowHandler {
 			// send invite
 			// send ack
 			if (status == 200) {
-				
+
 				discoverOptions(response);
-				
+
 				originResponse = response;
 
 				destinationRequest.setContent(originResponse.getContent(), originResponse.getContentType());

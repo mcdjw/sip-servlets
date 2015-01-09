@@ -24,14 +24,13 @@ public class TerminateCall extends CallStateHandler {
 	@Override
 	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
-		appSession.removeAttribute(CALL_STATE_HANDLER);
-
-		SipSession sipSession = null;
-		if (request != null) {
-			sipSession = request.getSession();
-		} else if (response != null) {
-			sipSession = response.getSession();
-		}
+		// String user = (String) appSession.getAttribute("USER");
+		// SipSession sipSession = null;
+		// if (request != null) {
+		// sipSession = request.getSession();
+		// } else if (response != null) {
+		// sipSession = response.getSession();
+		// }
 
 		Collection<ServletTimer> timers = appSession.getTimers();
 		if (timers != null) {
@@ -40,54 +39,48 @@ public class TerminateCall extends CallStateHandler {
 			}
 		}
 
-		String user = (String) appSession.getAttribute("USER");
 		Iterator<?> sessions = appSession.getSessions("SIP");
 		while (sessions.hasNext()) {
 			SipSession ss = (SipSession) sessions.next();
 
-			// if (msgUtility == null) {
-			// msgUtility = new TalkBACMessageUtility(appSession);
-			// }
+			System.out.println("Session: " + ss.hashCode() + " " + ss.getRemoteParty().getURI().toString() + " isValid: " + ss.isValid() + " " + ss.getState());
 
-			// Address remoteParty = ss.getRemoteParty();
-			// if (remoteParty != null) {
-			// msgUtility.addEndpoint(ss.getRemoteParty());
-			// }
-
-			logger.info(ss.getId() + " " + ss.getState().toString());
-
-			ss.removeAttribute(CALL_STATE_HANDLER);
+			// if (ss.isValid() && false == ss.getId().equals(sipSession.getId()) &&
+			// ss.getRemoteParty().getURI().toString().equals(user)) {
 
 			try {
 
-				logger.fine("\t " + ss.getState() + ", Session: " + ss.getId() + ", Remote Party: " + ss.getRemoteParty().getURI().toString());
-				if (ss.isValid() && false == ss.getId().equals(sipSession.getId())) {
-					switch (ss.getState()) {
+				switch (ss.getState()) {
 
-					case TERMINATED:
-						// do nothing;
-						break;
+				case EARLY:
+					SipServletRequest initialInvite = (SipServletRequest) ss.getAttribute(CallStateHandler.INITIAL_INVITE_REQUEST);
+					SipServletRequest cancel = initialInvite.createCancel();
+					cancel.send();
+					this.printOutboundMessage(cancel);
+					ss.setAttribute(CALL_STATE_HANDLER, new InvalidateSession());
+					break;
 
-					case INITIAL:
-					case EARLY:
-					case CONFIRMED:
-					default:
+				case CONFIRMED:
+					SipServletRequest bye = ss.createRequest("BYE");
+					bye.send();
+					this.printOutboundMessage(bye);
+					ss.setAttribute(CALL_STATE_HANDLER, new InvalidateSession());
+					break;
 
-						if (ss.isValid() && false == ss.getRemoteParty().getURI().toString().equals(user)) {
-							SipServletRequest bye = ss.createRequest("BYE");
-							bye.send();
-							this.printOutboundMessage(bye);
-							ss.setAttribute(CALL_STATE_HANDLER, new InvalidateSession());
-						}
-						break;
-					}
+				case INITIAL:
+				case TERMINATED:
+				default:
+					// do nothing;
+					break;
+
 				}
 
 			} catch (Exception e) {
-
 				e.printStackTrace();
 				// do nothing;
 			}
+
+			// }
 
 		}
 
