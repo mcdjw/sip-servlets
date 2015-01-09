@@ -93,6 +93,9 @@ public class TerminateCall extends CallStateHandler {
 			msg.setParameter("destination", destinationAddress.getURI().toString());
 		}
 		msgUtility.send(msg);
+		
+		
+		appSession.invalidate();
 
 	}
 
