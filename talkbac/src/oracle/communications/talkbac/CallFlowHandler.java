@@ -1,7 +1,5 @@
 package oracle.communications.talkbac;
 
-import java.util.ListIterator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.sip.ServletTimer;

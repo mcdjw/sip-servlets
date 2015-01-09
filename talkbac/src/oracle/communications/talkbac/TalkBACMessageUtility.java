@@ -70,7 +70,7 @@ public class TalkBACMessageUtility implements Serializable {
 						if (logger.isLoggable(Level.FINE)) {
 							int state = 1;
 
-							System.out.println(this.getClass().getSimpleName()
+							logger.fine(this.getClass().getSimpleName()
 									+ " "
 									+ state
 									+ " "

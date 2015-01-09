@@ -251,31 +251,6 @@ public class MakeCall extends CallFlowHandler {
 				rsp.send();
 				this.printOutboundMessage(rsp);
 
-				// String sipFrag = new String((byte[]) request.getContent());
-				// System.out.println("SipFrag: " + sipFrag);
-				//
-				// if (sipFrag.contains("200")) {
-				// int sipFragStatus = Integer.parseInt(sipFrag.substring(8,
-				// 11));
-				// String sipFragReason = sipFrag.substring(12).replace("\r\n",
-				// "");
-				//
-				// msg = new TalkBACMessage(appSession,
-				// "destination_connected");
-				// msg.setParameter("origin", origin.getURI().toString());
-				// msg.setParameter("destination",
-				// destination.getURI().toString());
-				// msg.setStatus(sipFragStatus, sipFragReason);
-				// msgUtility.send(msg);
-				//
-				// msg = new TalkBACMessage(appSession, "call_connected");
-				// msg.setParameter("origin", origin.getURI().toString());
-				// msg.setParameter("destination",
-				// destination.getURI().toString());
-				// msg.setStatus(sipFragStatus, sipFragReason);
-				// msgUtility.send(msg);
-				// }
-
 			}
 
 			break;

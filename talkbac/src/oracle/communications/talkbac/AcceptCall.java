@@ -47,7 +47,6 @@ public class AcceptCall extends CallStateHandler {
 				SipApplicationSession userAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(key, false);
 				if (userAppSession != null) {
 					destinationAddress = (Address) userAppSession.getAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
-					System.out.println("Getting Destination " + destinationAddress + " from appSession: " + userAppSession.getId());
 					if (destinationAddress != null) {
 						userAppSession.removeAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
 						msgUtility.removeClient(request.getTo());

@@ -54,7 +54,8 @@ public abstract class CallStateHandler implements Serializable {
 
 			if (message instanceof SipServletRequest) {
 				SipServletRequest rqst = (SipServletRequest) message;
-				System.out.println(this.getClass().getSimpleName()
+
+				logger.fine(this.getClass().getSimpleName()
 						+ " "
 						+ state
 						+ " "
@@ -71,7 +72,7 @@ public abstract class CallStateHandler implements Serializable {
 						+ rqst.getSession().getState().toString());
 			} else {
 				SipServletResponse rspn = (SipServletResponse) message;
-				System.out.println(this.getClass().getSimpleName()
+				logger.fine(this.getClass().getSimpleName()
 						+ " "
 						+ state
 						+ " "
@@ -107,7 +108,7 @@ public abstract class CallStateHandler implements Serializable {
 
 			if (message instanceof SipServletRequest) {
 				SipServletRequest rqst = (SipServletRequest) message;
-				System.out.println(this.getClass().getSimpleName()
+				logger.fine(this.getClass().getSimpleName()
 						+ " "
 						+ state
 						+ " "
@@ -124,7 +125,7 @@ public abstract class CallStateHandler implements Serializable {
 						+ rqst.getSession().getState().toString());
 			} else {
 				SipServletResponse rspn = (SipServletResponse) message;
-				System.out.println(this.getClass().getSimpleName()
+				logger.fine(this.getClass().getSimpleName()
 						+ " "
 						+ state
 						+ " "
@@ -150,7 +151,7 @@ public abstract class CallStateHandler implements Serializable {
 
 	public void printTimer(ServletTimer timer) {
 		if (logger.isLoggable(Level.FINE)) {
-			System.out.println(this.getClass().getSimpleName()
+			logger.fine(this.getClass().getSimpleName()
 					+ " "
 					+ state
 					+ " timer id: "

@@ -61,7 +61,6 @@ public class KpmlRelay extends CallStateHandler {
 	}
 
 	public void delayedSubscribe(SipApplicationSession appSession, int delay) {
-		System.out.println("period: " + period);
 		if (period > 0) {
 			ServletTimer timer = TalkBACSipServlet.timer.createTimer(appSession, delay * 1000, false, this);
 			this.printTimer(timer);
