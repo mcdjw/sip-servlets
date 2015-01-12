@@ -118,10 +118,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 		switch (SipMethod.valueOf(request.getMethod())) {
 		case INVITE:
-			// This is to cover the complexity of the REFER (ringback-tone) call
-			// flow.
-			// When the INVITE caused by the REFER comes in, it may not have the
-			// same Call-ID
+			// This is to cover the complexity of the REFER (ringback-tone) call flow.
+			// When the INVITE caused by the REFER comes in, it will not have the same Call-ID
+
 			String from_user = ((SipURI) request.getFrom().getURI()).getUser().toLowerCase();
 			String to_user = ((SipURI) request.getTo().getURI()).getUser().toLowerCase();
 			key = from_user + ":" + to_user;
@@ -134,15 +133,6 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 		return key;
 	}
-
-	// //For matching incoming INVITE with outgoing REFER
-	// public static String generateKey(Address orig, Address dest) {
-	// String origUser = ((SipURI)orig.getURI()).getUser().toLowerCase();
-	// String destUser = ((SipURI)dest.getURI()).getUser().toLowerCase();
-	// String str = origUser + destUser;
-	// String key = Integer.toString( Math.abs( str.hashCode() ) );
-	// return key;
-	// }
 
 	public String getParameter(SipServletContextEvent event, String name) {
 		String value = System.getProperty(name);
@@ -600,6 +590,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public void timeout(ServletTimer timer) {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("ApplicationSession [" + timer.getApplicationSession().getId().hashCode() + "] timer expired.");
+			System.out.println("ApplicationSession [" + timer.getApplicationSession().getId().hashCode() + "] timer expired.");
 		}
 
 		CallStateHandler handler;
@@ -624,6 +615,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public void sessionCreated(SipApplicationSessionEvent event) {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] created.");
+			System.out.println("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] created.");
 		}
 
 	}
@@ -632,6 +624,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public void sessionDestroyed(SipApplicationSessionEvent event) {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] destroyed.");
+			System.out.println("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] destroyed.");
 		}
 	}
 
@@ -639,6 +632,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public void sessionExpired(SipApplicationSessionEvent event) {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] expired.");
+			System.out.println("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] expired.");
 		}
 	}
 
@@ -646,6 +640,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public void sessionReadyToInvalidate(SipApplicationSessionEvent event) {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] ready to invalidate.");
+			System.out.println("ApplicationSession [" + event.getApplicationSession().getId().hashCode() + "] ready to invalidate.");
 		}
 	}
 

@@ -53,7 +53,7 @@ public class CallFlow5 extends CallFlowHandler {
 	private Address origin;
 	private Address destination;
 	private String destinationUser;
-//	private String originUser;
+	// private String originUser;
 
 	SipServletRequest destinationRequest;
 	SipServletResponse destinationResponse;
@@ -94,9 +94,9 @@ public class CallFlow5 extends CallFlowHandler {
 		case 1: // send INVITE
 
 			// Save this for REFER
-//			String key = ((SipURI) origin.getURI()).getUser().toLowerCase();
-//			SipApplicationSession tmpAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(key, true);
-//			tmpAppSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destination);
+			// String key = ((SipURI) origin.getURI()).getUser().toLowerCase();
+			// SipApplicationSession tmpAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(key, true);
+			// tmpAppSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destination);
 
 			appSession.setAttribute(TalkBACSipServlet.ORIGIN_ADDRESS, origin);
 			appSession.setAttribute(TalkBACSipServlet.DESTINATION_ADDRESS, destination);
@@ -107,14 +107,20 @@ public class CallFlow5 extends CallFlowHandler {
 			msgUtility.send(msg);
 
 			this.destinationUser = ((SipURI) destination.getURI()).getUser().toLowerCase();
-//			this.originUser = ((SipURI) origin.getURI()).getUser().toLowerCase();
-//			SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originUser, true);
-//			originAppSession.setAttribute("DESTINATION", destination);
+			// this.originUser = ((SipURI) origin.getURI()).getUser().toLowerCase();
+			// SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originUser,
+			// true);
+			// originAppSession.setAttribute("DESTINATION", destination);
 
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 
+			// Save this info in case we need to terminate
+			destinationRequest.getSession().setAttribute(REQUEST_DIRECTION, "OUTBOUND");
 			destinationRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, destinationRequest);
+			originRequest.getSession().setAttribute(REQUEST_DIRECTION, "OUTBOUND");
+			originRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, originRequest);
+
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 			originRequest.setHeader("Allow-Events", "telephone-event");
@@ -175,7 +181,10 @@ public class CallFlow5 extends CallFlowHandler {
 
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 
-			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress + ">");
+			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress+ ">");
+
+			// appSession.encodeURI(refer_to.getURI());
+
 			refer.setAddressHeader("Refer-To", refer_to);
 			// refer.setAddressHeader("Referred-By", TalkBACSipServlet.talkBACAddress);
 			// refer.setAddressHeader("Referred-By", refer_to);
@@ -201,6 +210,10 @@ public class CallFlow5 extends CallFlowHandler {
 				// do nothing;
 			} else if (request != null && request.getMethod().equals("INVITE")) {
 
+				// Save this info in case we need to terminate.
+				request.getSession().setAttribute(REQUEST_DIRECTION, "INBOUND");
+				request.getSession().setAttribute(INITIAL_INVITE_REQUEST, request);
+
 				appSession.removeAttribute(CALL_STATE_HANDLER);
 
 				if (false == request.getCallId().equals(originResponse.getCallId())) {
@@ -218,7 +231,6 @@ public class CallFlow5 extends CallFlowHandler {
 				destinationRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, REFER, SUBSCRIBE, NOTIFY");
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 
-				// Purposely do not send SDP, because it is muted
 				destinationRequest.setContent(request.getContent(), request.getContentType());
 				destinationRequest.send();
 				printOutboundMessage(destinationRequest);

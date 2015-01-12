@@ -2,6 +2,7 @@ package oracle.communications.talkbac;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.sip.Address;
@@ -36,6 +37,21 @@ public class TerminateCall extends CallStateHandler {
 		Iterator<?> sessions = appSession.getSessions("SIP");
 		while (sessions.hasNext()) {
 			SipSession ss = (SipSession) sessions.next();
+
+			if (logger.isLoggable(Level.FINE)) {
+				System.out.println(this.getClass().getSimpleName()
+						+ " ["
+						+ appSession.getId().hashCode()
+						+ ":"
+						+ ss.getId().hashCode()
+						+ "] "
+						+ ss.getState()
+						+ " "
+						+ ss.isValid()
+						+ " "
+						+ ss.getAttribute(REQUEST_DIRECTION));
+			}
+
 			ss.removeAttribute(CALL_STATE_HANDLER);
 
 			if (ss.isValid()) {
@@ -47,10 +63,23 @@ public class TerminateCall extends CallStateHandler {
 					case INITIAL:
 					case EARLY:
 						SipServletRequest initialInvite = (SipServletRequest) ss.getAttribute(CallStateHandler.INITIAL_INVITE_REQUEST);
-						SipServletRequest cancel = initialInvite.createCancel();
-						cancel.send();
-						this.printOutboundMessage(cancel);
-						ss.setAttribute(CALL_STATE_HANDLER, new InvalidateSession());
+						if (initialInvite != null) {
+
+							String direction = (String) ss.getAttribute(CallStateHandler.REQUEST_DIRECTION);
+							if (direction != null && direction.equals("OUTBOUND")) {
+								SipServletRequest cancel = initialInvite.createCancel();
+								cancel.send();
+								this.printOutboundMessage(cancel);
+								ss.setAttribute(CALL_STATE_HANDLER, new InvalidateSession());
+							} else {
+								SipServletResponse errorResponse = initialInvite.createResponse(487);
+								this.printOutboundMessage(errorResponse);
+								errorResponse.send();
+							}
+
+						} else {
+
+						}
 						break;
 
 					case CONFIRMED:
@@ -78,7 +107,9 @@ public class TerminateCall extends CallStateHandler {
 					}
 
 				} catch (Exception e) {
-					// do nothing;
+					if (logger.isLoggable(Level.FINE)) {
+						System.out.println(this.getClass().getSimpleName() + " " + e.getMessage());
+					}
 				}
 
 			}
@@ -93,9 +124,10 @@ public class TerminateCall extends CallStateHandler {
 			msg.setParameter("destination", destinationAddress.getURI().toString());
 		}
 		msgUtility.send(msg);
-		
-		
-		appSession.invalidate();
+
+		if (appSession.isValid()) {
+			appSession.invalidate();
+		}
 
 	}
 

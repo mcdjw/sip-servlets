@@ -69,8 +69,7 @@ public class TalkBACMessageUtility implements Serializable {
 
 						if (logger.isLoggable(Level.FINE)) {
 							int state = 1;
-
-							logger.fine(this.getClass().getSimpleName()
+							String output = this.getClass().getSimpleName()
 									+ " "
 									+ state
 									+ " "
@@ -84,7 +83,10 @@ public class TalkBACMessageUtility implements Serializable {
 									+ ":"
 									+ msg.getSession().hashCode()
 									+ "] "
-									+ msg.getSession().getState().toString());
+									+ msg.getSession().getState().toString();
+							logger.fine(output);
+							System.out.println(output);
+
 						}
 
 					}

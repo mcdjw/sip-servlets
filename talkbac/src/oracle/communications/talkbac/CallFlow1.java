@@ -96,7 +96,9 @@ public class CallFlow1 extends CallFlowHandler {
 			appSession.setAttribute(DESTINATION_SESSION_ID, destinationRequest.getSession().getId());
 			appSession.setAttribute(ORIGIN_SESSION_ID, originRequest.getSession().getId());
 
-			destinationRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, destinationRequest);
+			destinationRequest.getSession().setAttribute(REQUEST_DIRECTION, "OUTBOUND");
+			destinationRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, destinationRequest);	
+			originRequest.getSession().setAttribute(REQUEST_DIRECTION, "OUTBOUND");
 			originRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, originRequest);
 
 			break;

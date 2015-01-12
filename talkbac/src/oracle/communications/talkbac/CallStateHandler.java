@@ -35,6 +35,7 @@ public abstract class CallStateHandler implements Serializable {
 	public final static String DESTINATION_SESSION_ID = "DESTINATION_SESSION_ID";
 	public final static String INITIATOR_SESSION_ID = "INITIATOR_SESSION_ID";
 	public final static String INITIAL_INVITE_REQUEST = "INITIAL_INVITE_REQUEST";
+	public final static String REQUEST_DIRECTION = "REQUEST_DIRECTION";
 
 	protected int state = 1;
 
@@ -46,7 +47,7 @@ public abstract class CallStateHandler implements Serializable {
 
 			String event = message.getHeader("Event");
 			if (event != null && event.equals("refer")) {
-				event += " " + (byte[]) message.getContent();
+				event += " " + new String((byte[]) message.getContent()).trim();
 			}
 			if (event == null) {
 				event = (message.getContent() != null) ? "w/ SDP" : "w/o SDP";
@@ -54,8 +55,7 @@ public abstract class CallStateHandler implements Serializable {
 
 			if (message instanceof SipServletRequest) {
 				SipServletRequest rqst = (SipServletRequest) message;
-
-				logger.fine(this.getClass().getSimpleName()
+				String output = this.getClass().getSimpleName()
 						+ " "
 						+ state
 						+ " "
@@ -69,10 +69,14 @@ public abstract class CallStateHandler implements Serializable {
 						+ ":"
 						+ rqst.getSession().getId().hashCode()
 						+ "] "
-						+ rqst.getSession().getState().toString());
+						+ rqst.getSession().getState().toString();
+
+				logger.fine(output);
+				System.out.println(output);
+
 			} else {
 				SipServletResponse rspn = (SipServletResponse) message;
-				logger.fine(this.getClass().getSimpleName()
+				String output = this.getClass().getSimpleName()
 						+ " "
 						+ state
 						+ " "
@@ -90,7 +94,11 @@ public abstract class CallStateHandler implements Serializable {
 						+ ":"
 						+ rspn.getSession().getId().hashCode()
 						+ "] "
-						+ rspn.getSession().getState().toString());
+						+ rspn.getSession().getState().toString();
+
+				logger.fine(output);
+				System.out.println(output);
+
 			}
 		}
 	}
@@ -100,7 +108,7 @@ public abstract class CallStateHandler implements Serializable {
 
 			String event = message.getHeader("Event");
 			if (event != null && event.equals("refer")) {
-				event += " " + (byte[]) message.getContent();
+				event += " " + new String((byte[]) message.getContent()).trim();
 			}
 			if (event == null) {
 				event = (message.getContent() != null) ? "w/ SDP" : "w/o SDP";
@@ -108,7 +116,8 @@ public abstract class CallStateHandler implements Serializable {
 
 			if (message instanceof SipServletRequest) {
 				SipServletRequest rqst = (SipServletRequest) message;
-				logger.fine(this.getClass().getSimpleName()
+
+				String output = this.getClass().getSimpleName()
 						+ " "
 						+ state
 						+ " "
@@ -122,10 +131,12 @@ public abstract class CallStateHandler implements Serializable {
 						+ ":"
 						+ rqst.getSession().getId().hashCode()
 						+ "] "
-						+ rqst.getSession().getState().toString());
+						+ rqst.getSession().getState().toString();
+				logger.fine(output);
+				System.out.println(output);
 			} else {
 				SipServletResponse rspn = (SipServletResponse) message;
-				logger.fine(this.getClass().getSimpleName()
+				String output = this.getClass().getSimpleName()
 						+ " "
 						+ state
 						+ " "
@@ -143,7 +154,9 @@ public abstract class CallStateHandler implements Serializable {
 						+ ":"
 						+ rspn.getSession().getId().hashCode()
 						+ "] "
-						+ rspn.getSession().getState().toString());
+						+ rspn.getSession().getState().toString();
+				logger.fine(output);
+				System.out.println(output);
 			}
 
 		}
@@ -151,7 +164,7 @@ public abstract class CallStateHandler implements Serializable {
 
 	public void printTimer(ServletTimer timer) {
 		if (logger.isLoggable(Level.FINE)) {
-			logger.fine(this.getClass().getSimpleName()
+			String output = this.getClass().getSimpleName()
 					+ " "
 					+ state
 					+ " timer id: "
@@ -161,7 +174,10 @@ public abstract class CallStateHandler implements Serializable {
 					/ 1000
 					+ ", ["
 					+ timer.getApplicationSession().getId().hashCode()
-					+ "]");
+					+ "]";
+
+			logger.fine(output);
+			System.out.println(output);
 		}
 	}
 
