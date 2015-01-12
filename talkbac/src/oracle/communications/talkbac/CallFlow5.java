@@ -181,7 +181,7 @@ public class CallFlow5 extends CallFlowHandler {
 
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 
-			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress+ ">");
+			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress + ">");
 
 			// appSession.encodeURI(refer_to.getURI());
 
@@ -329,7 +329,7 @@ public class CallFlow5 extends CallFlowHandler {
 			+ "t=0 0\r\n"
 			+ "m=audio 23348 RTP/AVP 0\r\n"
 			+ "a=rtpmap:0 pcmu/8000\r\n"
-			+ "a=rtpmap:101 telephone-event/8000\r\n";
-	// + "a=inactive \r\n";
+			+ "a=rtpmap:101 telephone-event/8000\r\n"
+			+ "a=inactive \r\n";
 
 }
