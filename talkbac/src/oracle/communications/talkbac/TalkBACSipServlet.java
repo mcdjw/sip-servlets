@@ -329,7 +329,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						// String destination = ((SipURI) tmpDestinationAddress.getURI()).getUser().toLowerCase();
 						// key = origin + ":" + destination;
 
-						key = Integer.toString(request.getCallId().hashCode());
+						key = Integer.toString(Math.abs(request.getCallId().hashCode()));
 						appSession = util.getApplicationSessionByKey(key, true);
 						appSession.setAttribute(CallStateHandler.KEY, key);
 
