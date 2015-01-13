@@ -118,13 +118,26 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 		switch (SipMethod.valueOf(request.getMethod())) {
 		case INVITE:
-			// This is to cover the complexity of the REFER (ringback-tone) call flow.
-			// When the INVITE caused by the REFER comes in, it will not have the same Call-ID
-
-			String from_user = ((SipURI) request.getFrom().getURI()).getUser().toLowerCase();
-			String to_user = ((SipURI) request.getTo().getURI()).getUser().toLowerCase();
-			key = from_user + ":" + to_user;
-			break;
+		// // This is to cover the complexity of the REFER (ringback-tone) call flow.
+		// // When the INVITE caused by the REFER comes in, it will not have the same Call-ID
+		//
+		// String from_user = ((SipURI) request.getFrom().getURI()).getUser().toLowerCase();
+		String to_user = ((SipURI) request.getTo().getURI()).getUser().toLowerCase();
+		
+		if(null!=util.getApplicationSessionByKey(to_user, false)){
+			key = to_user;
+		}
+		
+		
+		// key = from_user + ":" + to_user;
+		
+			
+			
+		break;
+		
+		
+		
+		
 		case MESSAGE:
 		case REGISTER:
 			key = ((SipURI) request.getFrom().getURI()).getUser().toLowerCase();
@@ -307,13 +320,19 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						appSession = util.getApplicationSessionById(requestId);
 					} else {
 						// appSession = factory.createApplicationSession();
+
+						// JWM!!!
 						String key;
-						Address tmpOriginAddress = factory.createAddress(rootNode.path("origin").asText());
-						String origin = ((SipURI) tmpOriginAddress.getURI()).getUser().toLowerCase();
-						Address tmpDestinationAddress = factory.createAddress(rootNode.path("destination").asText());
-						String destination = ((SipURI) tmpDestinationAddress.getURI()).getUser().toLowerCase();
-						key = origin + ":" + destination;
+						// Address tmpOriginAddress = factory.createAddress(rootNode.path("origin").asText());
+						// String origin = ((SipURI) tmpOriginAddress.getURI()).getUser().toLowerCase();
+						// Address tmpDestinationAddress = factory.createAddress(rootNode.path("destination").asText());
+						// String destination = ((SipURI) tmpDestinationAddress.getURI()).getUser().toLowerCase();
+						// key = origin + ":" + destination;
+
+						key = Integer.toString(request.getCallId().hashCode());
 						appSession = util.getApplicationSessionByKey(key, true);
+						appSession.setAttribute(CallStateHandler.KEY, key);
+
 					}
 
 					if (appSession == null) {

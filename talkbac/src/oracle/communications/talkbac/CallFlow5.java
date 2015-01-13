@@ -46,14 +46,17 @@ import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.SipURI;
 
 public class CallFlow5 extends CallFlowHandler {
 	private static final long serialVersionUID = 1L;
 	private Address origin;
 	private Address destination;
-	private String destinationUser;
+	//private String destinationUser;
 	// private String originUser;
+
+	String callId;
+	String toTag;
+	String fromTag;
 
 	SipServletRequest destinationRequest;
 	SipServletResponse destinationResponse;
@@ -106,7 +109,7 @@ public class CallFlow5 extends CallFlowHandler {
 			msg.setParameter("destination", destination.getURI().toString());
 			msgUtility.send(msg);
 
-			this.destinationUser = ((SipURI) destination.getURI()).getUser().toLowerCase();
+			// this.destinationUser = ((SipURI) destination.getURI()).getUser().toLowerCase();
 			// this.originUser = ((SipURI) origin.getURI()).getUser().toLowerCase();
 			// SipApplicationSession originAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(originUser,
 			// true);
@@ -146,6 +149,10 @@ public class CallFlow5 extends CallFlowHandler {
 
 			if (status >= 200 && status < 300) {
 
+				callId = response.getCallId();
+				toTag = response.getTo().getParameter("tag");
+				fromTag = response.getFrom().getParameter("tag");
+
 				discoverOptions(response);
 
 				originResponse = response;
@@ -181,13 +188,19 @@ public class CallFlow5 extends CallFlowHandler {
 
 			SipServletRequest refer = originRequest.getSession().createRequest("REFER");
 
-			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" + TalkBACSipServlet.listenAddress + ">");
+			// Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + destinationUser + "@" +
+			// TalkBACSipServlet.listenAddress + ">");
 
+			String key = (String) appSession.getAttribute(KEY);
+			Address refer_to = TalkBACSipServlet.factory.createAddress("<sip:" + key + "@" + TalkBACSipServlet.listenAddress + ">");
+
+			// refer.setHeader("Proxy-Authorization", "Basic Q1VQOTAwMDA6c25hcHdhcmU");
+			// Accept-Contact, Proxy-Authorization, and Replaces
 			// appSession.encodeURI(refer_to.getURI());
+			// refer_to.getURI().setParameter("uri", "supercool");
+			// refer_to.setParameter("address", "nifty");
 
 			refer.setAddressHeader("Refer-To", refer_to);
-			// refer.setAddressHeader("Referred-By", TalkBACSipServlet.talkBACAddress);
-			// refer.setAddressHeader("Referred-By", refer_to);
 			refer.setAddressHeader("Referred-By", destination);
 			refer.send();
 			this.printOutboundMessage(refer);

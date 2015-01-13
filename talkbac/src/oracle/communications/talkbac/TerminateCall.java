@@ -25,6 +25,17 @@ public class TerminateCall extends CallStateHandler {
 	@Override
 	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
+
+		// Send the message now, not later
+		TalkBACMessage msg = new TalkBACMessage(appSession, "call_completed");
+		Address originAddress = (Address) appSession.getAttribute(TalkBACSipServlet.ORIGIN_ADDRESS);
+		Address destinationAddress = (Address) appSession.getAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
+		if (originAddress != null && destinationAddress != null) {
+			msg.setParameter("origin", originAddress.getURI().toString());
+			msg.setParameter("destination", destinationAddress.getURI().toString());
+		}
+		msgUtility.send(msg);
+
 		appSession.removeAttribute(CALL_STATE_HANDLER);
 
 		Collection<ServletTimer> timers = appSession.getTimers();
@@ -38,23 +49,22 @@ public class TerminateCall extends CallStateHandler {
 		while (sessions.hasNext()) {
 			SipSession ss = (SipSession) sessions.next();
 
-			if (logger.isLoggable(Level.FINE)) {
-				System.out.println(this.getClass().getSimpleName()
-						+ " ["
-						+ appSession.getId().hashCode()
-						+ ":"
-						+ ss.getId().hashCode()
-						+ "] "
-						+ ss.getState()
-						+ " "
-						+ ss.isValid()
-						+ " "
-						+ ss.getAttribute(REQUEST_DIRECTION));
-			}
-
-			ss.removeAttribute(CALL_STATE_HANDLER);
+			// if (logger.isLoggable(Level.FINE)) {
+			// System.out.println(this.getClass().getSimpleName()
+			// + " ["
+			// + appSession.getId().hashCode()
+			// + ":"
+			// + ss.getId().hashCode()
+			// + "] "
+			// + ss.getState()
+			// + " "
+			// + ss.isValid()
+			// + " "
+			// + ss.getAttribute(REQUEST_DIRECTION));
+			// }
 
 			if (ss.isValid()) {
+				ss.removeAttribute(CALL_STATE_HANDLER);
 
 				try {
 
@@ -115,15 +125,6 @@ public class TerminateCall extends CallStateHandler {
 			}
 
 		}
-
-		TalkBACMessage msg = new TalkBACMessage(appSession, "call_completed");
-		Address originAddress = (Address) appSession.getAttribute(TalkBACSipServlet.ORIGIN_ADDRESS);
-		Address destinationAddress = (Address) appSession.getAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
-		if (originAddress != null && destinationAddress != null) {
-			msg.setParameter("origin", originAddress.getURI().toString());
-			msg.setParameter("destination", destinationAddress.getURI().toString());
-		}
-		msgUtility.send(msg);
 
 		if (appSession.isValid()) {
 			appSession.invalidate();

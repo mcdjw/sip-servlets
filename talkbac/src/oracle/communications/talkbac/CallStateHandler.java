@@ -36,6 +36,7 @@ public abstract class CallStateHandler implements Serializable {
 	public final static String INITIATOR_SESSION_ID = "INITIATOR_SESSION_ID";
 	public final static String INITIAL_INVITE_REQUEST = "INITIAL_INVITE_REQUEST";
 	public final static String REQUEST_DIRECTION = "REQUEST_DIRECTION";
+	public final static String KEY = "KEY";
 
 	protected int state = 1;
 
