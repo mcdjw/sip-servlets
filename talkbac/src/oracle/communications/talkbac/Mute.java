@@ -73,7 +73,8 @@ public class Mute extends CallStateHandler {
 				if(content.contains("a=sendrecv")){
 					content = content.replace("sendrecv", "sendonly");
 				}else{
-					content = content.concat("a=sendonly\r\n");					
+					content = content.concat("a=sendonly");					
+//					content = content.concat("a=sendonly\r\n");					
 				}
 
 				originRequest.setContent(content, destinationResponse.getContentType());

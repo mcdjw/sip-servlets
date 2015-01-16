@@ -76,7 +76,7 @@ public class CallFlow2 extends CallFlowHandler {
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 
-			originRequest.setContent(blackhole2, "application/sdp");
+			originRequest.setContent(blackhole, "application/sdp");
 			originRequest.send();
 			this.printOutboundMessage(originRequest);
 
@@ -247,34 +247,34 @@ public class CallFlow2 extends CallFlowHandler {
 
 	}
 
-	static final String blackhole = ""
-			+ "v=0\n"
-			+ "o=- 15474517 1 IN IP4 172.16.45.94\n"
-			+ "s=cpc_med\n"
-			+ "c=IN IP4 0.0.0.0\n"
-			+ "t=0 0\n"
-			+ "m=audio 23348 RTP/AVP 0\n"
-			+ "a=rtpmap:0 pcmu/8000\n"
-			+ "a=sendrecv\n ";
-
-	static final String blackhole2 = ""
-			+ "v=0\n"
-			+ "o=- 3615877054 3615877054 IN IP4 192.168.1.80\n"
-			+ "s=cpc_med\n"
-			+ "c=IN IP4 0.0.0.0\n"
-			+ "t=0 0\n"
-			+ "m=audio 4004 RTP/AVP 111 110 109 9 0 8 101\n"
-			+ "a=sendrecv\n"
-			+ "a=rtpmap:111 OPUS/48000\n"
-			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
-			+ "a=rtpmap:110 SILK/24000\n"
-			+ "a=fmtp:110 useinbandfec=1\n"
-			+ "a=rtpmap:109 SILK/16000\n"
-			+ "a=fmtp:109 useinbandfec=1\n"
-			+ "a=rtpmap:9 G722/8000\n"
-			+ "a=rtpmap:0 PCMU/8000\n"
-			+ "a=rtpmap:8 PCMA/8000\n"
-			+ "a=rtpmap:101 telephone-event/8000\n"
-			+ "a=fmtp:101 0-16\n";
+//	static final String blackhole = ""
+//			+ "v=0\n"
+//			+ "o=- 15474517 1 IN IP4 172.16.45.94\n"
+//			+ "s=cpc_med\n"
+//			+ "c=IN IP4 0.0.0.0\n"
+//			+ "t=0 0\n"
+//			+ "m=audio 23348 RTP/AVP 0\n"
+//			+ "a=rtpmap:0 pcmu/8000\n"
+//			+ "a=sendrecv\n ";
+//
+//	static final String blackhole2 = ""
+//			+ "v=0\n"
+//			+ "o=- 3615877054 3615877054 IN IP4 192.168.1.80\n"
+//			+ "s=cpc_med\n"
+//			+ "c=IN IP4 0.0.0.0\n"
+//			+ "t=0 0\n"
+//			+ "m=audio 4004 RTP/AVP 111 110 109 9 0 8 101\n"
+//			+ "a=sendrecv\n"
+//			+ "a=rtpmap:111 OPUS/48000\n"
+//			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
+//			+ "a=rtpmap:110 SILK/24000\n"
+//			+ "a=fmtp:110 useinbandfec=1\n"
+//			+ "a=rtpmap:109 SILK/16000\n"
+//			+ "a=fmtp:109 useinbandfec=1\n"
+//			+ "a=rtpmap:9 G722/8000\n"
+//			+ "a=rtpmap:0 PCMU/8000\n"
+//			+ "a=rtpmap:8 PCMA/8000\n"
+//			+ "a=rtpmap:101 telephone-event/8000\n"
+//			+ "a=fmtp:101 0-16\n";
 
 }
