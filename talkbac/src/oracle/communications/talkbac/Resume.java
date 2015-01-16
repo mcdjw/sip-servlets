@@ -50,6 +50,15 @@ public class Resume extends CallStateHandler {
 			this.originSession = findSession(appSession, origin);
 			this.destinationSession = findSession(appSession, destination);
 
+			if (null == this.originSession || null == this.destinationSession) {
+				TalkBACMessage msg = new TalkBACMessage(appSession, "resume_failed");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setStatus(501, "Origin or destination not part of an existing call leg.");
+				msgUtility.send(msg);
+				return;
+			}
+
 			SipServletRequest destinationRequest;
 			if (destinationSession != null) {
 				destinationRequest = destinationSession.createRequest("INVITE");
