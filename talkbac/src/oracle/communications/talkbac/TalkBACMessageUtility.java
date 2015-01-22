@@ -77,13 +77,7 @@ public class TalkBACMessageUtility implements Serializable {
 									+ " <-- "
 									+ msg.getMethod()
 									+ " "
-									+ m.getParameter("event")
-									+ ", ["
-									+ msg.getApplicationSession().hashCode()
-									+ ":"
-									+ msg.getSession().hashCode()
-									+ "] "
-									+ msg.getSession().getState().toString();
+									+ m.getParameter("event");
 							logger.fine(output);
 							System.out.println(output);
 

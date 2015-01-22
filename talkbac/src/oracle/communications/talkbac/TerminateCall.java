@@ -126,9 +126,9 @@ public class TerminateCall extends CallStateHandler {
 
 		}
 
-		if (appSession.isValid()) {
-			appSession.invalidate();
-		}
+//		if (appSession.isValid()) {
+//			appSession.invalidate();
+//		}
 
 	}
 
