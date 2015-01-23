@@ -87,7 +87,7 @@ public class CallFlow4 extends CallFlowHandler {
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, originRequest.getSession().getId());
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 
-			originRequest.setContent(blackhole, "application/sdp");
+			originRequest.setContent(blackhole.getBytes(), "application/sdp");
 			originRequest.send();
 			this.printOutboundMessage(originRequest);
 

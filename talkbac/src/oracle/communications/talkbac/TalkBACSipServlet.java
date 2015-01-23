@@ -448,10 +448,11 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 							handler = new Hold(destinationAddress);
 							break;
 						}
-						case unmute: {
-							handler = new Unmute(originAddress, destinationAddress);
-							break;
-						}
+//						case unmute: {
+//							handler = new Unmute(originAddress, destinationAddress);
+//							break;
+//						}
+						case unmute:
 						case resume: {
 							handler = new Resume(originAddress, destinationAddress);
 							break;

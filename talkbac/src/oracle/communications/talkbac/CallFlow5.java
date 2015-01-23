@@ -47,6 +47,8 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import org.apache.commons.lang.CharSet;
+
 public class CallFlow5 extends CallFlowHandler {
 	private static final long serialVersionUID = 1L;
 	private Address origin;
@@ -132,7 +134,7 @@ public class CallFlow5 extends CallFlowHandler {
 			originRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			originRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, PRACK, UPDATE, REFER, SUBSCRIBE, NOTIFY");
 			originRequest.setHeader("Allow-Events", "telephone-event");
-			originRequest.setContent(blackhole, "application/sdp");
+			originRequest.setContent(blackhole.getBytes(), "application/sdp");
 			originRequest.send();
 			this.printOutboundMessage(originRequest);
 

@@ -98,7 +98,7 @@ public class CallFlow3 extends CallFlowHandler {
 				discoverOptions(response);
 
 				SipServletRequest originAck = response.createAck();
-				originAck.setContent(blackhole, "application/sdp");
+				originAck.setContent(blackhole.getBytes(), "application/sdp");
 				originAck.send();
 				this.printOutboundMessage(originAck);
 

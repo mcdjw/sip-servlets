@@ -37,7 +37,7 @@ public class Hold extends CallStateHandler {
 			SipSession destinationSession = findSession(appSession, destination);
 
 			SipServletRequest holdRequest = destinationSession.createRequest("INVITE");
-			holdRequest.setContent(blackhole, "application/sdp");
+			holdRequest.setContent(blackhole.getBytes(), "application/sdp");
 			holdRequest.send();
 			this.printOutboundMessage(holdRequest);
 
