@@ -70,7 +70,8 @@ select {
 						<li><a href="#call">Call</a></li>
 						<li><a href="#dial">Dial</a></li>
 						<li><a href="#transfer">Transfer</a></li>
-						<li><a href="#hold">Hold / Mute</a></li>
+						<li><a href="#hold">Hold</a></li>
+						<li><a href="#mute">Mute</a></li>
 					</ul>
 					<div id="connect">
 						<!-- ------------------------------ -->
@@ -146,7 +147,8 @@ select {
 											<option value="2">CallFlow2</option>
 											<option value="3">CallFlow3</option>
 											<option value="4">CallFlow4</option>
-											<option value="5" selected="selected">CallFlow5 (Ringback)</option>
+											<option value="5" selected="selected">CallFlow5
+												(Ringback)</option>
 									</select></td>
 								</tr>
 								<tr>
@@ -175,15 +177,6 @@ select {
 					<div id="dial">
 						<form name="dial" method="post" action="" id="dial">
 							<table id="table1">
-								<tr>
-									<td><div align="right">origin:</div></td>
-									<td><input name="origin" type="text" id="origin" size="45"></td>
-								</tr>
-								<tr>
-									<td><div align="right">destination:</div></td>
-									<td><input name="destination" type="text" id="destination"
-										size="45"></td>
-								</tr>
 								<tr>
 									<td><div align="right">digits:</div></td>
 									<td><input name="digits" type="text" id="digits" size="45"></td>
@@ -220,15 +213,6 @@ select {
 							<table id="table1">
 
 								<tr>
-									<td><div align="right">origin:</div></td>
-									<td><input name="origin" type="text" id="origin" size="45"></td>
-								</tr>
-								<tr>
-									<td><div align="right">destination:</div></td>
-									<td><input name="destination" type="text" id="destination"
-										size="45"></td>
-								</tr>
-								<tr>
 									<td><div align="right">target:</div></td>
 									<td><input name="target" type="text" id="target" size="45"></td>
 								</tr>
@@ -254,22 +238,12 @@ select {
 								</tr>
 							</table>
 						</form>
-
 					</div>
 					<!-- ------------------------------ -->
 
 					<div id="hold">
 						<form name="hold" method="post" action="" id="hold">
 							<table id="table1">
-								<tr>
-									<td><div align="right">origin:</div></td>
-									<td><input name="origin" type="text" id="origin" size="45"></td>
-								</tr>
-								<tr>
-									<td><div align="right">destination:</div></td>
-									<td><input name="destination" type="text" id="destination"
-										size="45"></td>
-								</tr>
 								<tr>
 									<td colspan="2"><div align="center">
 											<table>
@@ -285,6 +259,23 @@ select {
 																onClick="javascript:onSubmit('resume', this.form)">
 														</div>
 													</td>
+												</tr>
+											</table>
+										</div></td>
+								</tr>
+							</table>
+						</form>
+					</div>
+
+					<!-- ------------------------------ -->
+
+					<div id="mute">
+						<form name="mute" method="post" action="" id="mute">
+							<table id="table1">
+								<tr>
+									<td colspan="2"><div align="center">
+											<table>
+												<tr>
 													<td><div align="center">
 															<input type="button" value="Mute"
 																onClick="javascript:onSubmit('mute', this.form)">
@@ -301,10 +292,9 @@ select {
 								</tr>
 							</table>
 						</form>
-
 					</div>
 
-
+					<!-- ------------------------------ -->
 
 
 				</div>
@@ -342,6 +332,8 @@ select {
 <script src="/api/wsc.js" type="text/javascript"></script>
 <script type="text/javascript">
 	var request_id = "";
+	var origin = "";
+	var destination = "";
 
 	var appSessions = [];
 	function addAppSession(appSession) {
@@ -430,6 +422,18 @@ select {
 		jQuery.each(array, function() {
 			content[this.name] = this.value || '';
 		});
+
+		if (content["origin"] == null) {
+			content["origin"] = origin;
+		} else {
+			origin = content["origin"];
+		}
+
+		if (content["destination"] == null) {
+			content["destination"] = destination;
+		} else {
+			destination = content["destination"];
+		}
 
 		var jsonTxt = JSON.stringify(content, null, 2);
 		document.getElementById("DisplayField").value = document
