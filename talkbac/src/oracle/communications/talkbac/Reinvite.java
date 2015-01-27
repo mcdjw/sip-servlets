@@ -30,7 +30,7 @@ public class Reinvite extends CallStateHandler {
 	SipServletResponse peerResponse;
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 
 		switch (state) {

@@ -9,7 +9,7 @@ public class Options extends CallStateHandler {
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 		if (request != null) {
 			SipServletResponse optionsResponse = request.createResponse(200);

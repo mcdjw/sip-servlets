@@ -40,8 +40,20 @@ public abstract class CallStateHandler implements Serializable {
 
 	protected int state = 1;
 
-	public abstract void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request,
-			SipServletResponse response, ServletTimer timer) throws Exception;
+	protected String getPrintableName() {
+		String name = this.getClass().getSimpleName();
+		name = name.concat(" ");
+		name = name.concat(Integer.toString(this.state));
+
+		int spaces = 20 - name.length();
+		for (int i = 0; i < spaces; i++) {
+			name = name.concat(" ");
+		}
+		return name;
+	}
+
+	public abstract void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception;
 
 	public void printOutboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
 		if (logger.isLoggable(Level.FINE)) {
@@ -56,20 +68,16 @@ public abstract class CallStateHandler implements Serializable {
 
 			if (message instanceof SipServletRequest) {
 				SipServletRequest rqst = (SipServletRequest) message;
-				String output = this.getClass().getSimpleName()
-						+ " "
-						+ state
+				String output = getPrintableName()
 						+ " "
 						+ ((SipURI) rqst.getTo().getURI()).getUser()
 						+ " <-- "
 						+ rqst.getMethod()
 						+ " "
 						+ event
-						+ ", ["
-						+ rqst.getApplicationSession().getId().hashCode()
-						+ ":"
-						+ rqst.getSession().getId().hashCode()
-						+ "] "
+						+ ", "
+						+ TalkBACSipServlet.hexHash(message)
+						+ " "
 						+ rqst.getSession().getState().toString();
 
 				logger.fine(output);
@@ -77,9 +85,7 @@ public abstract class CallStateHandler implements Serializable {
 
 			} else {
 				SipServletResponse rspn = (SipServletResponse) message;
-				String output = this.getClass().getSimpleName()
-						+ " "
-						+ state
+				String output = getPrintableName()
 						+ " "
 						+ ((SipURI) rspn.getFrom().getURI()).getUser()
 						+ " <-- "
@@ -90,11 +96,9 @@ public abstract class CallStateHandler implements Serializable {
 						+ rspn.getMethod()
 						+ ") "
 						+ event
-						+ ", ["
-						+ rspn.getApplicationSession().getId().hashCode()
-						+ ":"
-						+ rspn.getSession().getId().hashCode()
-						+ "] "
+						+ ", "
+						+ TalkBACSipServlet.hexHash(message)
+						+ " "
 						+ rspn.getSession().getState().toString();
 
 				logger.fine(output);
@@ -118,28 +122,22 @@ public abstract class CallStateHandler implements Serializable {
 			if (message instanceof SipServletRequest) {
 				SipServletRequest rqst = (SipServletRequest) message;
 
-				String output = this.getClass().getSimpleName()
-						+ " "
-						+ state
+				String output = getPrintableName()
 						+ " "
 						+ ((SipURI) rqst.getFrom().getURI()).getUser()
 						+ " --> "
 						+ rqst.getMethod()
 						+ " "
 						+ event
-						+ ", ["
-						+ rqst.getApplicationSession().getId().hashCode()
-						+ ":"
-						+ rqst.getSession().getId().hashCode()
-						+ "] "
+						+ ", "
+						+ TalkBACSipServlet.hexHash(message)
+						+ " "
 						+ rqst.getSession().getState().toString();
 				logger.fine(output);
 				System.out.println(output);
 			} else {
 				SipServletResponse rspn = (SipServletResponse) message;
-				String output = this.getClass().getSimpleName()
-						+ " "
-						+ state
+				String output = getPrintableName()
 						+ " "
 						+ ((SipURI) rspn.getTo().getURI()).getUser()
 						+ " --> "
@@ -150,11 +148,9 @@ public abstract class CallStateHandler implements Serializable {
 						+ rspn.getMethod()
 						+ ") "
 						+ event
-						+ ", ["
-						+ rspn.getApplicationSession().getId().hashCode()
-						+ ":"
-						+ rspn.getSession().getId().hashCode()
-						+ "] "
+						+ ", "
+						+ TalkBACSipServlet.hexHash(message)
+						+ " "
 						+ rspn.getSession().getState().toString();
 				logger.fine(output);
 				System.out.println(output);
@@ -165,20 +161,18 @@ public abstract class CallStateHandler implements Serializable {
 
 	public void printTimer(ServletTimer timer) {
 		if (logger.isLoggable(Level.FINE)) {
-			String output = this.getClass().getSimpleName()
+			String output = getPrintableName()
 					+ " "
-					+ state
 					+ " timer id: "
 					+ timer.getId()
 					+ ", time remaining: "
 					+ (int) timer.getTimeRemaining()
 					/ 1000
-					+ ", ["
-					+ timer.getApplicationSession().getId().hashCode()
-					+ "]";
+					+ ", "
+					+ TalkBACSipServlet.hexHash(timer.getApplicationSession());
 
 			logger.fine(output);
-			System.out.println(output);
+			// System.out.println(output);
 		}
 	}
 

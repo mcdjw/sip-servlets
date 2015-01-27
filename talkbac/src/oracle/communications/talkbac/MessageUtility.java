@@ -1,19 +1,20 @@
 package oracle.communications.talkbac;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 
 import weblogic.kernel.KernelLogManager;
 
-public class TalkBACMessageUtility implements Serializable {
+public class MessageUtility extends CallStateHandler {
 	private static final long serialVersionUID = 1L;
 	static Logger logger;
 	{
@@ -66,21 +67,20 @@ public class TalkBACMessageUtility implements Serializable {
 						msg = TalkBACSipServlet.factory.createRequest(appSession, "MESSAGE", TalkBACSipServlet.talkBACAddress, address);
 						msg.setContent(m.toString(), "text/plain");
 						msg.send();
+						msg.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 						if (logger.isLoggable(Level.FINE)) {
-							int state = 1;
-							String output = this.getClass().getSimpleName()
-									+ " "
-									+ state
+							String output = getPrintableName()
 									+ " "
 									+ ((SipURI) msg.getTo().getURI()).getUser()
 									+ " <-- "
 									+ msg.getMethod()
 									+ " "
-									+ m.getParameter("event");
+									+ m.getParameter("event")
+									+ " "
+									+ TalkBACSipServlet.hexHash(msg);
 							logger.fine(output);
 							System.out.println(output);
-
 						}
 
 					}
@@ -90,6 +90,12 @@ public class TalkBACMessageUtility implements Serializable {
 			e.printStackTrace();
 		}
 
+	}
+
+	@Override
+	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
+		// receive 200 OK, do nothing;
 	}
 
 }

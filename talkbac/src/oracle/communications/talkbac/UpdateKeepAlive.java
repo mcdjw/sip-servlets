@@ -65,7 +65,7 @@ public class UpdateKeepAlive extends CallStateHandler {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 
 		if (timer != null) {

@@ -57,7 +57,7 @@ public class KeepAlive extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 
 		if (request != null && request.getMethod().equals("NOTIFY")) {
@@ -80,7 +80,7 @@ public class KeepAlive extends CallStateHandler {
 		}
 	}
 
-	public void processEventUpdate(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+	public void processEventUpdate(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
@@ -129,7 +129,7 @@ public class KeepAlive extends CallStateHandler {
 
 	}
 
-	public void processEventOptions(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+	public void processEventOptions(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 
@@ -172,7 +172,7 @@ public class KeepAlive extends CallStateHandler {
 
 	}
 
-	public void processEventInvite(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+	public void processEventInvite(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 

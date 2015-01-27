@@ -77,16 +77,20 @@ public class KpmlRelay extends CallStateHandler {
 		Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
 		while (itr.hasNext()) {
 			sipSession = itr.next();
-			kpmlSubscribe = sipSession.createRequest("SUBSCRIBE");
-			kpmlSubscribe.setHeader("Event", "kpml");
-			kpmlSubscribe.setExpires(period);
-			kpmlSubscribe.setHeader("Accept", "application/kpml-response+xml");
-			if (period > 0) {
-				kpmlSubscribe.setContent(kpmlRequest.getBytes(), "application/kpml-request+xml");
+
+			if (sipSession.isValid() && sipSession.getState().equals(SipSession.State.CONFIRMED)) {
+
+				kpmlSubscribe = sipSession.createRequest("SUBSCRIBE");
+				kpmlSubscribe.setHeader("Event", "kpml");
+				kpmlSubscribe.setExpires(period);
+				kpmlSubscribe.setHeader("Accept", "application/kpml-response+xml");
+				if (period > 0) {
+					kpmlSubscribe.setContent(kpmlRequest.getBytes(), "application/kpml-request+xml");
+				}
+				kpmlSubscribe.send();
+				this.printOutboundMessage(kpmlSubscribe);
+				kpmlSubscribe.getSession().setAttribute(CALL_STATE_HANDLER, this);
 			}
-			kpmlSubscribe.send();
-			this.printOutboundMessage(kpmlSubscribe);
-			sipSession.setAttribute(CALL_STATE_HANDLER, this);
 		}
 
 		if (period > 0) {
@@ -97,18 +101,19 @@ public class KpmlRelay extends CallStateHandler {
 				timer.cancel();
 			}
 		}
+
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 
-		if (timer != null) {
+		if (response != null) {
+			response.getSession().removeAttribute(CALL_STATE_HANDLER);
+		} else if (timer != null) {
 			subscribe(appSession);
 		} else if (request != null && request.getMethod().equals("MESSAGE")) {
 			subscribe(appSession);
-		} else if (response != null) {
-			response.getSession().removeAttribute(CALL_STATE_HANDLER);
 		} else if (request != null && request.getMethod().equals("NOTIFY")) {
 			SipServletResponse ok = request.createResponse(200);
 			ok.send();

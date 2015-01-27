@@ -52,7 +52,7 @@ public class CallFlow2 extends CallFlowHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 		int status = (null != response) ? response.getStatus() : 0;
 		TalkBACMessage msg;

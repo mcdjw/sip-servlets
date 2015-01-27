@@ -23,18 +23,21 @@ public class TerminateCall extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 
-		// Send the message now, not later
-		TalkBACMessage msg = new TalkBACMessage(appSession, "call_completed");
-		Address originAddress = (Address) appSession.getAttribute(TalkBACSipServlet.ORIGIN_ADDRESS);
-		Address destinationAddress = (Address) appSession.getAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
-		if (originAddress != null && destinationAddress != null) {
-			msg.setParameter("origin", originAddress.getURI().toString());
-			msg.setParameter("destination", destinationAddress.getURI().toString());
+		// don't send 'call_completed' in the event of a 'call_failed'
+		if (request != null) {
+			// Send the message now, not later
+			TalkBACMessage msg = new TalkBACMessage(appSession, "call_completed");
+			Address originAddress = (Address) appSession.getAttribute(TalkBACSipServlet.ORIGIN_ADDRESS);
+			Address destinationAddress = (Address) appSession.getAttribute(TalkBACSipServlet.DESTINATION_ADDRESS);
+			if (originAddress != null && destinationAddress != null) {
+				msg.setParameter("origin", originAddress.getURI().toString());
+				msg.setParameter("destination", destinationAddress.getURI().toString());
+			}
+			msgUtility.send(msg);
 		}
-		msgUtility.send(msg);
 
 		appSession.removeAttribute(CALL_STATE_HANDLER);
 
@@ -48,20 +51,6 @@ public class TerminateCall extends CallStateHandler {
 		Iterator<?> sessions = appSession.getSessions("SIP");
 		while (sessions.hasNext()) {
 			SipSession ss = (SipSession) sessions.next();
-
-			// if (logger.isLoggable(Level.FINE)) {
-			// System.out.println(this.getClass().getSimpleName()
-			// + " ["
-			// + appSession.getId().hashCode()
-			// + ":"
-			// + ss.getId().hashCode()
-			// + "] "
-			// + ss.getState()
-			// + " "
-			// + ss.isValid()
-			// + " "
-			// + ss.getAttribute(REQUEST_DIRECTION));
-			// }
 
 			if (ss.isValid()) {
 				ss.removeAttribute(CALL_STATE_HANDLER);
@@ -117,18 +106,14 @@ public class TerminateCall extends CallStateHandler {
 					}
 
 				} catch (Exception e) {
-					if (logger.isLoggable(Level.FINE)) {
-						System.out.println(this.getClass().getSimpleName() + " " + e.getMessage());
-					}
+//					if (logger.isLoggable(Level.FINE)) {
+//						System.out.println(this.getClass().getSimpleName() + " " + e.getMessage());
+//					}
 				}
 
 			}
 
 		}
-
-//		if (appSession.isValid()) {
-//			appSession.invalidate();
-//		}
 
 	}
 

@@ -22,7 +22,7 @@ public abstract class CallFlowHandler extends CallStateHandler {
 	}
 
 	@Override
-	public abstract void processEvent(SipApplicationSession appSession, TalkBACMessageUtility msgUtility, SipServletRequest request,
+	public abstract void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request,
 			SipServletResponse response, ServletTimer timer) throws Exception;
 
 	protected void discoverOptions(SipServletResponse response) {
