@@ -315,20 +315,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 					if (requestId != null && requestId.length() > 0 && requestId.equals("null") == false) {
 						appSession = util.getApplicationSessionById(requestId);
 					} else {
-						// appSession = factory.createApplicationSession();
-
-						// JWM!!!
-						String key;
-						// Address tmpOriginAddress = factory.createAddress(rootNode.path("origin").asText());
-						// String origin = ((SipURI) tmpOriginAddress.getURI()).getUser().toLowerCase();
-						// Address tmpDestinationAddress = factory.createAddress(rootNode.path("destination").asText());
-						// String destination = ((SipURI) tmpDestinationAddress.getURI()).getUser().toLowerCase();
-						// key = origin + ":" + destination;
-
-						key = Integer.toString(Math.abs(request.getCallId().hashCode()));
+						String key = Integer.toString(Math.abs(request.getCallId().hashCode()));
 						appSession = util.getApplicationSessionByKey(key, true);
 						appSession.setAttribute(CallStateHandler.KEY, key);
-
 					}
 
 					if (appSession == null) {
@@ -444,11 +433,10 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 							handler = new Hold(destinationAddress);
 							break;
 						}
-						// case unmute: {
-						// handler = new Unmute(originAddress, destinationAddress);
-						// break;
-						// }
-						case unmute:
+						case unmute: {
+							handler = new Unmute(originAddress, destinationAddress);
+							break;
+						}
 						case resume: {
 							handler = new Resume(originAddress, destinationAddress);
 							break;

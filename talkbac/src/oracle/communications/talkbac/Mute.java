@@ -107,7 +107,8 @@ public class Mute extends CallStateHandler {
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 
 				TalkBACMessage msg = new TalkBACMessage(appSession, "call_muted");
-				msg.setParameter("destination", destinationAck.getSession().getRemoteParty().toString());
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setParameter("origin", origin.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msgUtility.send(msg);
 			}

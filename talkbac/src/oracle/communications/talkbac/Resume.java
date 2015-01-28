@@ -34,6 +34,8 @@ public class Resume extends CallStateHandler {
 	SipServletResponse destinationResponse;
 	SipServletResponse originResponse;
 
+	protected String success_message = "call_resumed";
+
 	Resume(Address origin, Address destination) {
 		this.origin = origin;
 		this.destination = destination;
@@ -83,12 +85,6 @@ public class Resume extends CallStateHandler {
 				SipServletRequest originRequest = originSession.createRequest("INVITE");
 				String content = destinationResponse.getContent().toString();
 
-				// if (content.contains("a=sendonly")) {
-				// content = content.replace("sendonly", "sendrecv");
-				// } else {
-				// content = content.concat("a=sendrecv\r\n");
-				// }
-
 				originRequest.setContent(content, destinationResponse.getContentType());
 				originRequest.send();
 				this.printOutboundMessage(originRequest);
@@ -122,11 +118,6 @@ public class Resume extends CallStateHandler {
 				SipServletRequest destinationAck = destinationResponse.createAck();
 
 				String content = originResponse.getContent().toString();
-				// if (content.contains("a=sendonly")) {
-				// content = content.replace("sendonly", "sendrecv");
-				// } else {
-				// content = content.concat("a=sendrecv\r\n");
-				// }
 
 				destinationAck.setContent(content, originResponse.getContentType());
 				destinationAck.send();
@@ -135,7 +126,7 @@ public class Resume extends CallStateHandler {
 				destinationAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				originAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 
-				TalkBACMessage msg = new TalkBACMessage(appSession, "call_resumed");
+				TalkBACMessage msg = new TalkBACMessage(appSession, success_message);
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
