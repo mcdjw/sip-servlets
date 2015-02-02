@@ -163,6 +163,14 @@ public class Authentication extends CallStateHandler {
 				}
 			}
 
+			if(pbx==null || pbx.length()==0){
+				proxyOn = false;
+				SipServletResponse authResponse = request.createResponse(403, "Gateway address not provisioned");
+				authResponse.send();
+				this.printOutboundMessage(authResponse);
+			}
+			
+			
 			logger.fine("proxyOn: " + proxyOn);
 			if (proxyOn) {
 				
