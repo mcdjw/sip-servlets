@@ -188,9 +188,11 @@ public abstract class CallStateHandler implements Serializable {
 
 		while (itr.hasNext()) {
 			session = itr.next();
-			remoteUser = ((SipURI) session.getRemoteParty().getURI()).getUser().toLowerCase();
-			if (user.equals(remoteUser)) {
-				endpointSession = session;
+			if (session.isValid()) {
+				remoteUser = ((SipURI) session.getRemoteParty().getURI()).getUser().toLowerCase();
+				if (user.equals(remoteUser)) {
+					endpointSession = session;
+				}
 			}
 		}
 

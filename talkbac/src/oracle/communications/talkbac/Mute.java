@@ -52,6 +52,15 @@ public class Mute extends CallStateHandler {
 			this.originSession = findSession(appSession, origin);
 			this.destinationSession = findSession(appSession, destination);
 
+			if (null == this.originSession || null == this.destinationSession) {
+				TalkBACMessage msg = new TalkBACMessage(appSession, "resume_failed");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setStatus(501, "Origin or destination not part of an existing call leg.");
+				msgUtility.send(msg);
+				return;
+			}
+
 			SipServletRequest destinationRequest = destinationSession.createRequest("INVITE");
 			destinationRequest.send();
 			this.printOutboundMessage(destinationRequest);
@@ -70,10 +79,10 @@ public class Mute extends CallStateHandler {
 				SipServletRequest originRequest = originSession.createRequest("INVITE");
 
 				String content = destinationResponse.getContent().toString();
-				if(content.contains("a=sendrecv")){
+				if (content.contains("a=sendrecv")) {
 					content = content.replace("sendrecv", "sendonly");
-				}else{
-					content = content.concat("a=sendonly\r\n");					
+				} else {
+					content = content.concat("a=sendonly\r\n");
 				}
 
 				originRequest.setContent(content.getBytes(), destinationResponse.getContentType());
