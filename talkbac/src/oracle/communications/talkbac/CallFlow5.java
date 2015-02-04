@@ -311,7 +311,7 @@ public class CallFlow5 extends CallFlowHandler {
 
 				if (this.kpml_supported) {
 					KpmlRelay kpmlRelay = new KpmlRelay(3600);
-					kpmlRelay.delayedSubscribe(appSession, 2);
+					kpmlRelay.delayedSubscribe(appSession, 500);
 				}
 
 				// Launch Keep Alive Timer
