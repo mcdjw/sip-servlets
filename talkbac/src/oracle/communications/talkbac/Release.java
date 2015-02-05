@@ -46,7 +46,7 @@ public class Release extends CallStateHandler {
 			TalkBACMessage msg = new TalkBACMessage(appSession, "call_released");
 			msg.setParameter("target", target.getURI().toString());
 			msg.setStatus(response.getStatus(), response.getReasonPhrase());
-			msgUtility.send(msg);
+			this.printOutboundMessage(msgUtility.send(msg));
 
 			response.getSession().removeAttribute(CALL_STATE_HANDLER);
 

@@ -57,7 +57,7 @@ public class Disconnect extends CallStateHandler {
 
 				TalkBACMessage msg = new TalkBACMessage(appSession, "disconnected");
 				msg.setParameter("target", sipSession.getRemoteParty().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 				msgUtility.removeClient(sipSession.getRemoteParty());
 

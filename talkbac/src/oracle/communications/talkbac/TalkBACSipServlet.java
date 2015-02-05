@@ -327,7 +327,13 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 						msg.setParameter("event", "error");
 						msg.setParameter("request_id", requestId);
 						msg.setStatus(500, "Invalid request_id");
-						msgUtility.send(msg);
+						SipServletRequest outMsg = msgUtility.send(msg);
+
+						if (logger.isLoggable(Level.FINE)) {
+							CallStateHandler h = new InvalidateSession();
+							h.printOutboundMessage(outMsg);
+						}
+
 						return;
 					}
 

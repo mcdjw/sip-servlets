@@ -74,7 +74,7 @@ public class CallFlow4 extends CallFlowHandler {
 			msg = new TalkBACMessage(appSession, "call_created");
 			msg.setParameter("origin", origin.getURI().toString());
 			msg.setParameter("destination", destination.getURI().toString());
-			msgUtility.send(msg);
+			this.printOutboundMessage(msgUtility.send(msg));
 
 			originRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", destination, origin);
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
@@ -123,7 +123,7 @@ public class CallFlow4 extends CallFlowHandler {
 				msg.setStatus(183, "Session Progress");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 
 			if (status >= 300) {
@@ -131,7 +131,7 @@ public class CallFlow4 extends CallFlowHandler {
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 
 		}
@@ -155,7 +155,7 @@ public class CallFlow4 extends CallFlowHandler {
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 
 			if (status >= 300) {
@@ -170,7 +170,7 @@ public class CallFlow4 extends CallFlowHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 			}
 
@@ -196,7 +196,7 @@ public class CallFlow4 extends CallFlowHandler {
 				msg = new TalkBACMessage(response.getApplicationSession(), "call_connected");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 				if (kpml_supported) {
 					KpmlRelay kpmlRelay = new KpmlRelay(3600);
@@ -223,7 +223,7 @@ public class CallFlow4 extends CallFlowHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 
 		}
@@ -233,26 +233,5 @@ public class CallFlow4 extends CallFlowHandler {
 		}
 
 	}
-
-//	// media line has a range of zero ports "4002/0"
-//	static final String blackhole = ""
-//			+ "v=0\n"
-//			+ "o=- 3614531588 3614531588 IN IP4 192.168.1.202\n"
-//			+ "s=cpc_med\n"
-//			+ "c=IN IP4 192.168.1.202\n"
-//			+ "t=0 0\n"
-//			+ "m=audio 4002/0 RTP/AVP 111 110 109 9 0 8 101"
-//			+ "a=sendrecv\n"
-//			+ "a=rtpmap:111 OPUS/48000\n"
-//			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
-//			+ "a=rtpmap:110 SILK/24000\n"
-//			+ "a=fmtp:110 useinbandfec=1\n"
-//			+ "a=rtpmap:109 SILK/16000\n"
-//			+ "a=fmtp:109 useinbandfec=1\n"
-//			+ "a=rtpmap:9 G722/8000\n"
-//			+ "a=rtpmap:0 PCMU/8000\n"
-//			+ "a=rtpmap:8 PCMA/8000\n"
-//			+ "a=rtpmap:101 telephone-event/8000\n"
-//			+ "a=fmtp:101 0-16\n";
 
 }

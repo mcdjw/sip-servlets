@@ -57,7 +57,7 @@ public class DtmfRelay extends CallStateHandler {
 
 			msg = new TalkBACMessage(appSession, "dial_created");
 			msg.setParameter("destination", destination.getURI().toString());
-			msgUtility.send(msg);
+			this.printOutboundMessage(msgUtility.send(msg));
 
 			sipSession = this.findSession(appSession, destination);
 
@@ -128,7 +128,7 @@ public class DtmfRelay extends CallStateHandler {
 		case 4:
 			msg = new TalkBACMessage(appSession, "dial_complete");
 			msg.setParameter("destination", destination.getURI().toString());
-			msgUtility.send(msg);
+			this.printOutboundMessage(msgUtility.send(msg));
 
 			sipSession = response.getSession();
 			sipSession.removeAttribute(CALL_STATE_HANDLER);

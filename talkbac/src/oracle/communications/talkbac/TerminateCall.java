@@ -2,7 +2,6 @@ package oracle.communications.talkbac;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.sip.Address;
@@ -36,7 +35,7 @@ public class TerminateCall extends CallStateHandler {
 				msg.setParameter("origin", originAddress.getURI().toString());
 				msg.setParameter("destination", destinationAddress.getURI().toString());
 			}
-			msgUtility.send(msg);
+			this.printOutboundMessage(msgUtility.send(msg));
 		}
 
 		appSession.removeAttribute(CALL_STATE_HANDLER);

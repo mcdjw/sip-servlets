@@ -67,17 +67,17 @@ public class AcceptCall extends CallStateHandler {
 				msg = new TalkBACMessage(appSession, "call_created");
 				msg.setParameter("origin", originAddress.getURI().toString());
 				msg.setParameter("destination", destinationAddress.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage( msgUtility.send(msg) );
 
 				msg = new TalkBACMessage(appSession, "origin_connected");
 				msg.setParameter("origin", originAddress.getURI().toString());
 				msg.setParameter("destination", destinationAddress.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage( msgUtility.send(msg) );
 
 				msg = new TalkBACMessage(appSession, "call_incoming");
 				msg.setParameter("origin", originAddress.getURI().toString());
 				msg.setParameter("destination", destinationAddress.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage( msgUtility.send(msg) );
 
 				// SipServletRequest destinationRequest =
 				// TalkBACSipServlet.factory.createRequest(request.getApplicationSession(),

@@ -68,7 +68,7 @@ public class CallFlow1 extends CallFlowHandler {
 			msg = new TalkBACMessage(appSession, "call_created");
 			msg.setParameter("origin", origin.getURI().toString());
 			msg.setParameter("destination", destination.getURI().toString());
-			msgUtility.send(msg);
+			this.printOutboundMessage(msgUtility.send(msg));
 
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 
@@ -97,7 +97,7 @@ public class CallFlow1 extends CallFlowHandler {
 			appSession.setAttribute(ORIGIN_SESSION_ID, originRequest.getSession().getId());
 
 			destinationRequest.getSession().setAttribute(REQUEST_DIRECTION, "OUTBOUND");
-			destinationRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, destinationRequest);	
+			destinationRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, destinationRequest);
 			originRequest.getSession().setAttribute(REQUEST_DIRECTION, "OUTBOUND");
 			originRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, originRequest);
 
@@ -120,7 +120,7 @@ public class CallFlow1 extends CallFlowHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(183, "Session Progress");
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 			}
 
@@ -129,7 +129,7 @@ public class CallFlow1 extends CallFlowHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 			break;
 
@@ -154,12 +154,12 @@ public class CallFlow1 extends CallFlowHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 				msg = new TalkBACMessage(appSession, "call_connected");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 				if (kpml_supported) {
 					KpmlRelay kpmlRelay = new KpmlRelay(3600);
@@ -185,7 +185,7 @@ public class CallFlow1 extends CallFlowHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 
 			break;

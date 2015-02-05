@@ -2,7 +2,6 @@ package oracle.communications.talkbac;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.sip.Address;
@@ -52,14 +51,13 @@ public class MessageUtility extends CallStateHandler {
 
 	}
 
-	public void send(TalkBACMessage m) {
+	public SipServletRequest send(TalkBACMessage m) {
+		SipServletRequest msg = null;
+
 		TalkBACSipServlet.cdr.info(m.toString().replaceAll("\r\n", ""));
 
 		try {
-			SipServletRequest msg;
-
 			for (SipApplicationSession appSession : hashmap.values()) {
-
 				if (appSession.isValid()) {
 					Address address = (Address) appSession.getAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
 
@@ -68,21 +66,6 @@ public class MessageUtility extends CallStateHandler {
 						msg.setContent(m.toString(), "text/plain");
 						msg.send();
 						msg.getSession().setAttribute(CALL_STATE_HANDLER, this);
-
-						if (logger.isLoggable(Level.FINE)) {
-							String output = getPrintableName()
-									+ " "
-									+ ((SipURI) msg.getTo().getURI()).getUser()
-									+ " <-- "
-									+ msg.getMethod()
-									+ " "
-									+ m.getParameter("event")
-									+ " "
-									+ TalkBACSipServlet.hexHash(msg);
-							logger.fine(output);
-							System.out.println(output);
-						}
-
 					}
 				}
 			}
@@ -90,6 +73,7 @@ public class MessageUtility extends CallStateHandler {
 			e.printStackTrace();
 		}
 
+		return msg;
 	}
 
 	@Override

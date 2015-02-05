@@ -95,7 +95,7 @@ public class Transfer extends CallStateHandler {
 			msg.setParameter("destination", destination.getURI().toString());
 			msg.setParameter("target", target.getURI().toString());
 			msg.setStatus(status, response.getReasonPhrase());
-			msgUtility.send(msg);
+			this.printOutboundMessage(msgUtility.send(msg));
 
 			break;
 		case 4: // Receive 200 OK

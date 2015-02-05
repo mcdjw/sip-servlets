@@ -57,7 +57,7 @@ public class Resume extends CallStateHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(501, "Origin or destination not part of an existing call leg.");
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 				return;
 			}
 
@@ -99,7 +99,7 @@ public class Resume extends CallStateHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 
 			break;
@@ -130,7 +130,7 @@ public class Resume extends CallStateHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 
 			if (status > 400) {
@@ -138,22 +138,12 @@ public class Resume extends CallStateHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
-			
+
 			break;
 		}
 
 	}
-
-//	static final String blackhole = ""
-//			+ "v=0\r\n"
-//			+ "o=- 15474517 1 IN IP4 127.0.0.1\r\n"
-//			+ "s=cpc_med\r\n"
-//			+ "c=IN IP4 0.0.0.0\r\n"
-//			+ "t=0 0\r\n"
-//			+ "m=audio 23348 RTP/AVP 0\r\n"
-//			+ "a=rtpmap:0 pcmu/8000\r\n"
-//			+ "a=inactive\r\n";
 
 }

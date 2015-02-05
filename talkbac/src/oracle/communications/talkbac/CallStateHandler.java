@@ -17,6 +17,9 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipURI;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+
 import weblogic.kernel.KernelLogManager;
 
 import com.bea.wcp.sip.engine.server.header.HeaderUtils;
@@ -68,6 +71,15 @@ public abstract class CallStateHandler implements Serializable {
 
 			if (message instanceof SipServletRequest) {
 				SipServletRequest rqst = (SipServletRequest) message;
+
+				if (rqst.getMethod().equals("MESSAGE")) {
+					ObjectMapper objectMapper = new ObjectMapper();
+					JsonNode rootNode = objectMapper.readTree(rqst.getContent().toString());
+					event = rootNode.path("event").asText();
+					event += " " + rootNode.path("status").asInt();
+					event += " " + rootNode.path("reason").asText();
+				}
+
 				String output = getPrintableName()
 						+ " "
 						+ ((SipURI) rqst.getTo().getURI()).getUser()
@@ -121,8 +133,14 @@ public abstract class CallStateHandler implements Serializable {
 
 			if (message instanceof SipServletRequest) {
 				SipServletRequest rqst = (SipServletRequest) message;
+				String output = null;
+				if (rqst.getMethod().equals("MESSAGE")) {
+					ObjectMapper objectMapper = new ObjectMapper();
+					JsonNode rootNode = objectMapper.readTree(rqst.getContent().toString());
+					event = rootNode.path(TalkBACSipServlet.CALL_CONTROL).asText();
+				}
 
-				String output = getPrintableName()
+				output = getPrintableName()
 						+ " "
 						+ ((SipURI) rqst.getFrom().getURI()).getUser()
 						+ " --> "
@@ -133,6 +151,7 @@ public abstract class CallStateHandler implements Serializable {
 						+ TalkBACSipServlet.hexHash(message)
 						+ " "
 						+ rqst.getSession().getState().toString();
+
 				logger.fine(output);
 				System.out.println(output);
 			} else {

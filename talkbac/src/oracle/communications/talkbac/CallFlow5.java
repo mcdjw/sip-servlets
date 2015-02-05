@@ -47,13 +47,11 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-import org.apache.commons.lang.CharSet;
-
 public class CallFlow5 extends CallFlowHandler {
 	private static final long serialVersionUID = 1L;
 	private Address origin;
 	private Address destination;
-	//private String destinationUser;
+	// private String destinationUser;
 	// private String originUser;
 
 	String callId;
@@ -109,7 +107,7 @@ public class CallFlow5 extends CallFlowHandler {
 			msg = new TalkBACMessage(appSession, "call_created");
 			msg.setParameter("origin", origin.getURI().toString());
 			msg.setParameter("destination", destination.getURI().toString());
-			msgUtility.send(msg);
+			this.printOutboundMessage(msgUtility.send(msg));
 
 			// this.destinationUser = ((SipURI) destination.getURI()).getUser().toLowerCase();
 			// this.originUser = ((SipURI) origin.getURI()).getUser().toLowerCase();
@@ -172,7 +170,7 @@ public class CallFlow5 extends CallFlowHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(183, "Session Progress");
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 			}
 
@@ -181,7 +179,7 @@ public class CallFlow5 extends CallFlowHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 			break;
 
@@ -277,7 +275,7 @@ public class CallFlow5 extends CallFlowHandler {
 						msg.setParameter("origin", origin.getURI().toString());
 						msg.setParameter("destination", destination.getURI().toString());
 						msg.setStatus(response.getStatus(), response.getReasonPhrase());
-						msgUtility.send(msg);
+						this.printOutboundMessage(msgUtility.send(msg));
 					}
 
 				} else {
@@ -289,7 +287,7 @@ public class CallFlow5 extends CallFlowHandler {
 					msg.setParameter("origin", origin.getURI().toString());
 					msg.setParameter("destination", destination.getURI().toString());
 					msg.setStatus(response.getStatus(), response.getReasonPhrase());
-					msgUtility.send(msg);
+					this.printOutboundMessage(msgUtility.send(msg));
 
 					TerminateCall terminate = new TerminateCall();
 					terminate.processEvent(appSession, msgUtility, request, response, timer);
@@ -323,7 +321,7 @@ public class CallFlow5 extends CallFlowHandler {
 				msg = new TalkBACMessage(appSession, "call_connected");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 				destAck.getSession().removeAttribute(CALL_STATE_HANDLER);
 				request.getSession().removeAttribute(CALL_STATE_HANDLER);
@@ -335,7 +333,5 @@ public class CallFlow5 extends CallFlowHandler {
 		}
 
 	}
-
-
 
 }

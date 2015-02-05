@@ -61,7 +61,7 @@ public class Hold extends CallStateHandler {
 				TalkBACMessage msg = new TalkBACMessage(appSession, "call_on_hold");
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 			}
 

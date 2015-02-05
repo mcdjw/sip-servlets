@@ -57,7 +57,7 @@ public class Mute extends CallStateHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(501, "Origin or destination not part of an existing call leg.");
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 				return;
 			}
 
@@ -119,7 +119,7 @@ public class Mute extends CallStateHandler {
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 
 			break;

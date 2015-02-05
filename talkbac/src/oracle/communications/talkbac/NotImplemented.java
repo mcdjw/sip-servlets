@@ -19,7 +19,7 @@ public class NotImplemented extends CallStateHandler {
 
 			TalkBACMessage msg = new TalkBACMessage(appSession, "not_implemented");
 			msg.setStatus(rspn.getStatus(), rspn.getReasonPhrase());
-			msgUtility.send(msg);
+			this.printOutboundMessage(msgUtility.send(msg));
 		}
 	}
 

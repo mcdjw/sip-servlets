@@ -60,7 +60,7 @@ public class CallFlow3 extends CallFlowHandler {
 		switch (state) {
 		case 1: {
 			msg = new TalkBACMessage(appSession, "call_created");
-			msgUtility.send(msg);
+			this.printOutboundMessage(msgUtility.send(msg));
 
 			destinationRequest = TalkBACSipServlet.factory.createRequest(appSession, "INVITE", origin, destination);
 			if (TalkBACSipServlet.callInfo != null) {
@@ -84,7 +84,7 @@ public class CallFlow3 extends CallFlowHandler {
 			appSession.setAttribute(ORIGIN_SESSION_ID, originRequest.getSession().getId());
 
 			destinationRequest.getSession().setAttribute(REQUEST_DIRECTION, "OUTBOUND");
-			destinationRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, destinationRequest);	
+			destinationRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, destinationRequest);
 			originRequest.getSession().setAttribute(REQUEST_DIRECTION, "OUTBOUND");
 			originRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, originRequest);
 
@@ -113,7 +113,7 @@ public class CallFlow3 extends CallFlowHandler {
 				msg.setStatus(183, "Session Progress");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 			}
 
@@ -122,7 +122,7 @@ public class CallFlow3 extends CallFlowHandler {
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 
 		}
@@ -144,7 +144,7 @@ public class CallFlow3 extends CallFlowHandler {
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 			}
 
@@ -160,7 +160,7 @@ public class CallFlow3 extends CallFlowHandler {
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 			}
 
 		}
@@ -186,7 +186,7 @@ public class CallFlow3 extends CallFlowHandler {
 				msg = new TalkBACMessage(response.getApplicationSession(), "call_connected");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msgUtility.send(msg);
+				this.printOutboundMessage(msgUtility.send(msg));
 
 				if (kpml_supported) {
 					KpmlRelay kpmlRelay = new KpmlRelay(3600);
@@ -218,45 +218,5 @@ public class CallFlow3 extends CallFlowHandler {
 		}
 
 	}
-
-//	static final String blackhole = ""
-//			+ "v=0\n"
-//			+ "o=- 15474517 1 IN IP4 172.16.45.94\n"
-//			+ "s=-\n"
-//			+ "c=IN IP4 0.0.0.0\n"
-//			+ "t=0 0\n"
-//			+ "m=audio 23348 RTP/AVP 0\n"
-//			+ "a=rtpmap:0 pcmu/8000\n"
-//			+ "a=sendrecv \n";
-//
-//	static final String blackhole3 = ""
-//			+ "v=0\n"
-//			+ "o=- 15474517 1 IN IP4 172.16.45.94\n"
-//			+ "s=cpc_med\n"
-//			+ "c=IN IP4 0.0.0.0\n"
-//			+ "t=0 0\n"
-//			+ "m=audio 23348 RTP/AVP 0\n"
-//			+ "a=rtpmap:0 pcmu/8000\n"
-//			+ "a=sendrecv \n";
-//
-//	static final String blackhole2 = ""
-//			+ "v=0\n"
-//			+ "o=- 3615877054 3615877054 IN IP4 192.168.1.80\n"
-//			+ "s=cpc_med\n"
-//			+ "c=IN IP4 0.0.0.0\n"
-//			+ "t=0 0\n"
-//			+ "m=audio 4004 RTP/AVP 111 110 109 9 0 8 101\n"
-//			+ "a=sendrecv\n"
-//			+ "a=rtpmap:111 OPUS/48000\n"
-//			+ "a=fmtp:111 maxplaybackrate=32000;useinbandfec=1\n"
-//			+ "a=rtpmap:110 SILK/24000\n"
-//			+ "a=fmtp:110 useinbandfec=1\n"
-//			+ "a=rtpmap:109 SILK/16000\n"
-//			+ "a=fmtp:109 useinbandfec=1\n"
-//			+ "a=rtpmap:9 G722/8000\n"
-//			+ "a=rtpmap:0 PCMU/8000\n"
-//			+ "a=rtpmap:8 PCMA/8000\n"
-//			+ "a=rtpmap:101 telephone-event/8000\n"
-//			+ "a=fmtp:101 0-16\n";
 
 }
