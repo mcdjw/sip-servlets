@@ -53,7 +53,7 @@ public class Resume extends CallStateHandler {
 			this.destinationSession = findSession(appSession, destination);
 
 			if (null == this.originSession || null == this.destinationSession) {
-				TalkBACMessage msg = new TalkBACMessage(appSession, "call_resumed");
+				TalkBACMessage msg = new TalkBACMessage(appSession, success_message);
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(501, "Origin or destination not part of an existing call leg.");
@@ -92,10 +92,8 @@ public class Resume extends CallStateHandler {
 				state = 4;
 				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-			}
-
-			if (status > 400) {
-				TalkBACMessage msg = new TalkBACMessage(appSession, "call_resumed");
+			} else if (status >= 400) {
+				TalkBACMessage msg = new TalkBACMessage(appSession, success_message);
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
@@ -131,10 +129,8 @@ public class Resume extends CallStateHandler {
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				this.printOutboundMessage(msgUtility.send(msg));
-			}
-
-			if (status > 400) {
-				TalkBACMessage msg = new TalkBACMessage(appSession, "call_resumed");
+			} else if (status >= 400) {
+				TalkBACMessage msg = new TalkBACMessage(appSession, success_message);
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());

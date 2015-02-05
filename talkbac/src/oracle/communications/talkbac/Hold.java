@@ -63,6 +63,12 @@ public class Hold extends CallStateHandler {
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				this.printOutboundMessage(msgUtility.send(msg));
 
+			} else if (status >= 400) {
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_on_hold");
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setStatus(status, response.getReasonPhrase());
+				this.printOutboundMessage(msgUtility.send(msg));
+				return;
 			}
 
 			break;

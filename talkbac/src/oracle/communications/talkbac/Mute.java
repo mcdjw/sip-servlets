@@ -53,7 +53,7 @@ public class Mute extends CallStateHandler {
 			this.destinationSession = findSession(appSession, destination);
 
 			if (null == this.originSession || null == this.destinationSession) {
-				TalkBACMessage msg = new TalkBACMessage(appSession, "resume_failed");
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_muted");
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
 				msg.setStatus(501, "Origin or destination not part of an existing call leg.");
@@ -92,6 +92,13 @@ public class Mute extends CallStateHandler {
 				state = 4;
 				originRequest.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
+			} else if (status >= 400) {
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_muted");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setStatus(status, response.getReasonPhrase());
+				this.printOutboundMessage(msgUtility.send(msg));
+				return;
 			}
 
 			break;
@@ -120,6 +127,14 @@ public class Mute extends CallStateHandler {
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setStatus(response.getStatus(), response.getReasonPhrase());
 				this.printOutboundMessage(msgUtility.send(msg));
+
+			} else if (status >= 400) {
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_muted");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
+				msg.setStatus(status, response.getReasonPhrase());
+				this.printOutboundMessage(msgUtility.send(msg));
+				return;
 			}
 
 			break;
