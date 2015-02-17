@@ -61,118 +61,137 @@ public abstract class CallStateHandler implements Serializable {
 	public void printOutboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
 		if (logger.isLoggable(Level.FINE)) {
 
-			String event = message.getHeader("Event");
-			if (event != null && event.equals("refer")) {
-				event += " " + new String((byte[]) message.getContent()).trim();
-			}
-			if (event == null) {
-				event = (message.getContent() != null) ? "w/ SDP" : "w/o SDP";
-			}
+			try {
 
-			if (message instanceof SipServletRequest) {
-				SipServletRequest rqst = (SipServletRequest) message;
+				if (message != null) {
 
-				if (rqst.getMethod().equals("MESSAGE")) {
-					ObjectMapper objectMapper = new ObjectMapper();
-					JsonNode rootNode = objectMapper.readTree(rqst.getContent().toString());
-					event = rootNode.path("event").asText();
-					event += " " + rootNode.path("status").asInt();
-					event += " " + rootNode.path("reason").asText();
+					String event = message.getHeader("Event");
+					if (event != null && event.equals("refer")) {
+						event += " " + new String((byte[]) message.getContent()).trim();
+					}
+					if (event == null) {
+						event = (message.getContent() != null) ? "w/ SDP" : "w/o SDP";
+					}
+
+					if (message instanceof SipServletRequest) {
+						SipServletRequest rqst = (SipServletRequest) message;
+
+						if (rqst.getMethod().equals("MESSAGE")) {
+							ObjectMapper objectMapper = new ObjectMapper();
+							JsonNode rootNode = objectMapper.readTree(rqst.getContent().toString());
+							event = rootNode.path("event").asText();
+							event += " " + rootNode.path("status").asInt();
+							event += " " + rootNode.path("reason").asText();
+						}
+
+						String output = getPrintableName()
+								+ " "
+								+ ((SipURI) rqst.getTo().getURI()).getUser()
+								+ " <-- "
+								+ rqst.getMethod()
+								+ " "
+								+ event
+								+ ", "
+								+ TalkBACSipServlet.hexHash(message)
+								+ " "
+								+ rqst.getSession().getState().toString();
+
+						logger.fine(output);
+						System.out.println(output);
+
+					} else {
+						SipServletResponse rspn = (SipServletResponse) message;
+						String output = getPrintableName()
+								+ " "
+								+ ((SipURI) rspn.getFrom().getURI()).getUser()
+								+ " <-- "
+								+ rspn.getStatus()
+								+ " "
+								+ rspn.getReasonPhrase()
+								+ " ("
+								+ rspn.getMethod()
+								+ ") "
+								+ event
+								+ ", "
+								+ TalkBACSipServlet.hexHash(message)
+								+ " "
+								+ rspn.getSession().getState().toString();
+
+						logger.fine(output);
+						System.out.println(output);
+
+					}
 				}
 
-				String output = getPrintableName()
-						+ " "
-						+ ((SipURI) rqst.getTo().getURI()).getUser()
-						+ " <-- "
-						+ rqst.getMethod()
-						+ " "
-						+ event
-						+ ", "
-						+ TalkBACSipServlet.hexHash(message)
-						+ " "
-						+ rqst.getSession().getState().toString();
-
-				logger.fine(output);
-				System.out.println(output);
-
-			} else {
-				SipServletResponse rspn = (SipServletResponse) message;
-				String output = getPrintableName()
-						+ " "
-						+ ((SipURI) rspn.getFrom().getURI()).getUser()
-						+ " <-- "
-						+ rspn.getStatus()
-						+ " "
-						+ rspn.getReasonPhrase()
-						+ " ("
-						+ rspn.getMethod()
-						+ ") "
-						+ event
-						+ ", "
-						+ TalkBACSipServlet.hexHash(message)
-						+ " "
-						+ rspn.getSession().getState().toString();
-
-				logger.fine(output);
-				System.out.println(output);
-
+			} catch (Exception e) {
+				logger.fine("logging error: " + e.getMessage());
+				System.out.println("logging error: " + e.getMessage());
 			}
+
 		}
+
 	}
 
 	public void printInboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
 		if (logger.isLoggable(Level.FINE)) {
 
-			String event = message.getHeader("Event");
-			if (event != null && event.equals("refer")) {
-				event += " " + new String((byte[]) message.getContent()).trim();
-			}
-			if (event == null) {
-				event = (message.getContent() != null) ? "w/ SDP" : "w/o SDP";
-			}
+			try {
 
-			if (message instanceof SipServletRequest) {
-				SipServletRequest rqst = (SipServletRequest) message;
-				String output = null;
-				if (rqst.getMethod().equals("MESSAGE")) {
-					ObjectMapper objectMapper = new ObjectMapper();
-					JsonNode rootNode = objectMapper.readTree(rqst.getContent().toString());
-					event = rootNode.path(TalkBACSipServlet.CALL_CONTROL).asText();
+				String event = message.getHeader("Event");
+				if (event != null && event.equals("refer")) {
+					event += " " + new String((byte[]) message.getContent()).trim();
+				}
+				if (event == null) {
+					event = (message.getContent() != null) ? "w/ SDP" : "w/o SDP";
 				}
 
-				output = getPrintableName()
-						+ " "
-						+ ((SipURI) rqst.getFrom().getURI()).getUser()
-						+ " --> "
-						+ rqst.getMethod()
-						+ " "
-						+ event
-						+ ", "
-						+ TalkBACSipServlet.hexHash(message)
-						+ " "
-						+ rqst.getSession().getState().toString();
+				if (message instanceof SipServletRequest) {
+					SipServletRequest rqst = (SipServletRequest) message;
+					String output = null;
+					if (rqst.getMethod().equals("MESSAGE")) {
+						ObjectMapper objectMapper = new ObjectMapper();
+						JsonNode rootNode = objectMapper.readTree(rqst.getContent().toString());
+						event = rootNode.path(TalkBACSipServlet.CALL_CONTROL).asText();
+					}
 
-				logger.fine(output);
-				System.out.println(output);
-			} else {
-				SipServletResponse rspn = (SipServletResponse) message;
-				String output = getPrintableName()
-						+ " "
-						+ ((SipURI) rspn.getTo().getURI()).getUser()
-						+ " --> "
-						+ rspn.getStatus()
-						+ " "
-						+ rspn.getReasonPhrase()
-						+ " ("
-						+ rspn.getMethod()
-						+ ") "
-						+ event
-						+ ", "
-						+ TalkBACSipServlet.hexHash(message)
-						+ " "
-						+ rspn.getSession().getState().toString();
-				logger.fine(output);
-				System.out.println(output);
+					output = getPrintableName()
+							+ " "
+							+ ((SipURI) rqst.getFrom().getURI()).getUser()
+							+ " --> "
+							+ rqst.getMethod()
+							+ " "
+							+ event
+							+ ", "
+							+ TalkBACSipServlet.hexHash(message)
+							+ " "
+							+ rqst.getSession().getState().toString();
+
+					logger.fine(output);
+					System.out.println(output);
+				} else {
+					SipServletResponse rspn = (SipServletResponse) message;
+					String output = getPrintableName()
+							+ " "
+							+ ((SipURI) rspn.getTo().getURI()).getUser()
+							+ " --> "
+							+ rspn.getStatus()
+							+ " "
+							+ rspn.getReasonPhrase()
+							+ " ("
+							+ rspn.getMethod()
+							+ ") "
+							+ event
+							+ ", "
+							+ TalkBACSipServlet.hexHash(message)
+							+ " "
+							+ rspn.getSession().getState().toString();
+					logger.fine(output);
+					System.out.println(output);
+				}
+
+			} catch (Exception e) {
+				logger.fine("logging error: " + e.getMessage());
+				System.out.println("logging error: " + e.getMessage());
 			}
 
 		}
@@ -180,18 +199,27 @@ public abstract class CallStateHandler implements Serializable {
 
 	public void printTimer(ServletTimer timer) {
 		if (logger.isLoggable(Level.FINE)) {
-			String output = getPrintableName()
-					+ " "
-					+ " timer id: "
-					+ timer.getId()
-					+ ", time remaining: "
-					+ (int) timer.getTimeRemaining()
-					/ 1000
-					+ ", "
-					+ TalkBACSipServlet.hexHash(timer.getApplicationSession());
 
-			logger.fine(output);
-			// System.out.println(output);
+			try {
+
+				String output = getPrintableName()
+						+ " "
+						+ " timer id: "
+						+ timer.getId()
+						+ ", time remaining: "
+						+ (int) timer.getTimeRemaining()
+						/ 1000
+						+ ", "
+						+ TalkBACSipServlet.hexHash(timer.getApplicationSession());
+
+				logger.fine(output);
+				// System.out.println(output);
+
+			} catch (Exception e) {
+				logger.fine("logging error: " + e.getMessage());
+				// System.out.println("logging error: " + e.getMessage());
+			}
+
 		}
 	}
 
