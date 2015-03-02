@@ -251,15 +251,25 @@ public abstract class CallStateHandler implements Serializable {
 		Iterator<String> itr = origin.getHeaderNames();
 		while (itr.hasNext()) {
 			headerName = itr.next();
+			System.out.print("Copying header '" + headerName + "'... ");
 			if (false == HeaderUtils.isSystemHeader(headerName, true)) {
 				destination.setHeaderForm(origin.getHeaderForm());
 				ListIterator<String> headers = origin.getHeaders(headerName);
 				while (headers.hasNext()) {
 					headerValue = headers.next();
-					destination.setHeader(headerName, headerValue);
+					System.out.print(headerValue + " ");
+
+					if (HeaderUtils.isUnique(headerName)) {
+						destination.setHeader(headerName, headerValue);
+					} else {
+						destination.addHeader(headerName, headerValue);
+					}
+
 				}
-				break;
+			} else {
+				System.out.print("skipped");
 			}
+			System.out.println();
 		}
 	}
 

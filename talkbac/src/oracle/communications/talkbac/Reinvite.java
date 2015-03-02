@@ -41,6 +41,9 @@ public class Reinvite extends CallStateHandler {
 			String peerSessionId = (String) request.getSession().getAttribute(PEER_SESSION_ID);
 			SipSession peerSession = appSession.getSipSession(peerSessionId);
 			SipServletRequest reinvite = peerSession.createRequest(request.getMethod());
+
+			copyHeaders(request, reinvite);
+
 			reinvite.setContent(request.getContent(), request.getContentType());
 			reinvite.send();
 			this.printOutboundMessage(reinvite);
