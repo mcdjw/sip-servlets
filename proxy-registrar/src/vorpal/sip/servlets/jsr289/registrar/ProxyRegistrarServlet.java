@@ -85,8 +85,10 @@ public class ProxyRegistrarServlet extends SipServlet {
 
 				int expires = (contact.getExpires() >= 0) ? contact.getExpires() : req.getExpires();
 
-				if (expires > 0) { // add contact
-					contacts_map.put(contact, System.currentTimeMillis() + (expires * 1000));
+				if (expires > 0) { // add contact					
+					//for TalkBAC
+					contacts_map.clear();
+					contacts_map.put(contact, System.currentTimeMillis() + (expires * 1000));					
 				} else { // remove contact
 					contacts_map.remove(contact);
 				}
