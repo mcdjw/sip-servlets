@@ -22,8 +22,8 @@ public abstract class CallFlowHandler extends CallStateHandler {
 	}
 
 	@Override
-	public abstract void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request,
-			SipServletResponse response, ServletTimer timer) throws Exception;
+	public abstract void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception;
 
 	protected void discoverOptions(SipServletResponse response) {
 		// Support for Keep-Alive
@@ -53,16 +53,26 @@ public abstract class CallFlowHandler extends CallStateHandler {
 		options_supported = true;
 
 	}
-	
+
+	// static final String blackhole = ""
+	// + "v=0\r\n"
+	// + "o=- 15474517 1 IN IP4 127.0.0.1\r\n"
+	// + "s=cpc_med\r\n"
+	// + "c=IN IP4 0.0.0.0\r\n"
+	// + "t=0 0\r\n"
+	// + "m=audio 23348 RTP/AVP 0\r\n"
+	// + "a=rtpmap:0 pcmu/8000\r\n"
+	// + "a=rtpmap:101 telephone-event/8000\r\n"
+	// + "a=inactive\r\n";
+
 	static final String blackhole = ""
 			+ "v=0\r\n"
-			+ "o=- 15474517 1 IN IP4 127.0.0.1\r\n"
-			+ "s=cpc_med\r\n"
+			+ "o=CiscoSystemsCCM-SIP 3751 1 IN IP4 0.0.0.0\r\n"
+			+ "s=SIP Call\r\n"
 			+ "c=IN IP4 0.0.0.0\r\n"
 			+ "t=0 0\r\n"
-			+ "m=audio 23348 RTP/AVP 0\r\n"
-			+ "a=rtpmap:0 pcmu/8000\r\n"
-			+ "a=rtpmap:101 telephone-event/8000\r\n"
+			+ "m=audio 4000 RTP/AVP 0\r\n"
+			+ "a=rtpmap:0 PCMU/8000\r\n"
+			+ "a=ptime:20\r\n"
 			+ "a=inactive\r\n";
-
 }

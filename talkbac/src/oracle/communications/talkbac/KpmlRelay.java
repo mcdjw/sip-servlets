@@ -30,6 +30,7 @@ import java.util.Iterator;
 
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
+import javax.servlet.sip.SipApplicationSession.Protocol;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
@@ -75,23 +76,39 @@ public class KpmlRelay extends CallStateHandler {
 		SipServletRequest kpmlSubscribe;
 		@SuppressWarnings("unchecked")
 		Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
-		while (itr.hasNext()) {
-			sipSession = itr.next();
+		// while (itr.hasNext()) {
+		// sipSession = itr.next();
+		//
+		// if (sipSession.isValid() && sipSession.getState().equals(SipSession.State.CONFIRMED)) {
+		//
+		//
+		//
+		//
+		// kpmlSubscribe = sipSession.createRequest("SUBSCRIBE");
+		// kpmlSubscribe.setHeader("Event", "kpml");
+		// kpmlSubscribe.setExpires(period);
+		// kpmlSubscribe.setHeader("Accept", "application/kpml-response+xml");
+		// if (period > 0) {
+		// kpmlSubscribe.setContent(kpmlRequest.getBytes(), "application/kpml-request+xml");
+		// }
+		// kpmlSubscribe.send();
+		// this.printOutboundMessage(kpmlSubscribe);
+		// kpmlSubscribe.getSession().setAttribute(CALL_STATE_HANDLER, this);
+		// }
+		// }
 
-			if (sipSession.isValid() && sipSession.getState().equals(SipSession.State.CONFIRMED)) {
-
-				kpmlSubscribe = sipSession.createRequest("SUBSCRIBE");
-				kpmlSubscribe.setHeader("Event", "kpml");
-				kpmlSubscribe.setExpires(period);
-				kpmlSubscribe.setHeader("Accept", "application/kpml-response+xml");
-				if (period > 0) {
-					kpmlSubscribe.setContent(kpmlRequest.getBytes(), "application/kpml-request+xml");
-				}
-				kpmlSubscribe.send();
-				this.printOutboundMessage(kpmlSubscribe);
-				kpmlSubscribe.getSession().setAttribute(CALL_STATE_HANDLER, this);
-			}
+		String originSessionID = (String) appSession.getAttribute(this.ORIGIN_SESSION_ID);
+		sipSession = (SipSession) appSession.getSession(originSessionID, Protocol.SIP);
+		kpmlSubscribe = sipSession.createRequest("SUBSCRIBE");
+		kpmlSubscribe.setHeader("Event", "kpml");
+		kpmlSubscribe.setExpires(period);
+		kpmlSubscribe.setHeader("Accept", "application/kpml-response+xml");
+		if (period > 0) {
+			kpmlSubscribe.setContent(kpmlRequest.getBytes(), "application/kpml-request+xml");
 		}
+		kpmlSubscribe.send();
+		this.printOutboundMessage(kpmlSubscribe);
+		kpmlSubscribe.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 		if (period > 0) {
 			ServletTimer timer = TalkBACSipServlet.timer.createTimer(appSession, period * 1000, false, this);

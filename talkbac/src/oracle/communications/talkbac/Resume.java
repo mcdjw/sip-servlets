@@ -56,7 +56,13 @@ public class Resume extends CallStateHandler {
 				TalkBACMessage msg = new TalkBACMessage(appSession, success_message);
 				msg.setParameter("origin", origin.getURI().toString());
 				msg.setParameter("destination", destination.getURI().toString());
-				msg.setStatus(501, "Origin or destination not part of an existing call leg.");
+				if (null == this.originSession && null == this.destinationSession) {
+					msg.setStatus(489, "Invalid dialogs for both " + origin.getURI().toString() + " and " + destination.getURI().toString() + ".");
+				} else if (this.originSession == null) {
+					msg.setStatus(489, "Invalid dialog for " + origin.getURI().toString());
+				} else if (this.destinationSession == null) {
+					msg.setStatus(489, "Invalid dialog for " + destination.getURI().toString());
+				}
 				this.printOutboundMessage(msgUtility.send(msg));
 				return;
 			}
@@ -83,9 +89,9 @@ public class Resume extends CallStateHandler {
 				this.destinationResponse = response;
 
 				SipServletRequest originRequest = originSession.createRequest("INVITE");
-				String content = destinationResponse.getContent().toString();
 
-				originRequest.setContent(content, destinationResponse.getContentType());
+				copyHeadersAndContent(destinationResponse, originRequest);
+
 				originRequest.send();
 				this.printOutboundMessage(originRequest);
 
@@ -115,9 +121,8 @@ public class Resume extends CallStateHandler {
 
 				SipServletRequest destinationAck = destinationResponse.createAck();
 
-				String content = originResponse.getContent().toString();
+				copyHeadersAndContent(originResponse, destinationAck);
 
-				destinationAck.setContent(content, originResponse.getContentType());
 				destinationAck.send();
 				this.printOutboundMessage(destinationAck);
 

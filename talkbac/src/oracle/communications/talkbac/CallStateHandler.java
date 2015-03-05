@@ -3,6 +3,7 @@ package oracle.communications.talkbac;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.logging.Level;
@@ -16,6 +17,7 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipURI;
+import javax.servlet.sip.SipServletMessage.HeaderForm;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -40,6 +42,7 @@ public abstract class CallStateHandler implements Serializable {
 	public final static String INITIAL_INVITE_REQUEST = "INITIAL_INVITE_REQUEST";
 	public final static String REQUEST_DIRECTION = "REQUEST_DIRECTION";
 	public final static String KEY = "KEY";
+	public final static String ALLOW = "INVITE, OPTIONS, BYE, CANCEL, ACK, PRACK, UPDATE, NOTIFY";
 
 	protected int state = 1;
 
@@ -246,18 +249,19 @@ public abstract class CallStateHandler implements Serializable {
 		return endpointSession;
 	}
 
-	public static void copyHeaders(SipServletRequest origin, SipServletRequest destination) {
+	public static void copyHeadersAndContent(SipServletMessage origin, SipServletMessage destination) throws UnsupportedEncodingException, IOException {
+
 		String headerName, headerValue;
 		Iterator<String> itr = origin.getHeaderNames();
 		while (itr.hasNext()) {
 			headerName = itr.next();
-			System.out.print("Copying header '" + headerName + "'... ");
 			if (false == HeaderUtils.isSystemHeader(headerName, true)) {
-				destination.setHeaderForm(origin.getHeaderForm());
+				destination.setHeaderForm(HeaderForm.LONG);
+				// destination.setHeaderForm(origin.getHeaderForm());
 				ListIterator<String> headers = origin.getHeaders(headerName);
+
 				while (headers.hasNext()) {
 					headerValue = headers.next();
-					System.out.print(headerValue + " ");
 
 					if (HeaderUtils.isUnique(headerName)) {
 						destination.setHeader(headerName, headerValue);
@@ -266,11 +270,20 @@ public abstract class CallStateHandler implements Serializable {
 					}
 
 				}
-			} else {
-				System.out.print("skipped");
 			}
-			System.out.println();
 		}
+
+		if (destination.getMethod().equals("INVITE")) {
+			destination.setHeader("Call-Info", TalkBACSipServlet.callInfo);
+			// destination.removeHeader("Allow");
+			destination.setHeader("Allow", ALLOW);
+
+			// destination.setHeader("Allow", "INVITE, OPTIONS, MESSAGE, INFO, BYE, CANCEL, ACK, UPDATE, NOTIFY");
+			// destination.setHeader("Allow-Events", "telephone-event");
+		}
+
+		destination.setContent(origin.getContent(), origin.getContentType());
+
 	}
 
 }

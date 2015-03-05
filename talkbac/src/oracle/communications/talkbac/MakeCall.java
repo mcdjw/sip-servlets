@@ -231,7 +231,7 @@ public class MakeCall extends CallFlowHandler {
 				request.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 				destinationRequest.getSession().setAttribute(PEER_SESSION_ID, request.getSession().getId());
 
-				copyHeaders(originRequest, destinationRequest);
+				copyHeadersAndContent(originRequest, destinationRequest);
 
 				destinationRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, REFER, SUBSCRIBE, NOTIFY");
 				destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);

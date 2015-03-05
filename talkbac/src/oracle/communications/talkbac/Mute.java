@@ -55,8 +55,14 @@ public class Mute extends CallStateHandler {
 			if (null == this.originSession || null == this.destinationSession) {
 				TalkBACMessage msg = new TalkBACMessage(appSession, "call_muted");
 				msg.setParameter("origin", origin.getURI().toString());
-				msg.setParameter("destination", destination.getURI().toString());
-				msg.setStatus(501, "Origin or destination not part of an existing call leg.");
+				msg.setParameter("destination", destination.getURI().toString());				
+				if (null == this.originSession && null == this.destinationSession) {
+					msg.setStatus(489, "Invalid dialogs for both "+origin.getURI().toString()+" and "+destination.getURI().toString()+".");										
+				}else if(this.originSession==null){
+					msg.setStatus(489, "Invalid dialog for "+origin.getURI().toString());					
+				}else if(this.destinationSession==null){
+					msg.setStatus(489, "Invalid dialog for "+destination.getURI().toString());					
+				}				
 				this.printOutboundMessage(msgUtility.send(msg));
 				return;
 			}
@@ -85,7 +91,8 @@ public class Mute extends CallStateHandler {
 					content = content.concat("a=sendonly\r\n");
 				}
 
-				originRequest.setContent(content.getBytes(), destinationResponse.getContentType());
+				copyHeadersAndContent(destinationResponse, originRequest);
+				originRequest.setContent(content.getBytes(), destinationResponse.getContentType()); //modified content
 				originRequest.send();
 				this.printOutboundMessage(originRequest);
 
@@ -115,7 +122,7 @@ public class Mute extends CallStateHandler {
 				this.printOutboundMessage(originAck);
 
 				SipServletRequest destinationAck = destinationResponse.createAck();
-				destinationAck.setContent(originResponse.getContent(), originResponse.getContentType());
+				copyHeadersAndContent(originResponse, destinationAck);
 				destinationAck.send();
 				this.printOutboundMessage(destinationAck);
 

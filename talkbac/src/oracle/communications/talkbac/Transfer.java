@@ -67,6 +67,22 @@ public class Transfer extends CallStateHandler {
 			this.destinationSession = this.findSession(appSession, destination);
 			this.originSession = this.findSession(appSession, origin);
 
+			if (null == this.originSession || null == this.destinationSession) {
+				TalkBACMessage msg = new TalkBACMessage(appSession, "call_transferred");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());				
+				if (null == this.originSession && null == this.destinationSession) {
+					msg.setStatus(489, "Invalid dialogs for both "+origin.getURI().toString()+" and "+destination.getURI().toString()+".");										
+				}else if(this.originSession==null){
+					msg.setStatus(489, "Invalid dialog for "+origin.getURI().toString());					
+				}else if(this.destinationSession==null){
+					msg.setStatus(489, "Invalid dialog for "+destination.getURI().toString());					
+				}				
+				this.printOutboundMessage(msgUtility.send(msg));
+				return;
+			}
+			
+			
 			SipServletRequest bye = this.originSession.createRequest("BYE");
 			bye.send();
 			this.printOutboundMessage(bye);

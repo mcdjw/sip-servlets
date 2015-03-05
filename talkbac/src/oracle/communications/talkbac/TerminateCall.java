@@ -25,6 +25,8 @@ public class TerminateCall extends CallStateHandler {
 	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
 
+//		appSession.setInvalidateWhenReady(true);
+
 		// don't send 'call_completed' in the event of a 'call_failed'
 		if (request != null) {
 			// Send the message now, not later
@@ -105,9 +107,9 @@ public class TerminateCall extends CallStateHandler {
 					}
 
 				} catch (Exception e) {
-//					if (logger.isLoggable(Level.FINE)) {
-//						System.out.println(this.getClass().getSimpleName() + " " + e.getMessage());
-//					}
+					// if (logger.isLoggable(Level.FINE)) {
+					// System.out.println(this.getClass().getSimpleName() + " " + e.getMessage());
+					// }
 				}
 
 			}

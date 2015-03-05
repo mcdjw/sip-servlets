@@ -42,9 +42,8 @@ public class Reinvite extends CallStateHandler {
 			SipSession peerSession = appSession.getSipSession(peerSessionId);
 			SipServletRequest reinvite = peerSession.createRequest(request.getMethod());
 
-			copyHeaders(request, reinvite);
-
-			reinvite.setContent(request.getContent(), request.getContentType());
+			copyHeadersAndContent(request, reinvite);
+	
 			reinvite.send();
 			this.printOutboundMessage(reinvite);
 
@@ -56,7 +55,9 @@ public class Reinvite extends CallStateHandler {
 		case 4:
 
 			SipServletResponse newResponse = originalRequest.createResponse(response.getStatus(), response.getReasonPhrase());
-			newResponse.setContent(response.getContent(), response.getContentType());
+
+			copyHeadersAndContent(response, newResponse);
+			
 			newResponse.send();
 			this.printOutboundMessage(newResponse);
 
@@ -69,7 +70,9 @@ public class Reinvite extends CallStateHandler {
 		case 6:
 
 			SipServletRequest peerAck = peerResponse.createAck();
-			peerAck.setContent(request.getContent(), request.getContentType());
+
+			copyHeadersAndContent(request, peerAck);
+
 			peerAck.send();
 			this.printOutboundMessage(peerAck);
 

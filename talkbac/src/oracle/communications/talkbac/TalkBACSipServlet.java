@@ -35,6 +35,8 @@ import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
+import javax.servlet.sip.SipSessionEvent;
+import javax.servlet.sip.SipSessionListener;
 import javax.servlet.sip.SipSessionsUtil;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.TimerListener;
@@ -52,7 +54,7 @@ import weblogic.kernel.KernelLogManager;
  * 
  */
 @SipListener
-public class TalkBACSipServlet extends SipServlet implements SipServletListener, TimerListener, SipApplicationSessionListener {
+public class TalkBACSipServlet extends SipServlet implements SipServletListener, TimerListener, SipApplicationSessionListener, SipSessionListener {
 	private static final long serialVersionUID = 1L;
 	static Logger logger;
 	{
@@ -403,12 +405,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 							case 5:
 								handler = new CallFlow5(originAddress, destinationAddress);
 								break;
-							case 6:
-								handler = new CallFlow6(originAddress, destinationAddress);
-								break;
 							default:
 								handler = new CallFlow5(originAddress, destinationAddress);
-
 							}
 
 							break;
@@ -674,6 +672,24 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 			logger.fine(output);
 			System.out.println(output);
 		}
+	}
+
+	@Override
+	public void sessionCreated(SipSessionEvent event) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void sessionDestroyed(SipSessionEvent event) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void sessionReadyToInvalidate(SipSessionEvent event) {
+		// System.out.println("sessionReadyToInvalidate...");
+		// event.getSession().setInvalidateWhenReady(false);
 	}
 
 }

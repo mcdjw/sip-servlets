@@ -66,10 +66,10 @@ public class DtmfRelay extends CallStateHandler {
 			digit = digits.charAt(0);
 			digits = digits.substring(1);
 
-			digitRequest.setHeader("Subscription-State", "active");
+			// digitRequest.setHeader("Subscription-State", "active");
 			digitRequest.setHeader("Event", "telephone-event;rate=1000");
-			digitRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-			digitRequest.setHeader("Session-Expires", "3600;refresher=uac");
+			// digitRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
+			// digitRequest.setHeader("Session-Expires", "3600;refresher=uac");
 			digitRequest.setContent(encodeRFC2833(digit, false, 500), "audio/telephone-event");
 
 			digitRequest.send();
@@ -89,9 +89,9 @@ public class DtmfRelay extends CallStateHandler {
 			sipSession = response.getSession();
 
 			digitRequest = sipSession.createRequest("NOTIFY");
-			digitRequest.setHeader("Subscription-State", "active");
+			// digitRequest.setHeader("Subscription-State", "active");
 			digitRequest.setHeader("Event", "telephone-event;rate=1000");
-			digitRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
+			// digitRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			digitRequest.setContent(encodeRFC2833(digit, true, 500), "audio/telephone-event");
 			digitRequest.send();
 			this.printOutboundMessage(digitRequest);
