@@ -45,8 +45,6 @@
 
 package oracle.communications.talkbac;
 
-import java.util.ListIterator;
-
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
@@ -60,9 +58,9 @@ public class CallFlow5 extends CallFlowHandler {
 	// private String destinationUser;
 	// private String originUser;
 
-	String callId;
-	String toTag;
-	String fromTag;
+	// String callId;
+	// String toTag;
+	// String fromTag;
 
 	SipServletRequest destinationRequest;
 	SipServletResponse destinationResponse;
@@ -97,7 +95,6 @@ public class CallFlow5 extends CallFlowHandler {
 				SipServletRequest prack = response.createPrack();
 				prack.send();
 				this.printOutboundMessage(prack);
-				return;
 			} else if (response.getMethod().equals("PRACK")) {
 				return;
 			}
@@ -146,11 +143,11 @@ public class CallFlow5 extends CallFlowHandler {
 		case 2: // receive 200 OK
 		case 3: // send ack
 
-			if (response.getMethod().equals("INVITE") && status < 300) {
+			if (response.getMethod().equals("INVITE") && status == 200) {
 
-				callId = response.getCallId();
-				toTag = response.getTo().getParameter("tag");
-				fromTag = response.getFrom().getParameter("tag");
+				// callId = response.getCallId();
+				// toTag = response.getTo().getParameter("tag");
+				// fromTag = response.getFrom().getParameter("tag");
 
 				discoverOptions(response);
 

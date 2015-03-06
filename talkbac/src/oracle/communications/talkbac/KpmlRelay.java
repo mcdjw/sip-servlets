@@ -74,8 +74,8 @@ public class KpmlRelay extends CallStateHandler {
 
 		SipSession sipSession;
 		SipServletRequest kpmlSubscribe;
-		@SuppressWarnings("unchecked")
-		Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
+		// @SuppressWarnings("unchecked")
+		// Iterator<SipSession> itr = (Iterator<SipSession>) appSession.getSessions();
 		// while (itr.hasNext()) {
 		// sipSession = itr.next();
 		//
@@ -97,7 +97,7 @@ public class KpmlRelay extends CallStateHandler {
 		// }
 		// }
 
-		String originSessionID = (String) appSession.getAttribute(this.ORIGIN_SESSION_ID);
+		String originSessionID = (String) appSession.getAttribute(ORIGIN_SESSION_ID);
 		sipSession = (SipSession) appSession.getSession(originSessionID, Protocol.SIP);
 		kpmlSubscribe = sipSession.createRequest("SUBSCRIBE");
 		kpmlSubscribe.setHeader("Event", "kpml");
