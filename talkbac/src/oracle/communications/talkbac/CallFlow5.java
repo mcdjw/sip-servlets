@@ -270,7 +270,8 @@ public class CallFlow5 extends CallFlowHandler {
 		case 14: // send 180 / 183 / 200
 
 			if (request != null && request.getMethod().equals("PRACK")) {
-				SipServletRequest prack = destinationRequest.getSession().createRequest("PRACK");
+				// SipServletRequest prack = destinationRequest.getSession().createRequest("PRACK");
+				SipServletRequest prack = destinationResponse.createPrack();
 				copyHeadersAndContent(request, prack);
 				prack.send();
 				this.printOutboundMessage(prack);
@@ -284,6 +285,7 @@ public class CallFlow5 extends CallFlowHandler {
 			}
 
 			if (response != null) {
+				destinationResponse = response;
 
 				if (status < 400) {
 					originResponse = originRequest.createResponse(response.getStatus());
@@ -304,7 +306,6 @@ public class CallFlow5 extends CallFlowHandler {
 					this.printOutboundMessage(originResponse);
 
 					if (status == 200) {
-						destinationResponse = response;
 
 						msg = new TalkBACMessage(appSession, "destination_connected");
 						msg.setParameter("origin", origin.getURI().toString());
