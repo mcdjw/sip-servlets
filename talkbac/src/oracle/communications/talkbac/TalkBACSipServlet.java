@@ -64,7 +64,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 	public final static org.apache.logging.log4j.Logger cdr = org.apache.logging.log4j.LogManager.getLogger(TalkBACSipServlet.class.getName());
 
-	private enum SipMethod {
+	public enum SipMethod {
 		INVITE, ACK, BYE, CANCEL, OPTIONS, REGISTER, PRACK, SUBSCRIBE, NOTIFY, PUBLISH, INFO, REFER, MESSAGE, UPDATE
 	}
 

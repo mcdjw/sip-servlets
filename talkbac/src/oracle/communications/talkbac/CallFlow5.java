@@ -90,16 +90,25 @@ public class CallFlow5 extends CallFlowHandler {
 		TalkBACMessage msg;
 		int status = (null != response) ? response.getStatus() : 0;
 
-		// // Deal with PRACK
-		// if (response != null) {
-		// if (status < 200 && response.getHeader("Require").equals("100rel")) {
-		// SipServletRequest prack = response.createPrack();
-		// prack.send();
-		// this.printOutboundMessage(prack);
-		// } else if (response.getMethod().equals("PRACK")) {
-		// return;
-		// }
-		// }
+		// Deal with unexpected requests
+		if (request != null) {
+			switch (TalkBACSipServlet.SipMethod.valueOf(request.getMethod())) {
+			case CANCEL:
+			case OPTIONS:
+			case REGISTER:
+			case SUBSCRIBE:
+			case PUBLISH:
+			case INFO:
+			case REFER:
+			case UPDATE:
+				SipServletResponse updateResponse = request.createResponse(200);
+				updateResponse.send();
+				this.printOutboundMessage(updateResponse);
+				return;
+			default:
+				// do nothing
+			}
+		}
 
 		switch (state) {
 		case 1: // send INVITE
@@ -255,7 +264,7 @@ public class CallFlow5 extends CallFlowHandler {
 			request.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, request.getSession().getId());
 
-			destinationRequest.setHeader("Allow", "INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, REFER, SUBSCRIBE, NOTIFY");
+			destinationRequest.setHeader("Allow", ALLOW);
 			destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 
 			copyHeadersAndContent(request, destinationRequest);
@@ -373,5 +382,4 @@ public class CallFlow5 extends CallFlowHandler {
 		}
 
 	}
-
 }

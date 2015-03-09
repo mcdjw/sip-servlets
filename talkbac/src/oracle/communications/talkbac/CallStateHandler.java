@@ -41,7 +41,7 @@ public abstract class CallStateHandler implements Serializable {
 	public final static String INITIAL_INVITE_REQUEST = "INITIAL_INVITE_REQUEST";
 	public final static String REQUEST_DIRECTION = "REQUEST_DIRECTION";
 	public final static String KEY = "KEY";
-	public final static String ALLOW = "Allow: INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, PRACK, UPDATE, REFER, SUBSCRIBE, NOTIFY";
+	public final static String ALLOW = "INVITE, BYE, CANCEL, ACK, PRACK, NOTIFY, MESSAGE";
 
 	protected int state = 1;
 
@@ -274,11 +274,7 @@ public abstract class CallStateHandler implements Serializable {
 
 		if (destination.getMethod().equals("INVITE")) {
 			destination.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-			// destination.removeHeader("Allow");
 			destination.setHeader("Allow", ALLOW);
-
-			// destination.setHeader("Allow", "INVITE, OPTIONS, MESSAGE, INFO, BYE, CANCEL, ACK, UPDATE, NOTIFY");
-			// destination.setHeader("Allow-Events", "telephone-event");
 		}
 
 		destination.setContent(origin.getContent(), origin.getContentType());
