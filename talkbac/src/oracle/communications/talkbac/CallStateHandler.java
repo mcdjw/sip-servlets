@@ -41,7 +41,7 @@ public abstract class CallStateHandler implements Serializable {
 	public final static String INITIAL_INVITE_REQUEST = "INITIAL_INVITE_REQUEST";
 	public final static String REQUEST_DIRECTION = "REQUEST_DIRECTION";
 	public final static String KEY = "KEY";
-	public final static String ALLOW = "INVITE, OPTIONS, BYE, CANCEL, ACK, PRACK, UPDATE, NOTIFY";
+	public final static String ALLOW = "Allow: INVITE, OPTIONS, INFO, BYE, CANCEL, ACK, PRACK, UPDATE, REFER, SUBSCRIBE, NOTIFY";
 
 	protected int state = 1;
 

@@ -11,7 +11,7 @@ public class NotImplemented extends CallStateHandler {
 	@Override
 	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
 			ServletTimer timer) throws Exception {
-		if (request.getMethod().equals("ACK") || request.getMethod().equals("PRACK")) {
+		if (request.getMethod().equals("ACK")) {
 		} else {
 			SipServletResponse rspn = request.createResponse(501);
 			rspn.send();

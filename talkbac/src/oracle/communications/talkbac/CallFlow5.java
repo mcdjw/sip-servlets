@@ -89,16 +89,16 @@ public class CallFlow5 extends CallFlowHandler {
 		TalkBACMessage msg;
 		int status = (null != response) ? response.getStatus() : 0;
 
-		// Deal with PRACK
-		if (response != null) {
-			if (status < 200 && response.getHeader("Require").equals("100rel")) {
-				SipServletRequest prack = response.createPrack();
-				prack.send();
-				this.printOutboundMessage(prack);
-			} else if (response.getMethod().equals("PRACK")) {
-				return;
-			}
-		}
+		// // Deal with PRACK
+		// if (response != null) {
+		// if (status < 200 && response.getHeader("Require").equals("100rel")) {
+		// SipServletRequest prack = response.createPrack();
+		// prack.send();
+		// this.printOutboundMessage(prack);
+		// } else if (response.getMethod().equals("PRACK")) {
+		// return;
+		// }
+		// }
 
 		switch (state) {
 		case 1: // send INVITE
@@ -127,6 +127,7 @@ public class CallFlow5 extends CallFlowHandler {
 			originRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			originRequest.setHeader("Allow-Events", "telephone-event");
 			originRequest.setHeader("Supported", "100rel, timer, resource-priority, replaces");
+			// originRequest.setHeader("Require", "100rel");
 
 			originRequest.setContent(blackhole.getBytes(), "application/sdp");
 			originRequest.send();
@@ -143,37 +144,47 @@ public class CallFlow5 extends CallFlowHandler {
 		case 2: // receive 200 OK
 		case 3: // send ack
 
-			if (response.getMethod().equals("INVITE") && status == 200) {
+			if (response != null && response.getMethod().equals("INVITE")) {
+				String require = response.getHeader("Require");
 
-				// callId = response.getCallId();
-				// toTag = response.getTo().getParameter("tag");
-				// fromTag = response.getFrom().getParameter("tag");
+				if (status < 200 && require != null && require.equals("100rel")) {
+					SipServletRequest prack = response.createPrack();
+					prack.send();
+					this.printOutboundMessage(prack);
 
-				discoverOptions(response);
+				} else if (status == 200) {
 
-				originResponse = response;
+					// callId = response.getCallId();
+					// toTag = response.getTo().getParameter("tag");
+					// fromTag = response.getFrom().getParameter("tag");
 
-				SipServletRequest originAck = response.createAck();
-				originAck.send();
-				this.printOutboundMessage(originAck);
+					discoverOptions(response);
 
-				// set timer
-				state = 4;
-				ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, 250, false, this);
-				this.printTimer(t);
+					originResponse = response;
 
-				msg = new TalkBACMessage(appSession, "source_connected");
-				msg.setParameter("origin", origin.getURI().toString());
-				msg.setParameter("destination", destination.getURI().toString());
-				msg.setStatus(183, "Session Progress");
-				this.printOutboundMessage(msgUtility.send(msg));
+					SipServletRequest originAck = response.createAck();
+					originAck.send();
+					this.printOutboundMessage(originAck);
 
-			} else if (status >= 300) {
-				msg = new TalkBACMessage(appSession, "call_failed");
-				msg.setParameter("origin", origin.getURI().toString());
-				msg.setParameter("destination", destination.getURI().toString());
-				msg.setStatus(response.getStatus(), response.getReasonPhrase());
-				this.printOutboundMessage(msgUtility.send(msg));
+					// set timer
+					state = 4;
+					ServletTimer t = TalkBACSipServlet.timer.createTimer(appSession, 250, false, this);
+					this.printTimer(t);
+
+					msg = new TalkBACMessage(appSession, "source_connected");
+					msg.setParameter("origin", origin.getURI().toString());
+					msg.setParameter("destination", destination.getURI().toString());
+					msg.setStatus(183, "Session Progress");
+					this.printOutboundMessage(msgUtility.send(msg));
+
+				} else if (status >= 400) {
+					msg = new TalkBACMessage(appSession, "call_failed");
+					msg.setParameter("origin", origin.getURI().toString());
+					msg.setParameter("destination", destination.getURI().toString());
+					msg.setStatus(response.getStatus(), response.getReasonPhrase());
+					this.printOutboundMessage(msgUtility.send(msg));
+				}
+
 			}
 			break;
 
@@ -258,19 +269,42 @@ public class CallFlow5 extends CallFlowHandler {
 		case 13: // receive 180 / 183 / 200
 		case 14: // send 180 / 183 / 200
 
+			if (request != null && request.getMethod().equals("PRACK")) {
+				SipServletRequest prack = destinationRequest.getSession().createRequest("PRACK");
+				copyHeadersAndContent(request, prack);
+				prack.send();
+				this.printOutboundMessage(prack);
+				prack.getSession().setAttribute(CALL_STATE_HANDLER, this);
+				return;
+			}
+
+			if (response != null && response.getMethod().equals("PRACK")) {
+				// do nothing;
+				return;
+			}
+
 			if (response != null) {
 
-				if (status < 300) {
+				if (status < 400) {
 					originResponse = originRequest.createResponse(response.getStatus());
 					copyHeadersAndContent(response, originResponse);
-					originResponse.send();
+
+					if (status < 200) {
+						if (response.getHeader("Require") != null && response.getHeader("Require").equals("100rel")) {
+							originResponse.sendReliably();
+						} else {
+							originResponse.send();
+						}
+						originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
+					} else {
+						originResponse.send();
+						state = 15;
+						originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
+					}
 					this.printOutboundMessage(originResponse);
 
 					if (status == 200) {
 						destinationResponse = response;
-
-						state = 15;
-						originResponse.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 						msg = new TalkBACMessage(appSession, "destination_connected");
 						msg.setParameter("origin", origin.getURI().toString());
