@@ -67,6 +67,7 @@ public class CallFlow5 extends CallFlowHandler {
 
 	SipServletRequest originRequest;
 	SipServletResponse originResponse;
+	SipServletRequest originPrack;
 
 	CallFlow5(Address origin, Address destination) {
 		this.origin = origin;
@@ -270,6 +271,8 @@ public class CallFlow5 extends CallFlowHandler {
 		case 14: // send 180 / 183 / 200
 
 			if (request != null && request.getMethod().equals("PRACK")) {
+				originPrack = request;
+
 				// SipServletRequest prack = destinationRequest.getSession().createRequest("PRACK");
 				SipServletRequest prack = destinationResponse.createPrack();
 				copyHeadersAndContent(request, prack);
@@ -280,7 +283,9 @@ public class CallFlow5 extends CallFlowHandler {
 			}
 
 			if (response != null && response.getMethod().equals("PRACK")) {
-				// do nothing;
+				SipServletResponse prackResponse = originPrack.createResponse(response.getStatus());
+				prackResponse.send();
+				this.printOutboundMessage(prackResponse);
 				return;
 			}
 
