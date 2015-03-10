@@ -54,25 +54,17 @@ public abstract class CallFlowHandler extends CallStateHandler {
 
 	}
 
-	// static final String blackhole = ""
-	// + "v=0\r\n"
-	// + "o=- 15474517 1 IN IP4 127.0.0.1\r\n"
-	// + "s=cpc_med\r\n"
-	// + "c=IN IP4 0.0.0.0\r\n"
-	// + "t=0 0\r\n"
-	// + "m=audio 23348 RTP/AVP 0\r\n"
-	// + "a=rtpmap:0 pcmu/8000\r\n"
-	// + "a=rtpmap:101 telephone-event/8000\r\n"
-	// + "a=inactive\r\n";
-
 	static final String blackhole = ""
 			+ "v=0\r\n"
-			+ "o=CiscoSystemsCCM-SIP 3751 1 IN IP4 0.0.0.0\r\n"
+			+ "o=CiscoSystemsCCM-SIP 3751 1 IN IP4 127.0.0.1\r\n"
 			+ "s=SIP Call\r\n"
 			+ "c=IN IP4 0.0.0.0\r\n"
+			+ "b=TIAS:64000\r\n"
+			+ "b=AS:64\r\n"
 			+ "t=0 0\r\n"
-			+ "m=audio 4000 RTP/AVP 0\r\n"
-			+ "a=rtpmap:0 PCMU/8000\r\n"
+			+ "m=audio 24580 RTP/AVP 9\r\n"
+			+ "a=rtpmap:9 G722/8000\r\n"
 			+ "a=ptime:20\r\n"
 			+ "a=inactive\r\n";
+
 }

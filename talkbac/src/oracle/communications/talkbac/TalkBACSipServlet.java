@@ -405,6 +405,9 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 							case 5:
 								handler = new CallFlow5(originAddress, destinationAddress);
 								break;
+							case 6:
+								handler = new CallFlow6(originAddress, destinationAddress);
+								break;								
 							default:
 								handler = new CallFlow5(originAddress, destinationAddress);
 							}
