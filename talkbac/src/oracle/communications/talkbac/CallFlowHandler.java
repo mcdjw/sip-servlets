@@ -62,8 +62,8 @@ public abstract class CallFlowHandler extends CallStateHandler {
 			+ "b=TIAS:64000\r\n"
 			+ "b=AS:64\r\n"
 			+ "t=0 0\r\n"
-			+ "m=audio 24580 RTP/AVP 9\r\n"
-			+ "a=rtpmap:9 G722/8000\r\n"
+			+ "m=audio 24580 RTP/AVP 0\r\n"
+			+ "a=rtpmap:0 pcmu/8000\r\n"
 			+ "a=ptime:20\r\n"
 			+ "a=inactive\r\n";
 

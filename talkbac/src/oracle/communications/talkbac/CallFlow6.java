@@ -135,7 +135,7 @@ public class CallFlow6 extends CallFlowHandler {
 
 			originRequest.setHeader("Allow", ALLOW);
 			originRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-			originRequest.setHeader("Allow-Events", "telephone-event");
+			originRequest.setHeader("Allow-Events", "kpml");
 			originRequest.setHeader("Supported", "100rel, timer, resource-priority, replaces");
 			// originRequest.setHeader("Require", "100rel");
 
