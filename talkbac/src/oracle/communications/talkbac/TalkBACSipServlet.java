@@ -257,6 +257,8 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 	@Override
 	protected void doRequest(SipServletRequest request) throws ServletException, IOException {
+		logger.fine(request.toString());
+
 		boolean printed = false;
 		SipServletResponse response;
 		CallStateHandler handler = null;
@@ -407,7 +409,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 								break;
 							case 6:
 								handler = new CallFlow6(originAddress, destinationAddress);
-								break;								
+								break;
 							default:
 								handler = new CallFlow5(originAddress, destinationAddress);
 							}
@@ -576,6 +578,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 	@Override
 	protected void doResponse(SipServletResponse response) throws ServletException, IOException {
+		logger.fine(response.toString());
 		try {
 			SipApplicationSession appSession = response.getApplicationSession();
 			MessageUtility msgUtility = (MessageUtility) appSession.getAttribute(MESSAGE_UTILITY);
