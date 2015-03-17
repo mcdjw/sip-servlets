@@ -269,7 +269,6 @@ public class CallFlow6 extends CallFlowHandler {
 			destinationRequest.setHeader("Allow", ALLOW);
 			destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			destinationRequest.removeHeader("Allow-Events");
-			destinationRequest.removeHeader("Call-Info");
 
 			destinationRequest.send();
 			printOutboundMessage(destinationRequest);
