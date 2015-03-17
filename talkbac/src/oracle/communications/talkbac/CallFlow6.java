@@ -139,7 +139,7 @@ public class CallFlow6 extends CallFlowHandler {
 			originRequest.setHeader("Supported", "100rel, timer, resource-priority, replaces");
 			// originRequest.setHeader("Require", "100rel");
 
-//			originRequest.setContent(blackhole.getBytes(), "application/sdp");
+			// originRequest.setContent(blackhole.getBytes(), "application/sdp");
 			originRequest.send();
 			this.printOutboundMessage(originRequest);
 
@@ -265,10 +265,12 @@ public class CallFlow6 extends CallFlowHandler {
 			request.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, request.getSession().getId());
 
-			destinationRequest.setHeader("Allow", ALLOW);
-			destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-
 			copyHeadersAndContent(request, destinationRequest);
+			destinationRequest.setHeader("Allow", "INVITE, BYE, CANCEL, ACK, PRACK");
+			// destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
+			destinationRequest.removeHeader("Allow-Events");
+			destinationRequest.removeHeader("Call-Info");
+
 			destinationRequest.send();
 			printOutboundMessage(destinationRequest);
 
