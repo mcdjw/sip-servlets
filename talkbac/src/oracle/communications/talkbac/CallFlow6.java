@@ -266,7 +266,7 @@ public class CallFlow6 extends CallFlowHandler {
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, request.getSession().getId());
 
 			copyHeadersAndContent(request, destinationRequest);
-			destinationRequest.setHeader("Allow", "INVITE, BYE, CANCEL, ACK, PRACK");
+			destinationRequest.setHeader("Allow", ALLOW);
 			// destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			destinationRequest.removeHeader("Allow-Events");
 			destinationRequest.removeHeader("Call-Info");
