@@ -90,7 +90,7 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 
 	public static Address talkBACAddress = null;
 
-	private int defaultCallflow = 5;
+	private int defaultCallflow = 6;
 
 	public static boolean disableAuth = false;
 

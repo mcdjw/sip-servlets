@@ -133,7 +133,7 @@ public class CallFlow5 extends CallFlowHandler {
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 			originRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, originRequest);
 
-			originRequest.setHeader("Allow", ALLOW);
+			originRequest.setHeader("Allow", ORIGIN_ALLOW);
 			originRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			originRequest.setHeader("Allow-Events", "telephone-event");
 			originRequest.setHeader("Supported", "100rel, timer, resource-priority, replaces");
@@ -264,7 +264,7 @@ public class CallFlow5 extends CallFlowHandler {
 			request.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, request.getSession().getId());
 
-			destinationRequest.setHeader("Allow", ALLOW);
+			destinationRequest.setHeader("Allow", DESTINATION_ALLOW);
 			destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 
 			copyHeadersAndContent(request, destinationRequest);

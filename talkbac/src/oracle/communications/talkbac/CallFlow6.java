@@ -133,7 +133,8 @@ public class CallFlow6 extends CallFlowHandler {
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 			originRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, originRequest);
 
-			originRequest.setHeader("Allow", ALLOW);
+//			originRequest.setHeader("Allow", ORIGIN_ALLOW);
+			originRequest.setHeader("Allow", DESTINATION_ALLOW);
 			originRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			originRequest.setHeader("Allow-Events", "kpml");
 			originRequest.setHeader("Supported", "100rel, timer, resource-priority, replaces");
@@ -266,9 +267,8 @@ public class CallFlow6 extends CallFlowHandler {
 			destinationRequest.getSession().setAttribute(PEER_SESSION_ID, request.getSession().getId());
 
 			copyHeadersAndContent(request, destinationRequest);
-			destinationRequest.setHeader("Allow", ALLOW);
+			destinationRequest.setHeader("Allow", DESTINATION_ALLOW);
 			destinationRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-			destinationRequest.removeHeader("Allow-Events");
 
 			destinationRequest.send();
 			printOutboundMessage(destinationRequest);
@@ -305,7 +305,9 @@ public class CallFlow6 extends CallFlowHandler {
 
 				if (status < 400) {
 					originResponse = originRequest.createResponse(response.getStatus());
-					copyHeadersAndContent(response, originResponse);
+					copyHeadersAndContent(response, originResponse);					
+					originResponse.setHeader("Allow", ORIGIN_ALLOW);
+					
 
 					if (status < 200) {
 						if (response.getHeader("Require") != null && response.getHeader("Require").equals("100rel")) {
@@ -354,14 +356,16 @@ public class CallFlow6 extends CallFlowHandler {
 			if (request != null && request.getMethod().equals("ACK")) {
 				SipServletRequest destAck = destinationResponse.createAck();
 				copyHeadersAndContent(request, destAck);
+				destAck.setHeader("Call-Info", TalkBACSipServlet.callInfo);
+				destAck.setHeader("Allow", DESTINATION_ALLOW);				
 				destAck.send();
 				this.printOutboundMessage(destAck);
 
-				// Launch KPML Subscribe
-				if (this.kpml_supported) {
-					KpmlRelay kpmlRelay = new KpmlRelay(3600);
-					kpmlRelay.delayedSubscribe(appSession, 2000);
-				}
+//				// Launch KPML Subscribe
+//				if (this.kpml_supported) {
+//					KpmlRelay kpmlRelay = new KpmlRelay(3600);
+//					kpmlRelay.delayedSubscribe(appSession, 2000);
+//				}
 
 				// Launch Keep Alive Timer
 				if (this.update_supported) {

@@ -41,7 +41,8 @@ public abstract class CallStateHandler implements Serializable {
 	public final static String INITIAL_INVITE_REQUEST = "INITIAL_INVITE_REQUEST";
 	public final static String REQUEST_DIRECTION = "REQUEST_DIRECTION";
 	public final static String KEY = "KEY";
-	public final static String ALLOW = "INVITE, BYE, CANCEL, ACK, PRACK, NOTIFY, MESSAGE, SUBSCRIBE";
+	public final static String ORIGIN_ALLOW = "INVITE, BYE, CANCEL, ACK, PRACK";
+	public final static String DESTINATION_ALLOW = "INVITE, BYE, CANCEL, ACK, PRACK, NOTIFY, SUBSCRIBE";
 
 	protected int state = 1;
 
@@ -57,8 +58,8 @@ public abstract class CallStateHandler implements Serializable {
 		return name;
 	}
 
-	public abstract void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
-			ServletTimer timer) throws Exception;
+	public abstract void processEvent(SipApplicationSession appSession, MessageUtility msgUtility,
+			SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception;
 
 	public void printOutboundMessage(SipServletMessage message) throws UnsupportedEncodingException, IOException {
 		if (logger.isLoggable(Level.FINE)) {
@@ -86,16 +87,8 @@ public abstract class CallStateHandler implements Serializable {
 							event += " " + rootNode.path("reason").asText();
 						}
 
-						String output = getPrintableName()
-								+ " "
-								+ ((SipURI) rqst.getTo().getURI()).getUser()
-								+ " <-- "
-								+ rqst.getMethod()
-								+ " "
-								+ event
-								+ ", "
-								+ TalkBACSipServlet.hexHash(message)
-								+ " "
+						String output = getPrintableName() + " " + ((SipURI) rqst.getTo().getURI()).getUser() + " <-- "
+								+ rqst.getMethod() + " " + event + ", " + TalkBACSipServlet.hexHash(message) + " "
 								+ rqst.getSession().getState().toString();
 
 						logger.fine(output);
@@ -103,20 +96,9 @@ public abstract class CallStateHandler implements Serializable {
 
 					} else {
 						SipServletResponse rspn = (SipServletResponse) message;
-						String output = getPrintableName()
-								+ " "
-								+ ((SipURI) rspn.getFrom().getURI()).getUser()
-								+ " <-- "
-								+ rspn.getStatus()
-								+ " "
-								+ rspn.getReasonPhrase()
-								+ " ("
-								+ rspn.getMethod()
-								+ ") "
-								+ event
-								+ ", "
-								+ TalkBACSipServlet.hexHash(message)
-								+ " "
+						String output = getPrintableName() + " " + ((SipURI) rspn.getFrom().getURI()).getUser()
+								+ " <-- " + rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod()
+								+ ") " + event + ", " + TalkBACSipServlet.hexHash(message) + " "
 								+ rspn.getSession().getState().toString();
 
 						logger.fine(output);
@@ -156,37 +138,17 @@ public abstract class CallStateHandler implements Serializable {
 						event = rootNode.path(TalkBACSipServlet.CALL_CONTROL).asText();
 					}
 
-					output = getPrintableName()
-							+ " "
-							+ ((SipURI) rqst.getFrom().getURI()).getUser()
-							+ " --> "
-							+ rqst.getMethod()
-							+ " "
-							+ event
-							+ ", "
-							+ TalkBACSipServlet.hexHash(message)
-							+ " "
+					output = getPrintableName() + " " + ((SipURI) rqst.getFrom().getURI()).getUser() + " --> "
+							+ rqst.getMethod() + " " + event + ", " + TalkBACSipServlet.hexHash(message) + " "
 							+ rqst.getSession().getState().toString();
 
 					logger.fine(output);
 					System.out.println(output);
 				} else {
 					SipServletResponse rspn = (SipServletResponse) message;
-					String output = getPrintableName()
-							+ " "
-							+ ((SipURI) rspn.getTo().getURI()).getUser()
-							+ " --> "
-							+ rspn.getStatus()
-							+ " "
-							+ rspn.getReasonPhrase()
-							+ " ("
-							+ rspn.getMethod()
-							+ ") "
-							+ event
-							+ ", "
-							+ TalkBACSipServlet.hexHash(message)
-							+ " "
-							+ rspn.getSession().getState().toString();
+					String output = getPrintableName() + " " + ((SipURI) rspn.getTo().getURI()).getUser() + " --> "
+							+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod() + ") " + event
+							+ ", " + TalkBACSipServlet.hexHash(message) + " " + rspn.getSession().getState().toString();
 					logger.fine(output);
 					System.out.println(output);
 				}
@@ -204,14 +166,8 @@ public abstract class CallStateHandler implements Serializable {
 
 			try {
 
-				String output = getPrintableName()
-						+ " "
-						+ " timer id: "
-						+ timer.getId()
-						+ ", time remaining: "
-						+ (int) timer.getTimeRemaining()
-						/ 1000
-						+ ", "
+				String output = getPrintableName() + " " + " timer id: " + timer.getId() + ", time remaining: "
+						+ (int) timer.getTimeRemaining() / 1000 + ", "
 						+ TalkBACSipServlet.hexHash(timer.getApplicationSession());
 
 				logger.fine(output);
@@ -248,13 +204,15 @@ public abstract class CallStateHandler implements Serializable {
 		return endpointSession;
 	}
 
-	public static void copyHeadersAndContent(SipServletMessage origin, SipServletMessage destination) throws UnsupportedEncodingException, IOException {
+	public static void copyHeadersAndContent(SipServletMessage origin, SipServletMessage destination)
+			throws UnsupportedEncodingException, IOException {
 
 		String headerName, headerValue;
 		Iterator<String> itr = origin.getHeaderNames();
 		while (itr.hasNext()) {
 			headerName = itr.next();
-			if (false == HeaderUtils.isSystemHeader(headerName, true)) {
+			if (false == HeaderUtils.isSystemHeader(headerName, true) && false == headerName.equals("Allow")
+					&& false == headerName.equals("Call-Info")) {
 				destination.setHeaderForm(HeaderForm.LONG);
 				// destination.setHeaderForm(origin.getHeaderForm());
 				ListIterator<String> headers = origin.getHeaders(headerName);
@@ -262,20 +220,23 @@ public abstract class CallStateHandler implements Serializable {
 				while (headers.hasNext()) {
 					headerValue = headers.next();
 
-					if (HeaderUtils.isUnique(headerName)) {
-						destination.setHeader(headerName, headerValue);
+					if (headerName.equals("Allow-Events") && headerValue.equals("kpml")) {
+						// do nothing;
 					} else {
-						destination.addHeader(headerName, headerValue);
+						if (HeaderUtils.isUnique(headerName)) {
+							destination.setHeader(headerName, headerValue);
+						} else {
+							destination.addHeader(headerName, headerValue);
+						}
 					}
-
 				}
 			}
 		}
 
-		if (destination.getMethod().equals("INVITE")) {
-			destination.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-			destination.setHeader("Allow", ALLOW);
-		}
+		// if (destination.getMethod().equals("INVITE")) {
+		// destination.setHeader("Call-Info", TalkBACSipServlet.callInfo);
+		// destination.setHeader("Allow", ALLOW);
+		// }
 
 		destination.setContent(origin.getContent(), origin.getContentType());
 

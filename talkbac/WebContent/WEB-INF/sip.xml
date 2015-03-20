@@ -5,6 +5,12 @@
 	<distributable />
 
  	<context-param>
+		<javaee:param-name>defaultCallFlow</javaee:param-name>
+		<javaee:param-value>6</javaee:param-value>
+	</context-param>
+
+
+ 	<context-param>
 		<javaee:param-name>keepAlive</javaee:param-name>
 		<javaee:param-value>60</javaee:param-value>
 	</context-param>
