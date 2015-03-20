@@ -120,6 +120,7 @@ public class AppRouter implements SipApplicationRouter {
 		return nextApp;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void init(Properties props) {
 

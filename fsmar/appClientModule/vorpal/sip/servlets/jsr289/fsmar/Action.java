@@ -7,7 +7,6 @@ package vorpal.sip.servlets.jsr289.fsmar;
 
 import java.util.LinkedList;
 import java.util.StringTokenizer;
-import java.util.logging.Logger;
 
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.ar.SipApplicationRouterInfo;
@@ -18,7 +17,6 @@ import javax.servlet.sip.ar.SipRouteModifier;
 import javax.servlet.sip.ar.SipTargetedRequestInfo;
 
 public class Action {
-	private final static Logger logger = Logger.getLogger(Action.class.getName());
 
 	SipApplicationRoutingRegionType regionType = SipApplicationRoutingRegionType.NEUTRAL;
 	String label;
