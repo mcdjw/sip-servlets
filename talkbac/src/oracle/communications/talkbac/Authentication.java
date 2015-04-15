@@ -38,6 +38,7 @@
 package oracle.communications.talkbac;
 
 import java.util.ListIterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.naming.NamingEnumeration;
@@ -61,7 +62,8 @@ public class Authentication extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipApplicationSession appSession,  MessageUtility msgUtility,SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
+	public void processEvent(SipApplicationSession appSession, MessageUtility msgUtility, SipServletRequest request, SipServletResponse response,
+			ServletTimer timer) throws Exception {
 		String userId = null;
 		String pbx = null;
 		boolean proxyOn = true;
@@ -112,9 +114,9 @@ public class Authentication extends CallStateHandler {
 					logger.fine("TalkBACSipServlet.ldapLocationParameter: " + TalkBACSipServlet.ldapLocationParameter);
 					pbx = (String) sr.getAttributes().get(TalkBACSipServlet.ldapLocationParameter).get();
 					logger.fine("Authentication pbx: " + pbx + ", " + appSession.getId().hashCode());
-					if (pbx != null) {
-						appSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
-					}
+//					if (pbx != null) {
+//						appSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
+//					}
 				} else {
 					proxyOn = false;
 					SipServletResponse authResponse = request.createResponse(403);
@@ -126,60 +128,62 @@ public class Authentication extends CallStateHandler {
 			} else {
 				// set default proxy value
 				pbx = request.getHeader(TalkBACSipServlet.GATEWAY);
-				if (pbx != null) {
-					appSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
-				}
+//				if (pbx != null) {
+//					appSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
+//				}
 			}
 
 			// Create AppSession for registered endpoints
 
-			String endpoint;
-			SipApplicationSession endpointAppSession;
-			ListIterator<String> itr = request.getHeaders("Endpoint");
-			if (expires > 0) {
-				while (itr.hasNext()) {
-					endpoint = itr.next();
-					endpointAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(endpoint, true);
-					endpointAppSession.setAttribute(TalkBACSipServlet.CLIENT_ADDRESS, request.getTo());
-					endpointAppSession.setAttribute(TalkBACSipServlet.USER, ((SipURI) request.getTo().getURI()).getUser());
+			// String endpoint;
+			// SipApplicationSession endpointAppSession;
+			// ListIterator<String> itr = request.getHeaders("Endpoint");
+			// if (expires > 0) {
+			// while (itr.hasNext()) {
+			// endpoint = itr.next();
+			// endpointAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(endpoint, true);
+			// endpointAppSession.setAttribute(TalkBACSipServlet.CLIENT_ADDRESS, request.getTo());
+			// endpointAppSession.setAttribute(TalkBACSipServlet.USER, ((SipURI) request.getTo().getURI()).getUser());
+			//
+			// if (pbx != null) {
+			// endpointAppSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
+			// }
+			//
+			// endpointAppSession.setExpires(request.getExpires());
+			// endpointAppSession.setInvalidateWhenReady(false);
+			// }
+			// } else {
+			// while (itr.hasNext()) {
+			// endpoint = itr.next();
+			// endpointAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(endpoint, false);
+			// if (endpointAppSession != null) {
+			// endpointAppSession.removeAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
+			// endpointAppSession.removeAttribute(TalkBACSipServlet.USER);
+			// endpointAppSession.removeAttribute(TalkBACSipServlet.GATEWAY);
+			// endpointAppSession.setInvalidateWhenReady(true);
+			// }
+			// }
+			// }
 
-					if (pbx != null) {
-						endpointAppSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
-					}
-
-					endpointAppSession.setExpires(request.getExpires());
-					endpointAppSession.setInvalidateWhenReady(false);
-				}
-			} else {
-				while (itr.hasNext()) {
-					endpoint = itr.next();
-					endpointAppSession = TalkBACSipServlet.util.getApplicationSessionByKey(endpoint, false);
-					if (endpointAppSession != null) {
-						endpointAppSession.removeAttribute(TalkBACSipServlet.CLIENT_ADDRESS);
-						endpointAppSession.removeAttribute(TalkBACSipServlet.USER);
-						endpointAppSession.removeAttribute(TalkBACSipServlet.GATEWAY);
-						endpointAppSession.setInvalidateWhenReady(true);
-					}
-				}
-			}
-
-			if(pbx==null || pbx.length()==0){
+			if (pbx == null || pbx.length() == 0) {
 				proxyOn = false;
 				SipServletResponse authResponse = request.createResponse(403, "Gateway address not provisioned");
 				authResponse.send();
 				this.printOutboundMessage(authResponse);
 			}
-			
-			
+
 			logger.fine("proxyOn: " + proxyOn);
 			if (proxyOn) {
-				
+
 				appSession.setExpires(expires);
 				appSession.setAttribute(TalkBACSipServlet.CLIENT_ADDRESS, request.getTo());
 				appSession.setAttribute(TalkBACSipServlet.USER, ((SipURI) request.getTo().getURI()).getUser());
-				
+
 				if (expires > 0) {
 					appSession.setInvalidateWhenReady(false);
+					if (pbx != null) {
+						appSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
+					}
 				} else {
 					appSession.setInvalidateWhenReady(true);
 				}
@@ -191,6 +195,11 @@ public class Authentication extends CallStateHandler {
 
 		}
 
+		
+		if (logger.isLoggable(Level.FINE)) {
+			System.out.println(TalkBACSipServlet.hexHash(appSession) + " userId: "+userId+", expires: "+expires+", proxyOn: "+proxyOn+", pbx: "+pbx);
+		}
+		
 	}
 
 }

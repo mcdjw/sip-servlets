@@ -92,8 +92,25 @@ public class CallFlow6 extends CallFlowHandler {
 
 		// Deal with unexpected requests
 		if (request != null) {
+			SipServletResponse updateResponse;
 			switch (TalkBACSipServlet.SipMethod.valueOf(request.getMethod())) {
 			case CANCEL:
+
+				msg = new TalkBACMessage(appSession, "call_failed");
+				msg.setParameter("origin", origin.getURI().toString());
+				msg.setParameter("destination", destination.getURI().toString());
+				//msg.setStatus(response.getStatus(), response.getReasonPhrase());
+				this.printOutboundMessage(msgUtility.send(msg));
+
+				TerminateCall terminate = new TerminateCall();
+
+				terminate.processEvent(appSession, msgUtility, request, response, timer);
+
+				updateResponse = request.createResponse(200);
+				updateResponse.send();
+				this.printOutboundMessage(updateResponse);
+				return;
+
 			case OPTIONS:
 			case REGISTER:
 			case SUBSCRIBE:
@@ -101,7 +118,7 @@ public class CallFlow6 extends CallFlowHandler {
 			case INFO:
 			case REFER:
 			case UPDATE:
-				SipServletResponse updateResponse = request.createResponse(200);
+				updateResponse = request.createResponse(200);
 				updateResponse.send();
 				this.printOutboundMessage(updateResponse);
 				return;
@@ -133,7 +150,7 @@ public class CallFlow6 extends CallFlowHandler {
 			originRequest.getSession().setAttribute(PEER_SESSION_ID, destinationRequest.getSession().getId());
 			originRequest.getSession().setAttribute(INITIAL_INVITE_REQUEST, originRequest);
 
-//			originRequest.setHeader("Allow", ORIGIN_ALLOW);
+			// originRequest.setHeader("Allow", ORIGIN_ALLOW);
 			originRequest.setHeader("Allow", DESTINATION_ALLOW);
 			originRequest.setHeader("Call-Info", TalkBACSipServlet.callInfo);
 			originRequest.setHeader("Allow-Events", "kpml");
@@ -305,9 +322,8 @@ public class CallFlow6 extends CallFlowHandler {
 
 				if (status < 400) {
 					originResponse = originRequest.createResponse(response.getStatus());
-					copyHeadersAndContent(response, originResponse);					
+					copyHeadersAndContent(response, originResponse);
 					originResponse.setHeader("Allow", ORIGIN_ALLOW);
-					
 
 					if (status < 200) {
 						if (response.getHeader("Require") != null && response.getHeader("Require").equals("100rel")) {
@@ -357,15 +373,15 @@ public class CallFlow6 extends CallFlowHandler {
 				SipServletRequest destAck = destinationResponse.createAck();
 				copyHeadersAndContent(request, destAck);
 				destAck.setHeader("Call-Info", TalkBACSipServlet.callInfo);
-				destAck.setHeader("Allow", DESTINATION_ALLOW);				
+				destAck.setHeader("Allow", DESTINATION_ALLOW);
 				destAck.send();
 				this.printOutboundMessage(destAck);
 
-//				// Launch KPML Subscribe
-//				if (this.kpml_supported) {
-//					KpmlRelay kpmlRelay = new KpmlRelay(3600);
-//					kpmlRelay.delayedSubscribe(appSession, 2000);
-//				}
+				// // Launch KPML Subscribe
+				// if (this.kpml_supported) {
+				// KpmlRelay kpmlRelay = new KpmlRelay(3600);
+				// kpmlRelay.delayedSubscribe(appSession, 2000);
+				// }
 
 				// Launch Keep Alive Timer
 				if (this.update_supported) {

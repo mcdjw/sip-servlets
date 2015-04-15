@@ -25,6 +25,8 @@ import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
+import javax.servlet.sip.SipApplicationSessionAttributeListener;
+import javax.servlet.sip.SipApplicationSessionBindingEvent;
 import javax.servlet.sip.SipApplicationSessionEvent;
 import javax.servlet.sip.SipApplicationSessionListener;
 import javax.servlet.sip.SipFactory;
@@ -54,7 +56,8 @@ import weblogic.kernel.KernelLogManager;
  * 
  */
 @SipListener
-public class TalkBACSipServlet extends SipServlet implements SipServletListener, TimerListener, SipApplicationSessionListener, SipSessionListener {
+public class TalkBACSipServlet extends SipServlet implements SipServletListener, TimerListener, SipApplicationSessionListener, SipSessionListener,
+		SipApplicationSessionAttributeListener {
 	private static final long serialVersionUID = 1L;
 	static Logger logger;
 	{
@@ -696,6 +699,34 @@ public class TalkBACSipServlet extends SipServlet implements SipServletListener,
 	public void sessionReadyToInvalidate(SipSessionEvent event) {
 		// System.out.println("sessionReadyToInvalidate...");
 		// event.getSession().setInvalidateWhenReady(false);
+	}
+
+	@Override
+	public void attributeAdded(SipApplicationSessionBindingEvent event) {
+		if (logger.isLoggable(Level.FINE)) {
+			if (event.getName().equals(GATEWAY)) {
+				System.out.println(hexHash(event.getApplicationSession()) + " adding GATEWAY "+event.getApplicationSession().getAttribute(GATEWAY));
+			}
+		}
+
+	}
+
+	@Override
+	public void attributeRemoved(SipApplicationSessionBindingEvent event) {
+		if (logger.isLoggable(Level.FINE)) {
+			if (event.getName().equals(GATEWAY)) {
+				System.out.println(hexHash(event.getApplicationSession()) + " removing GATEWAY");
+			}
+		}
+	}
+
+	@Override
+	public void attributeReplaced(SipApplicationSessionBindingEvent event) {
+		if (logger.isLoggable(Level.FINE)) {
+			if (event.getName().equals(GATEWAY)) {
+				System.out.println(hexHash(event.getApplicationSession()) + " replacing GATEWAY "+event.getApplicationSession().getAttribute(GATEWAY));
+			}
+		}
 	}
 
 }
