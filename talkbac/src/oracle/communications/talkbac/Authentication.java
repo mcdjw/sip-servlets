@@ -69,6 +69,12 @@ public class Authentication extends CallStateHandler {
 		boolean proxyOn = true;
 		int expires = request.getExpires();
 
+		// Due to some problem with disconnecting / reconnecting over VPN
+		// Always keep the session alive. Let it expire if necessary.
+		if (expires <= 0) {
+			expires = 3600;
+		}
+
 		logger.fine("isInitial: " + request.isInitial());
 		// if (request.isInitial()) {
 
@@ -114,9 +120,9 @@ public class Authentication extends CallStateHandler {
 					logger.fine("TalkBACSipServlet.ldapLocationParameter: " + TalkBACSipServlet.ldapLocationParameter);
 					pbx = (String) sr.getAttributes().get(TalkBACSipServlet.ldapLocationParameter).get();
 					logger.fine("Authentication pbx: " + pbx + ", " + appSession.getId().hashCode());
-//					if (pbx != null) {
-//						appSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
-//					}
+					// if (pbx != null) {
+					// appSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
+					// }
 				} else {
 					proxyOn = false;
 					SipServletResponse authResponse = request.createResponse(403);
@@ -128,9 +134,9 @@ public class Authentication extends CallStateHandler {
 			} else {
 				// set default proxy value
 				pbx = request.getHeader(TalkBACSipServlet.GATEWAY);
-//				if (pbx != null) {
-//					appSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
-//				}
+				// if (pbx != null) {
+				// appSession.setAttribute(TalkBACSipServlet.GATEWAY, pbx);
+				// }
 			}
 
 			// Create AppSession for registered endpoints
@@ -195,11 +201,18 @@ public class Authentication extends CallStateHandler {
 
 		}
 
-		
 		if (logger.isLoggable(Level.FINE)) {
-			System.out.println(TalkBACSipServlet.hexHash(appSession) + " userId: "+userId+", expires: "+expires+", proxyOn: "+proxyOn+", pbx: "+pbx);
+			System.out.println(TalkBACSipServlet.hexHash(appSession)
+					+ " userId: "
+					+ userId
+					+ ", expires: "
+					+ expires
+					+ ", proxyOn: "
+					+ proxyOn
+					+ ", pbx: "
+					+ pbx);
 		}
-		
+
 	}
 
 }

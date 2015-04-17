@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
 Bundle-Name: analytics-proxy
 Bundle-Vendor: Oracle
-Weblogic-Application-Version: 1.5.0.7
+Weblogic-Application-Version: 1.5.0.8
 Class-Path: 
