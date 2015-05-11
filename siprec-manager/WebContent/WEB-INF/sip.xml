@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sip:sip-app xmlns:sip="http://xmlns.jcp.org/xml/ns/sipservlet"
+	xmlns:javaee="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/sipservlet http://xmlns.jcp.org/xml/ns/sipservlet/sip-app_2_0.xsd"	
+	version="2.0">
+	<!-- https://java.net/downloads/sipservlet-spec/v0.97/sip-app_2_0.xsd -->
+
+	<sip:app-name>siprec-manager</sip:app-name>
+	<sip:distributable />
+
+
+	<sip:context-param>
+		<javaee:param-name>dial_plan_01</javaee:param-name>
+		<javaee:param-value>sip:service@.*:5060, sip:vsrp1@192.168.1.17:6060, sip:vsrp2@192.168.1.17:7060</javaee:param-value>
+	</sip:context-param>
+
+	<sip:context-param>
+		<javaee:param-name>dial_plan_02</javaee:param-name>
+		<javaee:param-value>sip:service2@192.168.1.17:5060, sip:vsrp1@192.168.1.17:6060, sip:vsrp2@192.168.1.17:7060</javaee:param-value>
+	</sip:context-param>
+
+
+
+<!-- 
+	<sip:context-param>
+		<javaee:param-name>VSRP1</javaee:param-name>
+		<javaee:param-value>sip:vsrp1@192.168.1.17:6060</javaee:param-value>
+	</sip:context-param>
+	<sip:context-param>
+		<javaee:param-name>VSRP2</javaee:param-name>
+		<javaee:param-value>sip:vsrp2@192.168.1.17:7060</javaee:param-value>
+	</sip:context-param>
+ -->
+	<sip:servlet>
+		<javaee:servlet-name>siprec-manager</javaee:servlet-name>
+		<javaee:servlet-class>oracle.communications.sdp.SiprecServlet</javaee:servlet-class>
+		<javaee:load-on-startup>1</javaee:load-on-startup>
+	</sip:servlet>
+
+	<sip:servlet-selection>
+		<sip:servlet-mapping>
+			<sip:servlet-name>siprec-manager</sip:servlet-name>
+			<sip:pattern>
+				<sip:equal>
+					<sip:var>request.method</sip:var>
+					<sip:value>INVITE</sip:value>
+				</sip:equal>
+			</sip:pattern>
+		</sip:servlet-mapping>
+
+
+	</sip:servlet-selection>
+
+</sip:sip-app>
