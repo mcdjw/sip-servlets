@@ -105,7 +105,7 @@ public abstract class CallStateHandler implements Serializable{
 							event += " " + rootNode.path("reason").asText();
 						}
 
-						String output = getPrintableName() + " " + ((SipURI) rqst.getTo().getURI()).getUser() + " <-- "
+						String output = getPrintableName() + " " + ((SipURI) rqst.getTo().getURI()).getHost() + " <-- "
 								+ rqst.getMethod() + " " + event + ", " + hexHash(message) + " "
 								+ rqst.getSession().getState().toString();
 
@@ -114,7 +114,7 @@ public abstract class CallStateHandler implements Serializable{
 
 					} else {
 						SipServletResponse rspn = (SipServletResponse) message;
-						String output = getPrintableName() + " " + ((SipURI) rspn.getFrom().getURI()).getUser()
+						String output = getPrintableName() + " " + ((SipURI) rspn.getFrom().getURI()).getHost()
 								+ " <-- " + rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod()
 								+ ") " + event + ", " + hexHash(message) + " "
 								+ rspn.getSession().getState().toString();
@@ -151,7 +151,7 @@ public abstract class CallStateHandler implements Serializable{
 					SipServletRequest rqst = (SipServletRequest) message;
 					String output = null;
 
-					output = getPrintableName() + " " + ((SipURI) rqst.getFrom().getURI()).getUser() + " --> "
+					output = getPrintableName() + " " + ((SipURI) rqst.getFrom().getURI()).getHost() + " --> "
 							+ rqst.getMethod() + " " + event + ", " + hexHash(message) + " "
 							+ rqst.getSession().getState().toString();
 

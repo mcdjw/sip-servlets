@@ -22,8 +22,6 @@
 
 package oracle.communications.sdp;
 
-
-
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
@@ -49,20 +47,18 @@ public class StartRecording extends CallStateHandler {
 
 			state = 4;
 
-			URI vsrp1URI=null;
-			URI vsrp2URI=null;
-			
+			URI vsrp1URI = null;
+			URI vsrp2URI = null;
+
 			String to = request.getTo().getURI().toString();
-			
-			for(VrspPair vsrpPair : SiprecServlet.dialPlans   ){
-				if(to.matches(vsrpPair.getDialPlan())){
+
+			for (VrspPair vsrpPair : SiprecServlet.dialPlans) {
+				if (to.matches(vsrpPair.getDialPlan())) {
 					vsrp1URI = SiprecServlet.factory.createURI(vsrpPair.getPrimary());
 					vsrp2URI = SiprecServlet.factory.createURI(vsrpPair.getSecondary());
 				}
 			}
-			
-			
-			
+
 			SipServletRequest vsrp1 = SiprecServlet.factory.createRequest(appSession, "INVITE", request.getFrom().getURI(), vsrp1URI);
 
 			vsrp1.setContent(request.getContent(), request.getContentType());
@@ -81,8 +77,8 @@ public class StartRecording extends CallStateHandler {
 		case 4: // receive 200 OK
 		case 5: // receive 200 OK
 		case 6: // send 200 OK
-			if (status == 200) {
 
+			if (status >= 200 && status < 300) {
 				String body = response.getContent().toString();
 				if (body.contains("a=inactive")) {
 					inactiveResponse = response;
@@ -103,8 +99,24 @@ public class StartRecording extends CallStateHandler {
 					this.printOutboundMessage(ok);
 					ok.getSession().setAttribute(CALL_STATE_HANDLER, this);
 				}
+			} else if (status >= 400) {
+				SipServletRequest errorAck = response.createAck();
+				errorAck.send();
+				this.printOutboundMessage(errorAck);
 
+				if (activeResponse == null && inactiveResponse == null) {
+					inactiveResponse = response;
+				} else {
+					activeResponse = response;
+					SipServletResponse errorResponse = origRequest.createResponse(response.getStatus(), response.getReasonPhrase());
+					copyHeaders(response, errorResponse);
+					errorResponse.setContent(response.getContent(), response.getContentType());
+					errorResponse.send();
+					this.printOutboundMessage(errorResponse);
+					errorResponse.getSession().removeAttribute(CALL_STATE_HANDLER);
+				}
 			}
+
 			break;
 
 		case 7: // receive ACK
