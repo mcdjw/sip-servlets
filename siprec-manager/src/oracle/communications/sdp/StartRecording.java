@@ -100,9 +100,6 @@ public class StartRecording extends CallStateHandler {
 					ok.getSession().setAttribute(CALL_STATE_HANDLER, this);
 				}
 			} else if (status >= 400) {
-				SipServletRequest errorAck = response.createAck();
-				errorAck.send();
-				this.printOutboundMessage(errorAck);
 
 				if (activeResponse == null && inactiveResponse == null) {
 					inactiveResponse = response;

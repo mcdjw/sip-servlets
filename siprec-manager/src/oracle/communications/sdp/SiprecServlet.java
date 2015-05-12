@@ -105,13 +105,14 @@ public class SiprecServlet extends SipServlet implements SipServletListener, Tim
 
 		}
 
-		handler.printInboundMessage(request);
-
-		try {
-			handler.processEvent(request, null, null);
-		} catch (Exception e) {
-			e.printStackTrace();
-			// throw new ServletException(e);
+		if (handler != null) {
+			handler.printInboundMessage(request);
+			try {
+				handler.processEvent(request, null, null);
+			} catch (Exception e) {
+				e.printStackTrace();
+				// throw new ServletException(e);
+			}
 		}
 
 	}
