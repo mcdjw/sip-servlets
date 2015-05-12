@@ -159,7 +159,7 @@ public abstract class CallStateHandler implements Serializable{
 					System.out.println(output);
 				} else {
 					SipServletResponse rspn = (SipServletResponse) message;
-					String output = getPrintableName() + " " + ((SipURI) rspn.getTo().getURI()).getUser() + " --> "
+					String output = getPrintableName() + " " + ((SipURI) rspn.getTo().getURI()).getHost() + " --> "
 							+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod() + ") " + event
 							+ ", " + hexHash(message) + " " + rspn.getSession().getState().toString();
 					logger.fine(output);
