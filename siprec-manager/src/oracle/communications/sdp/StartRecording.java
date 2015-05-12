@@ -59,18 +59,19 @@ public class StartRecording extends CallStateHandler {
 				}
 			}
 
-			SipServletRequest vsrp1 = SiprecServlet.factory.createRequest(appSession, "INVITE", request.getFrom().getURI(), vsrp1URI);
+			SipServletRequest vrsp1 = SiprecServlet.factory.createRequest(appSession, "INVITE", request.getFrom().getURI(), vsrp1URI);
+			copyHeaders(request, vrsp1);
+			vrsp1.setContent(request.getContent(), request.getContentType());
+			vrsp1.send();
+			this.printOutboundMessage(vrsp1);
+			vrsp1.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-			vsrp1.setContent(request.getContent(), request.getContentType());
-			vsrp1.send();
-			this.printOutboundMessage(vsrp1);
-			vsrp1.getSession().setAttribute(CALL_STATE_HANDLER, this);
-
-			SipServletRequest vsrp2 = SiprecServlet.factory.createRequest(appSession, "INVITE", request.getFrom().getURI(), vsrp2URI);
-			vsrp2.setContent(request.getContent(), request.getContentType());
-			vsrp2.send();
-			this.printOutboundMessage(vsrp2);
-			vsrp2.getSession().setAttribute(CALL_STATE_HANDLER, this);
+			SipServletRequest vrsp2 = SiprecServlet.factory.createRequest(appSession, "INVITE", request.getFrom().getURI(), vsrp2URI);
+			copyHeaders(request, vrsp2);
+			vrsp2.setContent(request.getContent(), request.getContentType());
+			vrsp2.send();
+			this.printOutboundMessage(vrsp2);
+			vrsp2.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
 			break;
 
