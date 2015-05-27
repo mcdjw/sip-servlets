@@ -120,7 +120,7 @@ public class StartRecording extends CallStateHandler {
 
 				if (inactive == null) {
 					appSession.setAttribute(INACTIVE_VSRP_SESSION_ID, response.getSession().getId());
-				} else if (inactive != null) {
+				} else if(active==null){
 					appSession.setAttribute(ACTIVE_VSRP_SESSION_ID, response.getSession().getId());
 					SipServletResponse errorResponse = origRequest.createResponse(response.getStatus(), response.getReasonPhrase());
 					copyHeaders(response, errorResponse);
