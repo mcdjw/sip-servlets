@@ -25,8 +25,7 @@ import oracle.communications.sdp.CallStateHandler.SipMethod;
 import weblogic.kernel.KernelLogManager;
 
 @SipListener
-public class SiprecServlet extends SipServlet implements SipServletListener, TimerListener,
-		SipApplicationSessionListener {
+public class SiprecServlet extends SipServlet implements SipServletListener, TimerListener, SipApplicationSessionListener {
 	static Logger logger;
 	{
 		logger = Logger.getLogger(SiprecServlet.class.getName());
@@ -69,17 +68,15 @@ public class SiprecServlet extends SipServlet implements SipServletListener, Tim
 
 		handler = (CallStateHandler) request.getSession().getAttribute(CallStateHandler.CALL_STATE_HANDLER);
 
-		if (handler == null) {
-			switch (SipMethod.valueOf(request.getMethod())) {
-
-			case INVITE:
+		switch (SipMethod.valueOf(request.getMethod())) {
+		case INVITE:
+			if (handler == null) {
 				handler = new StartRecording();
-				break;
-			case BYE:
-				handler = new EndRecording();
-				break;
 			}
-
+			break;
+		case BYE:
+			handler = new EndRecording();
+			break;
 		}
 
 		if (handler != null) {
