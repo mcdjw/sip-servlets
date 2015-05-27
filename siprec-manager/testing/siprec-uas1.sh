@@ -1,2 +1,2 @@
 #!/bin/bash
-sipp -sf siprec-uas1.xml -i 192.168.1.15 -p 6060
+sipp -sf siprec-uas1.xml -i 10.179.136.44

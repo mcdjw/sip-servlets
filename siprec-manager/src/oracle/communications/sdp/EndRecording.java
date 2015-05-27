@@ -40,23 +40,27 @@ public class EndRecording extends CallStateHandler {
 			String activeSessionId = (String) appSession.getAttribute(ACTIVE_VSRP_SESSION_ID);
 			if (activeSessionId != null) {
 				SipSession activeSession = appSession.getSipSession(activeSessionId);
-				activeBye = activeSession.createRequest("BYE");
-				copyHeaders(byeRequest, activeBye);
-				activeBye.setContent(request.getContent(), request.getContentType());
-				activeBye.send();
-				this.printOutboundMessage(activeBye);
-				activeSession.setAttribute(CALL_STATE_HANDLER, this);
+				if (activeSession.isValid()) {
+					activeBye = activeSession.createRequest("BYE");
+					copyHeaders(byeRequest, activeBye);
+					activeBye.setContent(request.getContent(), request.getContentType());
+					activeBye.send();
+					this.printOutboundMessage(activeBye);
+					activeSession.setAttribute(CALL_STATE_HANDLER, this);
+				}
 			}
 
 			String inactiveSessionId = (String) appSession.getAttribute(INACTIVE_VSRP_SESSION_ID);
 			if (inactiveSessionId != null) {
 				SipSession inactiveSession = appSession.getSipSession(inactiveSessionId);
-				inactiveBye = inactiveSession.createRequest("BYE");
-				copyHeaders(byeRequest, inactiveBye);
-				inactiveBye.setContent(request.getContent(), request.getContentType());
-				inactiveBye.send();
-				this.printOutboundMessage(inactiveBye);
-				inactiveSession.setAttribute(CALL_STATE_HANDLER, this);
+				if (inactiveSession.isValid()) {
+					inactiveBye = inactiveSession.createRequest("BYE");
+					copyHeaders(byeRequest, inactiveBye);
+					inactiveBye.setContent(request.getContent(), request.getContentType());
+					inactiveBye.send();
+					this.printOutboundMessage(inactiveBye);
+					inactiveSession.setAttribute(CALL_STATE_HANDLER, this);
+				}
 			}
 
 			break;

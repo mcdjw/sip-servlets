@@ -25,7 +25,8 @@ import oracle.communications.sdp.CallStateHandler.SipMethod;
 import weblogic.kernel.KernelLogManager;
 
 @SipListener
-public class SiprecServlet extends SipServlet implements SipServletListener, TimerListener, SipApplicationSessionListener {
+public class SiprecServlet extends SipServlet implements SipServletListener, TimerListener,
+		SipApplicationSessionListener {
 	static Logger logger;
 	{
 		logger = Logger.getLogger(SiprecServlet.class.getName());
@@ -72,36 +73,11 @@ public class SiprecServlet extends SipServlet implements SipServletListener, Tim
 			switch (SipMethod.valueOf(request.getMethod())) {
 
 			case INVITE:
-
 				handler = new StartRecording();
-
-				
-//				boolean siprec = false;
-//				ListIterator<String> requires = request.getHeaders("Require");
-//				while (requires.hasNext()) {
-//					if (requires.next().equals("siprec")) {
-//						siprec = true;
-//						break;
-//					}
-//				}
-//
-//				if (siprec == true) {
-//					handler = new StartRecording();
-//				} else {
-//					// standard b2bua?
-//				}
 				break;
 			case BYE:
-				String disposition = request.getHeader("Content-Disposition");
-				if (disposition != null && disposition.equals("recording-session")) {
-
-					handler = new EndRecording();
-				} else {
-					// handler = new EndAudioCall();
-				}
-
+				handler = new EndRecording();
 				break;
-
 			}
 
 		}
@@ -114,8 +90,8 @@ public class SiprecServlet extends SipServlet implements SipServletListener, Tim
 				e.printStackTrace();
 				// throw new ServletException(e);
 			}
-		}else{
-			System.out.println("Unhandled Request: "+request.getMethod());
+		} else {
+			System.out.println("Unhandled Request: " + request.getMethod());
 		}
 
 	}

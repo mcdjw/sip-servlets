@@ -162,7 +162,7 @@ Content-Disposition: recording-session
       Contact: sip:sipp@[local_ip]:[local_port]
       Max-Forwards: 70
       Subject: Performance Test
-      Content-Length: [len]
+      Content-Length: 1372
       
 <?xml version='1.0' encoding='UTF-8'?>
 <recording xmlns='urn:ietf:params:xml:ns:recording'>

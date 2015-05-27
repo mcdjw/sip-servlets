@@ -1,2 +1,3 @@
 #!/bin/bash
-sipp -m 1 -d 5000 -sf siprec-uac.xml -i 192.168.1.15 192.168.1.17:5060
+sipp -m 1 -d 5000 -sf siprec-uac.xml -i 10.173.98.240 127.0.0.1
+
