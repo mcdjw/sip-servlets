@@ -20,6 +20,7 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
+import javax.servlet.sip.SipSession.State;
 
 public class EndRecording extends CallStateHandler {
 	SipServletRequest byeRequest = null;
@@ -39,8 +40,9 @@ public class EndRecording extends CallStateHandler {
 
 			String activeSessionId = (String) appSession.getAttribute(ACTIVE_VSRP_SESSION_ID);
 			if (activeSessionId != null) {
+
 				SipSession activeSession = appSession.getSipSession(activeSessionId);
-				if (activeSession.isValid()) {
+				if (activeSession.isValid() && activeSession.getState().equals(State.CONFIRMED)) {
 					activeBye = activeSession.createRequest("BYE");
 					copyHeaders(byeRequest, activeBye);
 					activeBye.setContent(request.getContent(), request.getContentType());
@@ -53,7 +55,7 @@ public class EndRecording extends CallStateHandler {
 			String inactiveSessionId = (String) appSession.getAttribute(INACTIVE_VSRP_SESSION_ID);
 			if (inactiveSessionId != null) {
 				SipSession inactiveSession = appSession.getSipSession(inactiveSessionId);
-				if (inactiveSession.isValid()) {
+				if (inactiveSession.isValid()&& inactiveSession.getState().equals(State.CONFIRMED)) {
 					inactiveBye = inactiveSession.createRequest("BYE");
 					copyHeaders(byeRequest, inactiveBye);
 					inactiveBye.setContent(request.getContent(), request.getContentType());
