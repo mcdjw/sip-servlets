@@ -8,18 +8,23 @@
 	<sip:app-name>siprec-manager</sip:app-name>
 	<sip:distributable />
 
+	<!-- 
+	Quick & dirty dial plan configuration. To use, create a parameter that begins with the
+	name "dial_plan". For each incoming request the Siprec Manager will examine the header,
+	in this case "From" to see if it matches the regular expression. If so, use those
+	two VRSP hubs. Use 'null' for matching on Request URI instead of a header.
+	 -->
 
 	<sip:context-param>
 		<javaee:param-name>dial_plan_01</javaee:param-name>
-		<javaee:param-value>sip:service@.*:5060, sip:vsrp1@192.168.1.17:6060, sip:vsrp2@192.168.1.17:7060</javaee:param-value>
+		<!--aee:param-value>HEADER, REGULAR EXPRESSION,     VRSP #1,                VRSP #2               </javaee:param-value-->
+		<javaee:param-value>From,   sip:10.173.98.240:5060, sip:10.179.136.44:5060, sip:10.179.136.45:5060</javaee:param-value>
 	</sip:context-param>
 
 	<sip:context-param>
 		<javaee:param-name>dial_plan_02</javaee:param-name>
-		<javaee:param-value>sip:service2@192.168.1.17:5060, sip:vsrp1@192.168.1.17:6060, sip:vsrp2@192.168.1.17:7060</javaee:param-value>
+		<javaee:param-value>From,   sip:10.173.98.233:5060, sip:10.122.34.119:5060, sip:10.122.34.120:5060</javaee:param-value>
 	</sip:context-param>
-
-
 
 <!-- 
 	<sip:context-param>

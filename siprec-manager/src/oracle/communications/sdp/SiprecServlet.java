@@ -35,8 +35,6 @@ public class SiprecServlet extends SipServlet implements SipServletListener, Tim
 	@Resource
 	public static SipFactory factory;
 
-	public static Vector<VrspPair> dialPlans = new Vector<VrspPair>();
-
 	// @SipApplicationKey
 	// public static String sessionKey(SipServletRequest request) {
 	// String key = null;
@@ -157,19 +155,7 @@ public class SiprecServlet extends SipServlet implements SipServletListener, Tim
 	@Override
 	public void servletInitialized(SipServletContextEvent event) {
 		System.out.println("siprec-manager initialized...");
-
-		String name;
-		String value;
-		Enumeration<String> parameterNames = event.getServletContext().getInitParameterNames();
-		while (parameterNames.hasMoreElements()) {
-			name = parameterNames.nextElement();
-			if (name.contains("dial_plan")) {
-				value = event.getServletContext().getInitParameter(name);
-				System.out.println("adding dial plans: " + value);
-				dialPlans.addElement(new VrspPair(value));
-			}
-		}
-
+		VrspPair.initialize(event);
 	}
 
 	@Override

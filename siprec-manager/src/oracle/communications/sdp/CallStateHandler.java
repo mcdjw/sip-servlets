@@ -1,18 +1,25 @@
 package oracle.communications.sdp;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.ListIterator;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.activation.DataSource;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.internet.InternetHeaders;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletMessage;
@@ -29,7 +36,7 @@ import weblogic.kernel.KernelLogManager;
 
 import com.bea.wcp.sip.engine.server.header.HeaderUtils;
 
-public abstract class CallStateHandler implements Serializable{
+public abstract class CallStateHandler implements Serializable {
 	static Logger logger;
 	{
 		logger = Logger.getLogger(CallStateHandler.class.getName());
@@ -39,16 +46,22 @@ public abstract class CallStateHandler implements Serializable{
 	public enum SipMethod {
 		INVITE, ACK, BYE, CANCEL, OPTIONS, REGISTER, PRACK, SUBSCRIBE, NOTIFY, PUBLISH, INFO, REFER, MESSAGE, UPDATE
 	}
-	
+
 	public final static String CALL_STATE_HANDLER = "CALL_STATE_HANDLER";
 	public final static String ACTIVE_VSRP_SESSION_ID = "ACTIVE_VSRP_SESSION_ID";
 	public final static String INACTIVE_VSRP_SESSION_ID = "INACTIVE_VSRP_SESSION_ID";
 
-
 	protected int state = 1;
 
-	public abstract void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer)
-			throws Exception;
+	CallStateHandler() {
+
+	}
+
+	CallStateHandler(CallStateHandler that) {
+		this.state = that.state;
+	}
+
+	public abstract void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception;
 
 	protected String getPrintableName() {
 		String name = this.getClass().getSimpleName();
@@ -105,19 +118,16 @@ public abstract class CallStateHandler implements Serializable{
 							event += " " + rootNode.path("reason").asText();
 						}
 
-						String output = getPrintableName() + " " + ((SipURI) rqst.getTo().getURI()).getHost() + " <-- "
-								+ rqst.getMethod() + " " + event + ", " + hexHash(message) + " "
-								+ rqst.getSession().getState().toString();
+						String output = getPrintableName() + " " + ((SipURI) rqst.getTo().getURI()).getHost() + " <-- " + rqst.getMethod() + " " + event + ", " + hexHash(message)
+								+ " " + rqst.getSession().getState().toString();
 
 						logger.fine(output);
 						System.out.println(output);
 
 					} else {
 						SipServletResponse rspn = (SipServletResponse) message;
-						String output = getPrintableName() + " " + ((SipURI) rspn.getFrom().getURI()).getHost()
-								+ " <-- " + rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod()
-								+ ") " + event + ", " + hexHash(message) + " "
-								+ rspn.getSession().getState().toString();
+						String output = getPrintableName() + " " + ((SipURI) rspn.getFrom().getURI()).getHost() + " <-- " + rspn.getStatus() + " " + rspn.getReasonPhrase() + " ("
+								+ rspn.getMethod() + ") " + event + ", " + hexHash(message) + " " + rspn.getSession().getState().toString();
 
 						logger.fine(output);
 						System.out.println(output);
@@ -151,17 +161,15 @@ public abstract class CallStateHandler implements Serializable{
 					SipServletRequest rqst = (SipServletRequest) message;
 					String output = null;
 
-					output = getPrintableName() + " " + ((SipURI) rqst.getFrom().getURI()).getHost() + " --> "
-							+ rqst.getMethod() + " " + event + ", " + hexHash(message) + " "
+					output = getPrintableName() + " " + ((SipURI) rqst.getFrom().getURI()).getHost() + " --> " + rqst.getMethod() + " " + event + ", " + hexHash(message) + " "
 							+ rqst.getSession().getState().toString();
 
 					logger.fine(output);
 					System.out.println(output);
 				} else {
 					SipServletResponse rspn = (SipServletResponse) message;
-					String output = getPrintableName() + " " + ((SipURI) rspn.getTo().getURI()).getHost() + " --> "
-							+ rspn.getStatus() + " " + rspn.getReasonPhrase() + " (" + rspn.getMethod() + ") " + event
-							+ ", " + hexHash(message) + " " + rspn.getSession().getState().toString();
+					String output = getPrintableName() + " " + ((SipURI) rspn.getTo().getURI()).getHost() + " --> " + rspn.getStatus() + " " + rspn.getReasonPhrase() + " ("
+							+ rspn.getMethod() + ") " + event + ", " + hexHash(message) + " " + rspn.getSession().getState().toString();
 					logger.fine(output);
 					System.out.println(output);
 				}
@@ -179,8 +187,8 @@ public abstract class CallStateHandler implements Serializable{
 
 			try {
 
-				String output = getPrintableName() + " " + " timer id: " + timer.getId() + ", time remaining: "
-						+ (int) timer.getTimeRemaining() / 1000 + ", " + hexHash(timer.getApplicationSession());
+				String output = getPrintableName() + " " + " timer id: " + timer.getId() + ", time remaining: " + (int) timer.getTimeRemaining() / 1000 + ", "
+						+ hexHash(timer.getApplicationSession());
 
 				logger.fine(output);
 				// System.out.println(output);
@@ -193,8 +201,7 @@ public abstract class CallStateHandler implements Serializable{
 		}
 	}
 
-	public static void copyHeaders(SipServletMessage origin, SipServletMessage destination)
-			throws UnsupportedEncodingException, IOException {
+	public static void copyHeaders(SipServletMessage origin, SipServletMessage destination) throws UnsupportedEncodingException, IOException {
 
 		String headerName, headerValue;
 		Iterator<String> itr = origin.getHeaderNames();
@@ -220,32 +227,58 @@ public abstract class CallStateHandler implements Serializable{
 
 	}
 
-	// public static byte[] getMimeBodyPart(SipServletMessage msg, String
-	// contentType) {
-	public static byte[] getMimeBodyPart(String body, String contentType) {
-
-		return null;
+	public static Multipart getMultipart(byte[] content, String contentType) throws MessagingException {
+		DataSource ds = new ByteArrayDataSource(content, contentType);
+		Multipart multipart = new MimeMultipart(ds);
+		return multipart;
 	}
 
-	// public static void setMimeBodyPart(SipServletMessage msg, String
-	// contentType, Object content) {
-	public static void setMimeBodyPart(String body, String contentType, Object content) throws MessagingException,
-			IOException {
+	public static Multipart createMultipart() throws MessagingException {
+		return new MimeMultipart("mixed");
+	}
 
-		Multipart multipart = new MimeMultipart("alternative");
+	public static String getBodyPart(Multipart multipart, String contentType) throws MessagingException, IOException {
+		String body = null;
 
-		BodyPart plainMessageBodyPart = new MimeBodyPart();
-		plainMessageBodyPart.setContent(content, contentType);
-		plainMessageBodyPart.setDisposition("recording-session");
+		for (int i = 0; i < multipart.getCount(); i++) {
+			BodyPart bp = multipart.getBodyPart(i);
+			if (contentType.equalsIgnoreCase(bp.getContentType())) {
+				BufferedReader reader = new BufferedReader(new InputStreamReader((InputStream) bp.getContent()));
+				StringBuilder strOut = new StringBuilder();
+				String line;
+				while ((line = reader.readLine()) != null) {
+					strOut.append(line).append("\r\n");
+				}
+				body = strOut.toString();
+				reader.close();
+				break;
+			}
 
-		
-		plainMessageBodyPart.setHeader("Content-Type", contentType);
-		
-		multipart.addBodyPart(plainMessageBodyPart);
+		}
+		return body;
+	}
 
-		body = multipart.toString();
+	public static void setBodyPart(Multipart multipart, byte[] content, String contentType) throws MessagingException {
+		String disposition = null;
 
-		multipart.writeTo(System.out);
+		for (int i = 0; i < multipart.getCount(); i++) {
+			BodyPart bp = multipart.getBodyPart(i);
+			if (contentType.equalsIgnoreCase(bp.getContentType())) {
+				disposition = bp.getDisposition();
+				multipart.removeBodyPart(i);
+
+				break;
+			}
+		}
+
+		InternetHeaders ih1 = new InternetHeaders();
+		ih1.setHeader("Content-Type", contentType);
+		BodyPart bodyPart = new MimeBodyPart(ih1, content);
+		if (disposition != null) {
+			bodyPart.setDisposition(disposition);
+		}
+
+		multipart.addBodyPart(bodyPart);
 
 	}
 

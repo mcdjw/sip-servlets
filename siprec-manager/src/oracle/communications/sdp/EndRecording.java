@@ -1,5 +1,5 @@
 /*
- * SBC                   OCCAS                  VSRPa                  VSRPb
+ * SBC                   OCCAS                  VRSPa                  VRSPb
  *  |(1) BYE               |                      |                      |
  *  |--------------------->| (2) BYE              |                      |
  *  |                      |--------------------->|                      |
