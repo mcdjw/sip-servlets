@@ -18,7 +18,10 @@ public class VrspPair {
 
 	public VrspPair(String str) {
 
-		List<String> items = Arrays.asList(str.split("\\s*,\\s*,\\s*"));
+		List<String> items = Arrays.asList(str.split("\\s*,\\s*"));
+
+		System.out.print(Arrays.toString(items.toArray()));
+
 		this.header = items.get(0);
 		this.regularExpression = items.get(1);
 		this.primary = items.get(2);

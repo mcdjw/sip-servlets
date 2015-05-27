@@ -20,7 +20,5 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="/Users/jeff/weblogic/occas700/wlserver/sip/server/lib/sipservlet-api.jar"/>
 	<classpathentry kind="lib" path="/Users/jeff/weblogic/occas700/wlserver/sip/server/lib/wlss.jar"/>
-	<classpathentry kind="lib" path="/Users/jeff/weblogic/occas700/wlserver/sip/server/lib/wlssapi.jar"/>
-	<classpathentry kind="lib" path="/Users/jeff/weblogic/occas700/wlserver/sip/server/lib/wlssapi-internal.jar"/>
 	<classpathentry kind="output" path="WebContent/WEB-INF/classes"/>
 </classpath>
