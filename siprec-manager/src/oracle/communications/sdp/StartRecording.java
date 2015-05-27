@@ -44,8 +44,10 @@ public class StartRecording extends CallStateHandler {
 	}
 
 	@Override
-	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer) throws Exception {
-		SipApplicationSession appSession = (request != null) ? request.getApplicationSession() : response.getApplicationSession();
+	public void processEvent(SipServletRequest request, SipServletResponse response, ServletTimer timer)
+			throws Exception {
+		SipApplicationSession appSession = (request != null) ? request.getApplicationSession() : response
+				.getApplicationSession();
 
 		int status = (response != null) ? response.getStatus() : 0;
 
@@ -69,14 +71,16 @@ public class StartRecording extends CallStateHandler {
 			String vsrp1URI = pair.getPrimary();
 			String vsrp2URI = pair.getSecondary();
 
-			SipServletRequest vrsp1 = SiprecServlet.factory.createRequest(appSession, "INVITE", request.getFrom().getURI().toString(), vsrp1URI);
+			SipServletRequest vrsp1 = SiprecServlet.factory.createRequest(appSession, "INVITE", request.getFrom()
+					.getURI().toString(), vsrp1URI);
 			copyHeaders(request, vrsp1);
 			vrsp1.setContent(request.getContent(), request.getContentType());
 			vrsp1.send();
 			this.printOutboundMessage(vrsp1);
 			vrsp1.getSession().setAttribute(CALL_STATE_HANDLER, this);
 
-			SipServletRequest vrsp2 = SiprecServlet.factory.createRequest(appSession, "INVITE", request.getFrom().getURI().toString(), vsrp2URI);
+			SipServletRequest vrsp2 = SiprecServlet.factory.createRequest(appSession, "INVITE", request.getFrom()
+					.getURI().toString(), vsrp2URI);
 			copyHeaders(request, vrsp2);
 			vrsp2.setContent(request.getContent(), request.getContentType());
 			vrsp2.send();
@@ -101,12 +105,14 @@ public class StartRecording extends CallStateHandler {
 				} else {
 					activeResponse = response;
 					appSession.setAttribute(ACTIVE_VSRP_SESSION_ID, activeResponse.getSession().getId());
-					state = 7;
 					SipServletResponse ok = origRequest.createResponse(200);
 					ok.setContent(activeResponse.getContent(), activeResponse.getContentType());
 					ok.send();
 					this.printOutboundMessage(ok);
-					ok.getSession().setAttribute(CALL_STATE_HANDLER, this);
+
+					StartRecording next = new StartRecording(this);
+					next.state=7;
+					ok.getSession().setAttribute(CALL_STATE_HANDLER, next);
 				}
 
 			} else if (status >= 400) {
@@ -118,7 +124,8 @@ public class StartRecording extends CallStateHandler {
 				} else if (inactiveResponse != null) {
 					// both errored out
 					activeResponse = response;
-					SipServletResponse errorResponse = origRequest.createResponse(response.getStatus(), response.getReasonPhrase());
+					SipServletResponse errorResponse = origRequest.createResponse(response.getStatus(),
+							response.getReasonPhrase());
 					copyHeaders(response, errorResponse);
 					errorResponse.setContent(response.getContent(), response.getContentType());
 					errorResponse.send();
@@ -134,13 +141,14 @@ public class StartRecording extends CallStateHandler {
 		case 8: // send ACK
 		case 9: // send ACK
 
-			request.getSession().removeAttribute(CALL_STATE_HANDLER);
-
-			SipServletRequest activeAck = activeResponse.createAck();
-			activeAck.setContent(request.getContent(), request.getContentType());
-			activeAck.send();
-			this.printOutboundMessage(activeAck);
-			activeAck.getSession().removeAttribute(CALL_STATE_HANDLER);
+			if (request != null) {
+				request.getSession().removeAttribute(CALL_STATE_HANDLER);
+				SipServletRequest activeAck = activeResponse.createAck();
+				activeAck.setContent(request.getContent(), request.getContentType());
+				activeAck.send();
+				this.printOutboundMessage(activeAck);
+				activeAck.getSession().removeAttribute(CALL_STATE_HANDLER);
+			}
 
 			break;
 

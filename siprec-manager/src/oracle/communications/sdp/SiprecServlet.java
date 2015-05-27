@@ -73,20 +73,23 @@ public class SiprecServlet extends SipServlet implements SipServletListener, Tim
 
 			case INVITE:
 
-				boolean siprec = false;
-				ListIterator<String> requires = request.getHeaders("Require");
-				while (requires.hasNext()) {
-					if (requires.next().equals("siprec")) {
-						siprec = true;
-						break;
-					}
-				}
+				handler = new StartRecording();
 
-				if (siprec == true) {
-					handler = new StartRecording();
-				} else {
-					// standard b2bua?
-				}
+				
+//				boolean siprec = false;
+//				ListIterator<String> requires = request.getHeaders("Require");
+//				while (requires.hasNext()) {
+//					if (requires.next().equals("siprec")) {
+//						siprec = true;
+//						break;
+//					}
+//				}
+//
+//				if (siprec == true) {
+//					handler = new StartRecording();
+//				} else {
+//					// standard b2bua?
+//				}
 				break;
 			case BYE:
 				String disposition = request.getHeader("Content-Disposition");
@@ -111,6 +114,8 @@ public class SiprecServlet extends SipServlet implements SipServletListener, Tim
 				e.printStackTrace();
 				// throw new ServletException(e);
 			}
+		}else{
+			System.out.println("Unhandled Request: "+request.getMethod());
 		}
 
 	}

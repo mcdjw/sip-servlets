@@ -17,13 +17,13 @@
 
 	<sip:context-param>
 		<javaee:param-name>dial_plan_01</javaee:param-name>
-		<!--aee:param-value>HEADER, REGULAR EXPRESSION,     VRSP #1,                VRSP #2               </javaee:param-value-->
-		<javaee:param-value>From,   sip:10.173.98.240:5060, sip:10.179.136.44:5060, sip:10.179.136.45:5060</javaee:param-value>
+		<!--aee:param-value>HEADER, REGULAR EXPRESSION, VRSP #1, VRSP #2</javaee:param-value-->
+		<javaee:param-value>From,   .*10.173.98.240.*, sip:10.179.136.44:5060;transport=udp, sip:10.179.136.45:5060;transport=udp</javaee:param-value>
 	</sip:context-param>
 
 	<sip:context-param>
 		<javaee:param-name>dial_plan_02</javaee:param-name>
-		<javaee:param-value>From,   sip:10.173.98.233:5060, sip:10.122.34.119:5060, sip:10.122.34.120:5060</javaee:param-value>
+		<javaee:param-value>From,   .*10.173.98.233.*, sip:10.122.34.119:5060;transport=udp, sip:10.122.34.120:5060;transport=udp</javaee:param-value>
 	</sip:context-param>
 
 <!-- 
